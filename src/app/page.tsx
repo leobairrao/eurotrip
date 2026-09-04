@@ -2,7 +2,7 @@ import Login from '@/components/Login';
 import AppShell from '@/components/AppShell';
 import { Provider } from '@/lib/store';
 import { supabaseServer } from '@/lib/supabase/server';
-import { SEM_SUPABASE, carregar, carregarDemo } from '@/lib/load';
+import { MODO_DEMO, SEM_SUPABASE, carregar, carregarDemo } from '@/lib/load';
 import type { AppUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -15,9 +15,25 @@ export default async function Page({
   const sp = await searchParams;
   const erro = typeof sp.erro === 'string' ? sp.erro : undefined;
 
-  // Sem banco configurado: modo demonstracao, para conferir as telas
-  // lado a lado com o artefato antes de o Supabase existir.
-  if (SEM_SUPABASE) {
+  // Publicado sem as variaveis: nao mostra dado nenhum. Melhor a pagina
+  // dizer que falta configurar do que servir os dados dele sem login.
+  if (SEM_SUPABASE && !MODO_DEMO) {
+    return (
+      <div className="entrar">
+        <h1>Eurotrip 2026</h1>
+        <p className="sub">FALTA CONFIGURAR</p>
+        <p className="msg no">
+          Este site está sem as variáveis do Supabase. Ponha{' '}
+          <b>NEXT_PUBLIC_SUPABASE_URL</b> e <b>NEXT_PUBLIC_SUPABASE_ANON_KEY</b> nas
+          variáveis de ambiente do projeto e publique de novo.
+        </p>
+      </div>
+    );
+  }
+
+  // Na maquina de quem desenvolve: modo demonstracao, para conferir as
+  // telas lado a lado com o artefato antes de o Supabase existir.
+  if (MODO_DEMO) {
     const s = await carregarDemo();
     return (
       <Provider inicial={s} me={null}>

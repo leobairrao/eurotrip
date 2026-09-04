@@ -14,6 +14,14 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export const SEM_SUPABASE =
   !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+/**
+ * O modo demonstracao le os dados do Leo do disco e mostra sem login.
+ * Isso e util na maquina dele e INACEITAVEL publicado: se as variaveis
+ * faltarem na Vercel, o site nao pode virar uma vitrine dos dados dele.
+ * Entao demonstracao existe SO fora de producao.
+ */
+export const MODO_DEMO = SEM_SUPABASE && process.env.NODE_ENV !== 'production';
+
 const vazio = (): Snapshot => ({
   days: {},
   attractions: [],
