@@ -3,9 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import 'dotenv/config';
+import { config } from 'dotenv';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+// O .env.local e convencao do Next, nao do dotenv: precisa ser pedido.
+// A ordem importa — o primeiro que definir a variavel ganha.
+config({ path: join(ROOT, '.env.local') });
+config({ path: join(ROOT, '.env') });
 export const lerJson = (p) => JSON.parse(readFileSync(join(ROOT, p), 'utf8'));
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
