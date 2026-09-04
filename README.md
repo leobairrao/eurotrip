@@ -7,6 +7,10 @@ com um motivo só: **duas pessoas mexendo no mesmo dado, ao mesmo tempo, sem per
 A especificação completa está em [`ESPECIFICACAO.md`](ESPECIFICACAO.md). Onde este README
 e a especificação divergirem, a especificação manda.
 
+**Vai mexer no código?** Leia [`COMO-MEXER.md`](COMO-MEXER.md) primeiro — como a coisa
+funciona por dentro, o que não se pode quebrar, as decisões que foram tomadas e por quê,
+e as pedras em que já se tropeçou.
+
 ---
 
 ## No ar
@@ -40,6 +44,7 @@ chaves acima. Se precisar de acesso direto com `psql`, dá para redefinir em
 
 ```
 ESPECIFICACAO.md         a especificação, 16 seções
+COMO-MEXER.md            como o app funciona por dentro, e como alterá-lo
 dados/                   o conteúdo e o estado real do Leo (13 JSONs)
 referencia/              o app de hoje, funcionando, e o CSS dele
 supabase/                o SQL: esquema, RLS, Realtime, e a Caixa privada
