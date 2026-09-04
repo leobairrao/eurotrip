@@ -16,25 +16,13 @@ import {
 } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { supabaseBrowser } from './supabase/client';
-import type {
-  AppUser, Attraction, Booking, CaixaGeral, Contribution, Extra, Food, Leg,
-  Savings, Settings, Snapshot, Stay,
-} from './types';
+import type { AppUser, CaixaGeral, Snapshot } from './types';
 
-// ---------- que coluna e a chave de cada tabela ----------
-const PK: Record<string, string> = {
-  day: 'iso',
-  attraction: 'id',
-  food: 'id',
-  leg: 'id',
-  booking: 'id',
-  stay: 'city',
-  extra: 'id',
-  settings: 'id',
-  savings: 'who',
-};
+import {
+  PK, aplicarRemoto, chave, inserirLocal, mesclar, removerLocal, type Tabela,
+} from './merge';
 
-export type Tabela = keyof typeof PK | 'contribution';
+export type { Tabela };
 
 type Estado = 'ok' | 'salvando' | 'erro';
 
@@ -95,8 +83,6 @@ export function Provider({
   const pend = useRef(new Map<string, unknown>());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const chan = useRef<RealtimeChannel | null>(null);
-
-  const chave = (t: string, pk: string, col: string) => `${t}|${pk}|${col}`;
 
   // ---------------- aplicar no estado local ----------------
   const aplicar = useCallback((t: Tabela, pk: string, cols: Record<string, unknown>) => {
@@ -274,100 +260,4 @@ export function Provider({
     [s, me, patch, now, nowMany, insert, remove, setAporte, estado, pendentes, online],
   );
   return <C.Provider value={valor}>{children}</C.Provider>;
-}
-
-// ============================================================
-// mesclagem local
-// ============================================================
-type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'extras';
-const LISTA: Record<string, Lista> = {
-  attraction: 'attractions', food: 'foods', leg: 'legs', booking: 'bookings', extra: 'extras',
-};
-
-function mesclar(v: Snapshot, t: Tabela, pk: string, cols: Record<string, unknown>): Snapshot {
-  if (t === 'day') {
-    const d = v.days[pk];
-    if (!d) return v;
-    return { ...v, days: { ...v.days, [pk]: { ...d, ...cols } } };
-  }
-  if (t === 'stay') {
-    const st = v.stays[pk];
-    if (!st) return v;
-    return { ...v, stays: { ...v.stays, [pk]: { ...st, ...cols } as Stay } };
-  }
-  if (t === 'settings') return { ...v, settings: { ...v.settings, ...cols } as Settings };
-  if (t === 'savings') {
-    if (!v.mySavings || v.mySavings.who !== pk) return v;
-    return { ...v, mySavings: { ...v.mySavings, ...cols } as Savings };
-  }
-  const l = LISTA[t as string];
-  if (!l) return v;
-  const arr = (v[l] as { id: string }[]).map((x) => (x.id === pk ? { ...x, ...cols } : x));
-  return { ...v, [l]: arr } as Snapshot;
-}
-
-function inserirLocal(v: Snapshot, t: Tabela, row: Record<string, unknown>): Snapshot {
-  const l = LISTA[t as string];
-  if (!l) return v;
-  const arr = [...(v[l] as unknown[]), row];
-  return { ...v, [l]: arr } as Snapshot;
-}
-
-function removerLocal(v: Snapshot, t: Tabela, pk: string): Snapshot {
-  const l = LISTA[t as string];
-  if (!l) return v;
-  const arr = (v[l] as { id: string }[]).filter((x) => x.id !== pk);
-  return { ...v, [l]: arr } as Snapshot;
-}
-
-/**
- * Mudanca que chegou do outro navegador.
- * Colunas com escrita local pendente sao preservadas: e o que impede
- * "salvar um campo e apagar dez".
- */
-function aplicarRemoto(
-  v: Snapshot,
-  t: Tabela,
-  p: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> },
-  pend: Map<string, unknown>,
-): Snapshot {
-  const pkCol = PK[t as string];
-
-  if (t === 'killed_seed') {
-    const sid = (p.new?.seed_id ?? p.old?.seed_id) as string | undefined;
-    if (!sid) return v;
-    if (p.eventType === 'DELETE') return { ...v, killed: v.killed.filter((x) => x !== sid) };
-    return v.killed.includes(sid) ? v : { ...v, killed: [...v.killed, sid] };
-  }
-  if (t === 'adopted') {
-    const sid = (p.new?.seed_id ?? p.old?.seed_id) as string | undefined;
-    if (!sid) return v;
-    if (p.eventType === 'DELETE') return { ...v, adopted: v.adopted.filter((x) => x !== sid) };
-    return v.adopted.includes(sid) ? v : { ...v, adopted: [...v.adopted, sid] };
-  }
-
-  if (p.eventType === 'DELETE') {
-    const pk = String(p.old?.[pkCol] ?? '');
-    return pk ? removerLocal(v, t, pk) : v;
-  }
-
-  const row = p.new;
-  const pk = String(row?.[pkCol] ?? '');
-  if (!pk) return v;
-
-  // preserva o que ainda esta na fila local
-  const limpo: Record<string, unknown> = { ...row };
-  for (const [k, val] of pend) {
-    const [tt, ppk, col] = k.split('|');
-    if (tt === t && ppk === pk && col in limpo) limpo[col] = val;
-  }
-
-  if (t === 'day' || t === 'stay' || t === 'settings' || t === 'savings') {
-    return mesclar(v, t, pk, limpo);
-  }
-  const l = LISTA[t as string];
-  if (!l) return v;
-  const arr = v[l] as { id: string }[];
-  if (arr.some((x) => x.id === pk)) return mesclar(v, t, pk, limpo);
-  return inserirLocal(v, t, limpo);
 }

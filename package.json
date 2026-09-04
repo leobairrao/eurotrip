@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs",
+    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs tests/merge.test.mjs",
     "seed": "node scripts/seed.mjs",
     "import": "node scripts/import.mjs",
     "check": "node scripts/check.mjs",
