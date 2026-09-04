@@ -63,8 +63,10 @@ function Base({ sp }: { sp: StaySpec }) {
   const st = s.stays[city] ?? EMPTY_STAY(city);
   const tot = C.stayTotal(s, city);
   const nt = num(st.nights);
-  // total_eur preenchido manda na conta e a diaria e ignorada (11.5)
-  const lancado = num(st.total_eur) > 0;
+  // total_eur preenchido manda na conta e a diaria e ignorada (11.5).
+  // O rotulo tem que usar o MESMO teste do C.stayTotal (verdadeiro/falso,
+  // nao "> 0"), senao ele mente sobre qual formula deu o numero.
+  const lancado = num(st.total_eur) !== 0;
   const end = st.address.trim();
 
   return (

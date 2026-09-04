@@ -3,7 +3,7 @@
 // do projeto ("campo a campo, ninguem apaga ninguem") e por isso tem
 // que ser funcao pura e testavel. Ver tests/merge.test.mjs.
 // ============================================================
-import type { Settings, Savings, Snapshot, Stay } from './types';
+import type { Settings, Savings, Snapshot, Stay, Who } from './types';
 
 /** Que coluna e a chave de cada tabela. */
 export const PK: Record<string, string> = {
@@ -48,8 +48,16 @@ export function mesclar(
   }
   if (t === 'settings') return { ...v, settings: { ...v.settings, ...cols } as Settings };
   if (t === 'savings') {
-    if (!v.mySavings || v.mySavings.who !== pk) return v;
-    return { ...v, mySavings: { ...v.mySavings, ...cols } as Savings };
+    if (pk !== 'leo' && pk !== 'lu') return v;
+    const w = pk as Who;
+    return { ...v, savings: { ...v.savings, [w]: { ...v.savings[w], ...cols } as Savings } };
+  }
+  if (t === 'contribution') {
+    // pk = "<who>|<mes>"
+    const [w, ym] = pk.split('|') as [Who, string];
+    if (!ym) return v;
+    const amount = (cols as { amount?: number | null }).amount ?? null;
+    return { ...v, contributions: { ...v.contributions, [ym]: { ...v.contributions[ym], [w]: amount } } };
   }
   const l = LISTA[t];
   if (!l) return v;
@@ -95,6 +103,20 @@ export function aplicarRemoto(
     const atual = v[campo] as string[];
     if (p.eventType === 'DELETE') return { ...v, [campo]: atual.filter((x) => x !== sid) };
     return atual.includes(sid) ? v : { ...v, [campo]: [...atual, sid] };
+  }
+
+  if (t === 'contribution') {
+    const row = p.eventType === 'DELETE' ? p.old : p.new;
+    const w = row?.who as Who | undefined;
+    const ym = row?.month as string | undefined;
+    if (!w || !ym) return v;
+    const amount = p.eventType === 'DELETE' ? null : ((row?.amount ?? null) as number | null);
+    const chaveLocal = chave('contribution', `${w}|${ym}`, 'amount');
+    const local = pend.has(chaveLocal) ? (pend.get(chaveLocal) as number | null) : amount;
+    return {
+      ...v,
+      contributions: { ...v.contributions, [ym]: { ...v.contributions[ym], [w]: local } },
+    };
   }
 
   const pkCol = PK[t];

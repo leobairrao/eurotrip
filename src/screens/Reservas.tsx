@@ -1,0 +1,246 @@
+'use client';
+// ============================================================
+// 10.7 — Reservas e burocracia.
+// E a fonte das pendencias de burocracia do Painel: marcar a
+// caixinha aqui apaga a linha la e move o valor para "ja pago"
+// (regra 5.10 — o valor conta sempre, a caixinha so decide o lado).
+// ============================================================
+import { useRef } from 'react';
+import { SUGGRES } from '@/content';
+import { Inline, Nota, NumField, TextField, useLocal } from '@/components/Field';
+import { useApp } from '@/lib/store';
+import * as C from '@/lib/calc';
+import { brl, parseNum, stripTags } from '@/lib/fmt';
+
+export default function Reservas() {
+  const { s, patch, now, insert, remove } = useApp();
+
+  const dn = C.bookingDone(s);
+  const pg = C.bookingBrl(s, 'pago');
+  const ft = C.bookingBrl(s, 'falta');
+  const nPago = C.bookingCount(s, 'pago');
+
+  // A posicao e a identidade da ordem (secao 12.2): o item novo vai para o fim.
+  const proximaPos = () => s.bookings.reduce((a, r) => Math.max(a, r.position), 0) + 1;
+
+  const lista = [...s.bookings].sort((a, b) => a.position - b.position);
+
+  return (
+    <>
+      <div className="panelhead">
+        <h2>Reservas e burocracia</h2>
+        <p>
+          Marque a caixinha quando resolver — e ponha o valor que você pagou.{' '}
+          <b>O que está marcado entra no &quot;total já pago&quot;</b> do painel e da aba Custos;
+          o que ainda não está entra como previsto.
+        </p>
+      </div>
+
+      {/* ---- os quatro numeros ---- */}
+      <div className="bigsum b5">
+        <div>
+          <b>{dn}/{s.bookings.length}</b>
+          <span>resolvidas</span>
+          <i>{C.bookingCount(s, '')} com valor lançado</i>
+        </div>
+        <div>
+          <b>{brl(pg)}</b>
+          <span>já pago</span>
+          <i>{`${nPago}${nPago === 1 ? ' item marcado' : ' itens marcados'}`}</i>
+        </div>
+        <div>
+          <b>{brl(ft)}</b>
+          <span>previsto, ainda não pago</span>
+          <i>{C.bookingCount(s, 'falta')} com valor</i>
+        </div>
+        <div>
+          <b>{brl(pg + ft)}</b>
+          <span>burocracia inteira</span>
+          <i>entra no custo real</i>
+        </div>
+      </div>
+
+      {/* ---- a lista ---- */}
+      <div className="bk">
+        {!s.bookings.length ? (
+          <div className="bkr">
+            <div></div>
+            <div></div>
+            <div><p style={{ color: 'var(--muted)' }}>Nada aqui ainda.</p></div>
+          </div>
+        ) : null}
+        {lista.map((r) => (
+          <div key={r.id} className={`bkr rr${r.done ? ' done' : ''}`}>
+            <input
+              type="checkbox"
+              checked={r.done}
+              onChange={(e) => now('booking', r.id, 'done', e.target.checked)}
+              aria-label="resolvido"
+            />
+            <div className="rw">
+              <TextField
+                fk={`booking|${r.id}|name`}
+                value={r.name}
+                onCommit={(v) => patch('booking', r.id, 'name', v)}
+                className="nv"
+                aria-label="item"
+              />
+            </div>
+            <NumField
+              fk={`booking|${r.id}|amount`}
+              value={r.amount}
+              onCommit={(v) => patch('booking', r.id, 'amount', v)}
+              className="pv rv"
+              placeholder="valor"
+              aria-label="quanto você pagou"
+            />
+            {/* regra 5.11: R$ e a primeira opcao, e e o lado em que o calculo cai */}
+            <select
+              className="rm"
+              value={r.currency === 'eur' ? 'eur' : 'brl'}
+              onChange={(e) => now('booking', r.id, 'currency', e.target.value)}
+              aria-label="moeda"
+            >
+              <option value="brl">R$</option>
+              <option value="eur">€</option>
+            </select>
+            <button
+              className="xb"
+              onClick={() => void remove('booking', r.id, r.seed_id)}
+              aria-label="tirar"
+            >
+              ×
+            </button>
+            <div className="rb">
+              {r.note ? <p><Inline html={r.note} /></p> : null}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="mono foot">
+        A moeda começa em R$ porque passaporte, seguro e cartão são pagos aqui. Chip e coisas
+        compradas lá, troque para €.
+      </p>
+
+      <Acrescentar proximaPos={proximaPos} />
+
+      {/* ---- as 13 sugestoes: so entram na lista dele no + (regra 5.13) ---- */}
+      <div className="sg">
+        <div className="sgh">sugestões minhas</div>
+        {SUGGRES.map((sg, j) => {
+          const sid = `R|${j}`;
+          // adotada = ja gravei em `adopted`, ou o item semeado ja esta na lista
+          const tk = s.adopted.includes(sid) || s.bookings.some((r) => r.seed_id === sid);
+          return (
+            <div key={sid} className={`sgr${tk ? ' taken' : ''}`}>
+              <div className="nm">{sg[0]}</div>
+              {tk ? (
+                <div className="vl">na sua lista</div>
+              ) : (
+                <button
+                  className="plus"
+                  onClick={() => {
+                    void insert('booking', {
+                      position: proximaPos(),
+                      name: stripTags(sg[0]),
+                      note: sg[1],
+                      amount: null,
+                      currency: 'brl',
+                      done: false,
+                      seed_id: sid,
+                    });
+                    void insert('adopted', { seed_id: sid });
+                  }}
+                >
+                  +
+                </button>
+              )}
+              <Nota html={sg[1]} className="wh" />
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+/**
+ * O formulario de acrescentar. Os campos sao locais: nada vai para o
+ * banco antes do botao. O detalhe fica LOGO ABAIXO do nome (secao 10.7).
+ */
+function Acrescentar({ proximaPos }: { proximaPos: () => number }) {
+  const { insert } = useApp();
+  const nome = useLocal();
+  const detalhe = useLocal();
+  const valor = useLocal();
+  const moeda = useRef<HTMLSelectElement | null>(null);
+
+  const acrescentar = () => {
+    const nm = nome.get();
+    if (!nm) return;
+    void insert('booking', {
+      position: proximaPos(),
+      name: stripTags(nm),
+      // o detalhe e mostrado como HTML na lista, entao arranca as tags (secao 10.0)
+      note: stripTags(detalhe.get()),
+      amount: parseNum(valor.get()),
+      currency: moeda.current?.value === 'eur' ? 'eur' : 'brl',
+      done: false,
+    });
+    nome.limpar();
+    detalhe.limpar();
+    valor.limpar();
+    if (moeda.current) moeda.current.value = 'brl';
+  };
+
+  return (
+    <div className="card" style={{ ['--cc' as string]: 'var(--ochre)' }}>
+      <div className="h">
+        <h3>Acrescentar um item</h3>
+        <div className="m">o que é, e o que você precisa lembrar sobre isso</div>
+      </div>
+      <div className="b">
+        <div className="form">
+          <div className="fld">
+            <label>O que é</label>
+            <input
+              type="text"
+              placeholder="ex. vacina de febre amarela"
+              ref={(el) => { nome.ref.current = el; }}
+            />
+          </div>
+          <div className="fld">
+            <label>Detalhe — prazo, preço, onde se faz</label>
+            <textarea
+              placeholder="ex. tem que ser 10 dias antes de embarcar; de graça no posto, mas leve o cartão do SUS"
+              ref={(el) => { detalhe.ref.current = el; }}
+            />
+          </div>
+          <div className="frow">
+            <div className="fld">
+              <label>Valor, se já souber</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="0"
+                ref={(el) => { valor.ref.current = el; }}
+              />
+            </div>
+            <div className="fld">
+              <label>Moeda</label>
+              {/* regra 5.11: burocracia comeca em real */}
+              <select ref={moeda} defaultValue="brl">
+                <option value="brl">R$ reais</option>
+                <option value="eur">€ euros</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div className="addrow one">
+          <button onClick={acrescentar}>acrescentar à lista</button>
+        </div>
+      </div>
+    </div>
+  );
+}

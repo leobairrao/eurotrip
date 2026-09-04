@@ -217,7 +217,13 @@ function Acrescentar() {
 
   return (
     <div className="addrow four">
-      <input ref={nome.ref} type="text" placeholder="ex. metrô até Barajas" aria-label="trecho novo" />
+      {/* ref por callback: o useLocal aceita input ou textarea, e o JSX quer so o input */}
+      <input
+        ref={(el) => { nome.ref.current = el; }}
+        type="text"
+        placeholder="ex. metrô até Barajas"
+        aria-label="trecho novo"
+      />
       <select ref={tipo} defaultValue="trem" aria-label="tipo do trecho novo">
         {TIPOS.map((k) => (
           <option key={k} value={k}>
@@ -226,7 +232,7 @@ function Acrescentar() {
         ))}
       </select>
       <input
-        ref={valor.ref}
+        ref={(el) => { valor.ref.current = el; }}
         type="text"
         inputMode="decimal"
         className="pv"

@@ -6,8 +6,8 @@
 import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
 import type {
-  AppUser, Attraction, Booking, CaixaGeral, Extra, Food, Leg,
-  Savings, Settings, Snapshot, Stay,
+  AppUser, Attraction, Booking, Extra, Food, Leg,
+  Savings, Settings, Snapshot, Stay, Who,
 } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -25,9 +25,11 @@ const vazio = (): Snapshot => ({
   settings: { id: 1, eur_rate: 6, flight_paid_brl: VOO },
   killed: [],
   adopted: [],
-  mySavings: null,
-  myContributions: {},
-  geral: { opening_brl: 0, goal_brl: 0, contrib_brl: 0, months: {} },
+  savings: {
+    leo: { who: 'leo', goal: null, opening: null, currency: 'brl' },
+    lu:  { who: 'lu',  goal: null, opening: null, currency: 'eur' },
+  },
+  contributions: {},
   me: null,
   hoje: hojeIso(),
 });
@@ -45,7 +47,7 @@ function hojeIso(): string {
 export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<Snapshot> {
   const [
     day, attraction, food, leg, booking, stay, extra, settings,
-    killed, adopted, savings, contribution, geral,
+    killed, adopted, savings, contribution,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
     db.from('attraction').select('*'),
@@ -57,9 +59,8 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('settings').select('*').eq('id', 1).maybeSingle(),
     db.from('killed_seed').select('seed_id'),
     db.from('adopted').select('seed_id'),
-    db.from('savings').select('*'),          // a RLS entrega so a minha linha
-    db.from('contribution').select('*'),     // idem
-    db.rpc('caixa_geral'),                   // os agregados dos dois
+    db.from('savings').select('*'),
+    db.from('contribution').select('*'),
   ]);
 
   const s = vazio();
@@ -76,11 +77,14 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
   s.killed = (killed.data ?? []).map((r: { seed_id: string }) => r.seed_id);
   s.adopted = (adopted.data ?? []).map((r: { seed_id: string }) => r.seed_id);
 
-  const minha = (savings.data ?? []).find((r: Savings) => !me || r.who === me.who) ?? null;
-  s.mySavings = minha ? { ...minha, goal: n(minha.goal), opening: n(minha.opening) } : null;
-  for (const c of contribution.data ?? []) s.myContributions[c.month] = n(c.amount);
-
-  if (geral.data) s.geral = geral.data as CaixaGeral;
+  for (const r of (savings.data ?? []) as Savings[]) {
+    if (r.who !== 'leo' && r.who !== 'lu') continue;
+    s.savings[r.who] = { ...r, goal: n(r.goal), opening: n(r.opening) };
+  }
+  for (const c of contribution.data ?? []) {
+    const w = c.who as Who;
+    s.contributions[c.month] = { ...s.contributions[c.month], [w]: n(c.amount) };
+  }
   return s;
 }
 
@@ -191,7 +195,19 @@ export async function carregarDemo(): Promise<Snapshot> {
 
   s.killed = Object.keys(bruto.killed ?? {});
   s.adopted = Object.keys(bruto.adopted ?? {});
-  s.mySavings = { who: 'leo', goal: null, opening: null, currency: 'brl' };
+  const cx = bruto.cx ?? {};
+  for (const w of ['leo', 'lu'] as Who[]) {
+    s.savings[w] = {
+      who: w,
+      goal: val((cx.meta ?? {})[w]),
+      opening: val((cx.ini ?? {})[w]),
+      currency: (cx.cur ?? {})[w] === 'eur' ? 'eur' : 'brl',
+    };
+  }
+  for (const [month, o] of Object.entries<Record<string, unknown>>(cx.ap ?? {}))
+    for (const w of ['leo', 'lu'] as Who[])
+      if (val(o?.[w]) !== null)
+        s.contributions[month] = { ...s.contributions[month], [w]: val(o[w]) };
   s.me = { id: 'demo', email: 'demonstração', who: 'leo' };
   return s;
 }

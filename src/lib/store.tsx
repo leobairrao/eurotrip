@@ -16,7 +16,7 @@ import {
 } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { supabaseBrowser } from './supabase/client';
-import type { AppUser, CaixaGeral, Snapshot } from './types';
+import type { AppUser, Snapshot, Who } from './types';
 
 import {
   PK, aplicarRemoto, chave, inserirLocal, mesclar, removerLocal, type Tabela,
@@ -38,8 +38,8 @@ interface Ctx {
   insert: (t: Tabela, row: Record<string, unknown>) => Promise<void>;
   /** O x. Se o item tem seed_id, grava em killed_seed antes (regra 5.14). */
   remove: (t: Tabela, pk: string, seedId?: string | null) => Promise<void>;
-  /** Meu aporte de um mes. */
-  setAporte: (month: string, v: number | null) => void;
+  /** O aporte de um mes, de quem for. Os dois podem lancar (escolha de 04/09). */
+  setAporte: (who: Who, month: string, v: number | null) => void;
   estado: Estado;
   pendentes: number;
   online: string[];
@@ -175,12 +175,14 @@ export function Provider({
   );
 
   const setAporte = useCallback(
-    (month: string, v: number | null) => {
-      if (!me) return;
-      const pk = `${me.who}|${month}`;
+    (who: Who, month: string, v: number | null) => {
+      const pk = `${who}|${month}`;
       const k = chave('contribution', pk, 'amount');
       pend.current.set(k, v);
-      setS((old) => ({ ...old, myContributions: { ...old.myContributions, [month]: v } }));
+      setS((old) => ({
+        ...old,
+        contributions: { ...old.contributions, [month]: { ...old.contributions[month], [who]: v } },
+      }));
       const antigo = timers.current.get(k);
       if (antigo) clearTimeout(antigo);
       timers.current.set(
@@ -191,7 +193,7 @@ export function Provider({
         }, 400),
       );
     },
-    [enviar, me],
+    [enviar],
   );
 
   const insert = useCallback(
@@ -215,27 +217,17 @@ export function Provider({
   );
 
   // ---------------- Realtime (secao 8) ----------------
-  const recarregarGeral = useCallback(async () => {
-    const { data } = await db.rpc('caixa_geral');
-    if (data) setS((v) => ({ ...v, geral: data as CaixaGeral }));
-  }, [db]);
-
   useEffect(() => {
     if (!me) return;
     const ch = db.channel('eurotrip', { config: { presence: { key: me.who } } });
 
-    const tabelas = ['day','attraction','food','leg','booking','stay','extra','settings','killed_seed','adopted'];
+    const tabelas = ['day','attraction','food','leg','booking','stay','extra',
+                     'settings','killed_seed','adopted','savings','contribution'];
     for (const t of tabelas) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, (p) => {
         setS((v) => aplicarRemoto(v, t as Tabela, p, pend.current));
       });
     }
-    // A linha da Lu a RLS nao entrega. O pulso avisa que mudou; o valor
-    // dela nunca trafega, e o geral do Leo sobe (secao 7 e 15).
-    ch.on('postgres_changes', { event: '*', schema: 'public', table: 'caixa_pulse' }, () => {
-      void recarregarGeral();
-    });
-
     ch.on('presence', { event: 'sync' }, () => {
       const st = ch.presenceState();
       setOnline(Object.keys(st));
@@ -246,14 +238,21 @@ export function Provider({
     });
     chan.current = ch;
     return () => { void db.removeChannel(ch); chan.current = null; };
-  }, [db, me, recarregarGeral]);
+  }, [db, me]);
 
-  // Se a aba voltou do sono, o Realtime pode ter perdido evento: recarrega.
+  // Se a aba voltou do sono, o Realtime pode ter perdido evento.
+  // Recarregar a pagina e o caminho honesto: nao ha estado local nao salvo.
   useEffect(() => {
-    const onVis = () => { if (document.visibilityState === 'visible') void recarregarGeral(); };
+    const onVis = () => {
+      if (document.visibilityState === 'visible' && pend.current.size === 0) {
+        void db.from('settings').select('eur_rate').eq('id', 1).maybeSingle().then(({ data }) => {
+          if (data) setS((v) => ({ ...v, settings: { ...v.settings, eur_rate: Number(data.eur_rate) } }));
+        });
+      }
+    };
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
-  }, [recarregarGeral]);
+  }, [db]);
 
   const valor = useMemo<Ctx>(
     () => ({ s, me, patch, now, nowMany, insert, remove, setAporte, estado, pendentes, online }),

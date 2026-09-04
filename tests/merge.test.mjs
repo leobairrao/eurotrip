@@ -26,9 +26,11 @@ const base = () => ({
   settings: { id: 1, eur_rate: 6.2, flight_paid_brl: VOO },
   killed: [],
   adopted: [],
-  mySavings: { who: 'leo', goal: null, opening: null, currency: 'brl' },
-  myContributions: {},
-  geral: { opening_brl: 0, goal_brl: 0, contrib_brl: 0, months: {} },
+  savings: {
+    leo: { who: 'leo', goal: null, opening: null, currency: 'brl' },
+    lu:  { who: 'lu',  goal: null, opening: null, currency: 'eur' },
+  },
+  contributions: {},
   me: { id: 'u1', email: 'leo@x', who: 'leo' },
   hoje: '2026-09-04',
 });
@@ -159,15 +161,39 @@ test('a hospedagem mescla por coluna', () => {
   assert.equal(s.stays.lisboa.nightly_eur, 68, 'a diaria dele fica');
 });
 
-test('a linha da Caixa do OUTRO nunca entra no meu estado', () => {
+test('a Caixa: a linha de cada um chega na sua chave', () => {
   let s = base();
-  // se por algum motivo chegasse um evento da linha da Lu, ele e ignorado:
-  // mesclar so aceita a MINHA linha (secao 7)
-  const antes = JSON.stringify(s.mySavings);
   s = aplicarRemoto(s, 'savings',
-    upd({ who: 'lu', goal: 999, opening: 500, currency: 'eur' }), new Map());
-  assert.equal(JSON.stringify(s.mySavings), antes, 'a minha linha nao muda');
-  assert.equal(s.mySavings.who, 'leo');
+    upd({ who: 'lu', goal: 2795, opening: 100, currency: 'eur' }), new Map());
+  assert.equal(s.savings.lu.goal, 2795);
+  assert.equal(s.savings.leo.goal, null, 'a linha do outro nao e tocada');
+});
+
+test('o aporte da Lu chega, e o geral do Leo sobe sem recarregar', () => {
+  let s = base();
+  assert.equal(s.contributions['2026-09'], undefined);
+  s = aplicarRemoto(s, 'contribution', {
+    eventType: 'INSERT', new: { who: 'lu', month: '2026-09', amount: 100 }, old: {},
+  }, new Map());
+  assert.equal(s.contributions['2026-09'].lu, 100);
+
+  // e o dele, do mesmo mes, conviven na mesma chave
+  s = aplicarRemoto(s, 'contribution', {
+    eventType: 'INSERT', new: { who: 'leo', month: '2026-09', amount: 1000 }, old: {},
+  }, new Map());
+  assert.equal(s.contributions['2026-09'].leo, 1000);
+  assert.equal(s.contributions['2026-09'].lu, 100, 'o dela fica');
+});
+
+test('o aporte que ainda esta na fila local nao e sobrescrito', () => {
+  const pend = new Map([[chave('contribution', 'leo|2026-09', 'amount'), 1500]]);
+  let s = base();
+  s = mesclar(s, 'contribution', 'leo|2026-09', { amount: 1500 });
+  // chega o eco antigo do banco
+  s = aplicarRemoto(s, 'contribution', {
+    eventType: 'UPDATE', new: { who: 'leo', month: '2026-09', amount: 1000 }, old: {},
+  }, pend);
+  assert.equal(s.contributions['2026-09'].leo, 1500, 'o que ele digitou fica');
 });
 
 test('mesclar e imutavel: nao mexe no objeto antigo', () => {

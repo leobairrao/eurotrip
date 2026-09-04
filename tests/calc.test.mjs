@@ -72,10 +72,13 @@ function snapshotDoLeo() {
     settings: { id: 1, eur_rate: num(S.rate), flight_paid_brl: VOO },
     killed: Object.keys(S.killed ?? {}),
     adopted: Object.keys(S.adopted ?? {}),
-    mySavings: { who: 'leo', goal: null, opening: null, currency: 'brl' },
-    myContributions: {},
-    geral: { opening_brl: 0, goal_brl: 0, contrib_brl: 0, months: {} },
+    savings: {
+      leo: { who: 'leo', goal: null, opening: null, currency: 'brl' },
+      lu:  { who: 'lu',  goal: null, opening: null, currency: 'eur' },
+    },
+    contributions: {},
     me: { id: 'x', email: 'leo@x', who: 'leo' },
+    hoje: '2026-09-04',
   };
 }
 
@@ -300,15 +303,15 @@ test('11.8 — meses do mes corrente ate dezembro de 2026', () => {
 test('11.8 — a falta se divide pelos meses AINDA VAZIOS', () => {
   const hoje = new Date(2026, 8, 4);            // setembro de 2026 -> 4 meses
   const s = structuredClone(S);
-  s.mySavings = { who: 'leo', goal: 4000, opening: 0, currency: 'brl' };
-  assert.equal(C.mesesVazios(s, true, hoje), 4);
-  assert.equal(C.cxMes(s, true, hoje), 1000);
+  s.savings.leo = { who: 'leo', goal: 4000, opening: 0, currency: 'brl' };
+  assert.equal(C.mesesVazios(s, 'leo', hoje), 4);
+  assert.equal(C.cxMes(s, 'leo', hoje), 1000);
 
-  s.myContributions = { '2026-09': 1000 };      // lancou setembro
-  assert.equal(C.cxTotal(s, hoje), 1000);
-  assert.equal(C.cxFalta(s, hoje), 3000);
-  assert.equal(C.mesesVazios(s, true, hoje), 3, 'redistribui pelos que sobraram');
-  assert.equal(C.cxMes(s, true, hoje), 1000);
+  s.contributions = { '2026-09': { leo: 1000 } };   // lancou setembro
+  assert.equal(C.cxTotal(s, 'leo', hoje), 1000);
+  assert.equal(C.cxFalta(s, 'leo', hoje), 3000);
+  assert.equal(C.mesesVazios(s, 'leo', hoje), 3, 'redistribui pelos que sobraram');
+  assert.equal(C.cxMes(s, 'leo', hoje), 1000);
   assert.equal(plMes(3), 'nos 3 meses que sobram');
   assert.equal(plMes(1), 'no mês que sobra');
   assert.equal(plMesV(1), 'pelo único mês ainda vazio');
@@ -316,28 +319,39 @@ test('11.8 — a falta se divide pelos meses AINDA VAZIOS', () => {
 
 test('11.8 — quem pensa em euro converte pelo cambio', () => {
   const s = structuredClone(S);
-  s.mySavings = { who: 'lu', goal: 500, opening: 100, currency: 'eur' };
-  s.myContributions = { '2026-09': 50 };
+  s.savings.lu = { who: 'lu', goal: 500, opening: 100, currency: 'eur' };
+  s.contributions = { '2026-09': { lu: 50 } };
   const hoje = new Date(2026, 8, 4);
-  assert.equal(C.cxCur(s), 'eur');
-  assert.equal(C.cxTotal(s, hoje), 150);
-  assert.equal(C.cxBrl(s, 150), 930);           // 150 x 6,20
-  assert.equal(C.estimNaMoeda(s), ESTIM_EUR);
-  s.mySavings.currency = 'brl';
-  assert.equal(C.estimNaMoeda(s), Math.round(ESTIM_EUR * 6.2));
+  assert.equal(C.cxCur(s, 'lu'), 'eur');
+  assert.equal(C.cxCur(s, 'leo'), 'brl');
+  assert.equal(C.cxTotal(s, 'lu', hoje), 150);
+  assert.equal(C.cxBrl(s, 150, 'lu'), 930);         // 150 x 6,20
+  assert.equal(C.cxMoney(s, 150, 'lu'), '€ 150');
+  assert.equal(C.cxMoney(s, 150, 'leo'), 'R$ 150');
+  assert.equal(C.estimNaMoeda(s, 'lu'), ESTIM_EUR);
+  assert.equal(C.estimNaMoeda(s, 'leo'), Math.round(ESTIM_EUR * 6.2));
 });
 
-test('11.8 — o geral sai dos agregados, nunca das linhas', () => {
-  const s = structuredClone(S);
-  s.geral = { opening_brl: 1000, goal_brl: 20000, contrib_brl: 4000, months: { '2026-09': 4000 } };
-  assert.equal(C.geralTotalBrl(s), 5000);
-  assert.equal(C.geralFaltaBrl(s), 15000);
-  assert.equal(Math.round(C.geralPct(s)), 25);
+test('11.8 — o geral soma os dois, cada um na sua moeda', () => {
   const hoje = new Date(2026, 8, 4);
-  assert.equal(C.mesesVazios(s, false, hoje), 3, 'setembro tem lancamento dos dois');
-  assert.equal(C.cxMes(s, false, hoje), 5000);
-  // a estrutura nao carrega valor por pessoa
-  assert.ok(!('leo' in s.geral) && !('lu' in s.geral));
+  const s = structuredClone(S);
+  s.savings.leo = { who: 'leo', goal: 16770, opening: 1000, currency: 'brl' };
+  s.savings.lu  = { who: 'lu',  goal: 2795,  opening: 0,    currency: 'eur' };
+  s.contributions = { '2026-09': { leo: 1000, lu: 100 } };
+
+  assert.equal(C.cxTotal(s, 'leo', hoje), 2000);
+  assert.equal(C.cxTotal(s, 'lu', hoje), 100);
+  // 2000 + 100 x 6,20
+  assert.equal(C.cxTotalBrl(s, hoje), 2000 + 620);
+  assert.equal(C.cxMetaBrl(s), 16770 + 2795 * 6.2);
+  assert.equal(C.cxFaltaBrl(s, hoje), C.cxMetaBrl(s) - C.cxTotalBrl(s, hoje));
+  // a coluna "no mes" do geral
+  assert.equal(C.cxMesBrl(s, '2026-09'), 1000 + 620);
+  assert.equal(C.cxMesBrl(s, '2026-10'), 0);
+  // no geral, mes vazio e mes em que NENHUM dos dois lancou
+  assert.equal(C.mesesVazios(s, null, hoje), 3);
+  assert.equal(C.mesesVazios(s, 'lu', hoje), 3);
+  assert.ok(C.cxPct(s, hoje) > 0 && C.cxPct(s, hoje) < 100);
 });
 
 // ---------------- Painel: bate-volta por base ----------------

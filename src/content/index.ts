@@ -46,8 +46,8 @@ export function ccOf(city: string): string {
 /** [tipo, titulo, corpo] — nao editavel, nao apagavel, nao soma. */
 export type Aviso = [NoteKind, string, string];
 
-export const CITYNOTE = avisosCidadeJson as Record<string, Aviso>;
-export const DAYNOTE = avisosDiaJson as Record<string, Aviso>;
+export const CITYNOTE = avisosCidadeJson as unknown as Record<string, Aviso>;
+export const DAYNOTE = avisosDiaJson as unknown as Record<string, Aviso>;
 
 // ---------- hospedagem: o texto do bairro (nao e dado dele) ----------
 export interface StaySpec {
@@ -72,11 +72,11 @@ export interface FoodSugg {
  * comidas-sugeridas.json tem 9 entradas, mas so 7 valem: 'be' e 'pl' sao
  * resquicio de Bruxelas e Cracovia, que foram cortadas (secao 4 e 6.3).
  */
-export const FOOD: FoodSugg[] = (comidasSugeridasJson as FoodSugg[]).filter((f) =>
+export const FOOD: FoodSugg[] = (comidasSugeridasJson as unknown as FoodSugg[]).filter((f) =>
   CO.some((c) => c.k === f.pais),
 );
 
-export const SUGGRES = reservasSugeridasJson as [string, string][];
+export const SUGGRES = reservasSugeridasJson as unknown as [string, string][];
 
 // ---------- o que so existe no artefato ----------
 /** "O que sai daqui de bate-volta", na tabela do Painel. Chave = base em minusculo. */

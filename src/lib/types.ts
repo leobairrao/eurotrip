@@ -94,14 +94,6 @@ export interface AppUser {
   who: Who;
 }
 
-/** So agregados. Nunca as linhas — a Caixa e privada (secao 7). */
-export interface CaixaGeral {
-  opening_brl: number;
-  goal_brl: number;
-  contrib_brl: number;
-  months: Record<string, number>;
-}
-
 /** Tudo o que o app tem em memoria. */
 export interface Snapshot {
   days: Record<string, Day>;
@@ -114,12 +106,17 @@ export interface Snapshot {
   settings: Settings;
   killed: string[];
   adopted: string[];
-  /** So a MINHA linha — a do outro a RLS nao entrega. */
-  mySavings: Savings | null;
-  /** So os MEUS aportes. */
-  myContributions: Record<string, number | null>;
-  /** Os agregados dos dois, via funcao security definer. */
-  geral: CaixaGeral;
+  /**
+   * As DUAS linhas da Caixa, e os aportes dos dois.
+   *
+   * A secao 7 propunha deixar isto privado (cada um so a propria linha) e
+   * mandava perguntar antes de abrir. Perguntado em 04/09: o Leo escolheu
+   * abrir, igual ao artefato de hoje. Os dois leem e escrevem os dois.
+   * Para fechar de novo, veja a nota no fim de supabase/02-politicas.sql.
+   */
+  savings: Record<Who, Savings>;
+  /** mes -> { leo, lu } */
+  contributions: Record<string, Partial<Record<Who, number | null>>>;
   me: AppUser | null;
   /**
    * A data de hoje, fixada UMA vez no servidor (ISO 'aaaa-mm-dd').

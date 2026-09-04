@@ -4,10 +4,9 @@
 // Tudo e derivado: o cartao vermelho de pendencias nunca e escrito
 // a mao, sai do que ele marcou nas outras abas.
 // ============================================================
-import { DECISOES, ISOS, STAYS, TABS } from '@/content';
+import { DECISOES, ISOS, STAYS } from '@/content';
 import { Inline } from '@/components/Field';
 import { useApp } from '@/lib/store';
-import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import { brl, daysTo, eur, num, plMes } from '@/lib/fmt';
 
@@ -15,7 +14,6 @@ const CIDADES = STAYS.map((s) => s.c);
 
 export default function Painel() {
   const { s } = useApp();
-  const { setTab } = useUi();
 
   const dep = daysTo('2026-12-10', s.hoje);
   const bases = C.baseList(s);
@@ -201,15 +199,15 @@ function Pendencias() {
     });
   }
 
-  const meta = C.geralMetaBrl(s);
-  const acum = C.geralTotalBrl(s);
+  const meta = C.cxMetaBrl(s);
+  const acum = C.cxTotalBrl(s, s.hoje);
   if (meta > 0) {
-    const falta = C.geralFaltaBrl(s);
+    const falta = C.cxFaltaBrl(s, s.hoje);
     pend.push({
       k: 'din',
       titulo: 'Dinheiro acumulado',
       corpo: falta > 0
-        ? `<b>${brl(acum)} de ${brl(meta)}</b> — faltam <b>${brl(falta)}</b>, ou ${brl(C.cxMes(s, false, s.hoje))} por mês ${plMes(C.mesesVazios(s, false, s.hoje))}. Detalhe na aba Caixa.`
+        ? `<b>${brl(acum)} de ${brl(meta)}</b> — faltam <b>${brl(falta)}</b>, ou ${brl(C.cxMes(s, null, s.hoje))} por mês ${plMes(C.mesesVazios(s, null, s.hoje))}. Detalhe na aba Caixa.`
         : `<b>meta batida</b>: ${brl(acum)} guardados. Veja a aba Caixa.`,
     });
   } else {

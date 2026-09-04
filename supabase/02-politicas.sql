@@ -71,102 +71,41 @@ begin
 end $$;
 
 -- ------------------------------------------------------------
--- A Caixa e a UNICA coisa privada, e e de proposito (secao 7).
--- Cada um le e escreve SO a propria linha.
+-- A Caixa.
+--
+-- A secao 7 propunha deixar a Caixa privada — cada um lendo so a
+-- propria linha — e mandava PERGUNTAR antes de abrir, porque os dois
+-- estao poupando para a mesma viagem. Perguntado em 04/09/2026: o Leo
+-- escolheu ABRIR, igual ao artefato de hoje. Os dois leem e escrevem
+-- as duas linhas, e o geral mostra a coluna de cada um.
+--
+-- Para fechar de novo, troque as duas politicas abaixo por:
+--   create policy "so a propria" on savings for all
+--     using (who = meu_who()) with check (who = meu_who());
+--   (idem em contribution)
+-- e volte o commit que abriu, que traz a funcao caixa_geral() e o
+-- gatilho de pulso — sem eles o geral de um nao sobe quando o outro
+-- lanca, porque a RLS filtra o Realtime.
 -- ------------------------------------------------------------
 drop policy if exists "so a propria" on savings;
-create policy "so a propria" on savings for all
-  using      (who = meu_who())
-  with check (who = meu_who());
+drop policy if exists "so os dois" on savings;
+create policy "so os dois" on savings for all
+  using (is_member()) with check (is_member());
 
 drop policy if exists "so a propria" on contribution;
-create policy "so a propria" on contribution for all
-  using      (who = meu_who())
-  with check (who = meu_who());
+drop policy if exists "so os dois" on contribution;
+create policy "so os dois" on contribution for all
+  using (is_member()) with check (is_member());
 
 -- ------------------------------------------------------------
--- O "geral" da Caixa: soma dois valores que nenhum dos dois
--- pode ler individualmente. Devolve SO agregados — nunca as linhas.
--- ------------------------------------------------------------
-create or replace function caixa_geral() returns jsonb
-  language plpgsql security definer stable set search_path = public
-as $$
-declare rate numeric; res jsonb;
-begin
-  if not is_member() then raise exception 'nao autorizado'; end if;
-  select eur_rate into rate from settings where id = 1;
-  rate := coalesce(rate, 6.00);
-
-  select jsonb_build_object(
-    -- "saldo de hoje" dos dois, convertido a R$
-    'opening_brl', coalesce((
-      select sum(case when s.currency = 'eur' then coalesce(s.opening,0) * rate
-                      else coalesce(s.opening,0) end) from savings s), 0),
-    -- meta dos dois, convertida a R$
-    'goal_brl', coalesce((
-      select sum(case when s.currency = 'eur' then coalesce(s.goal,0) * rate
-                      else coalesce(s.goal,0) end) from savings s), 0),
-    -- aportes dos dois, convertidos a R$
-    'contrib_brl', coalesce((
-      select sum(case when s.currency = 'eur' then coalesce(c.amount,0) * rate
-                      else coalesce(c.amount,0) end)
-      from contribution c join savings s on s.who = c.who), 0),
-    -- por mes, os dois somados (nunca separados)
-    'months', coalesce((
-      select jsonb_object_agg(x.month, x.brl) from (
-        select c.month as month,
-               sum(case when s.currency = 'eur' then coalesce(c.amount,0) * rate
-                        else coalesce(c.amount,0) end) as brl
-        from contribution c join savings s on s.who = c.who
-        group by c.month) x), '{}'::jsonb)
-  ) into res;
-  return res;
-end $$;
-
-grant execute on function caixa_geral() to authenticated;
-
--- ------------------------------------------------------------
--- O pulso da Caixa.
--- A RLS impede o Leo de receber por Realtime a linha da Lu — e sem
--- isso o "geral" dele nunca subiria quando ela lanca (secao 15).
--- Este gatilho bate num contador que os dois PODEM ler; o Realtime
--- avisa, e cada cliente chama caixa_geral() de novo. O numero dela
--- nunca trafega, so o aviso de que algo mudou.
--- ------------------------------------------------------------
-create table if not exists caixa_pulse (
-  id  int primary key default 1 check (id = 1),
-  n   bigint not null default 0
-);
-insert into caixa_pulse (id, n) values (1, 0) on conflict do nothing;
-
-alter table caixa_pulse enable row level security;
-drop policy if exists "pulso: os dois leem" on caixa_pulse;
-create policy "pulso: os dois leem" on caixa_pulse for select using (is_member());
-
-create or replace function bater_pulso_caixa() returns trigger
-  language plpgsql security definer set search_path = public
-as $$ begin
-  update caixa_pulse set n = n + 1 where id = 1;
-  return null;
-end $$;
-
-drop trigger if exists pulso_savings      on savings;
-drop trigger if exists pulso_contribution on contribution;
-create trigger pulso_savings      after insert or update or delete on savings
-  for each statement execute function bater_pulso_caixa();
-create trigger pulso_contribution after insert or update or delete on contribution
-  for each statement execute function bater_pulso_caixa();
-
--- ------------------------------------------------------------
--- Realtime (secao 8): as compartilhadas + o pulso da Caixa.
--- savings e contribution NAO entram: sao privadas, e o pulso
--- ja faz o trabalho sem vazar valor.
+-- Realtime (secao 8): todas as compartilhadas, a Caixa incluida.
 -- ------------------------------------------------------------
 do $$
 declare t text;
 begin
   foreach t in array array['day','attraction','food','leg','booking','stay',
-                           'extra','settings','killed_seed','adopted','caixa_pulse']
+                           'extra','settings','killed_seed','adopted',
+                           'savings','contribution']
   loop
     begin
       execute format('alter publication supabase_realtime add table %I', t);
@@ -176,10 +115,22 @@ begin
 end $$;
 
 -- Realtime precisa da linha inteira no DELETE para o cliente saber o que sair da tela
-alter table attraction  replica identity full;
-alter table food        replica identity full;
-alter table leg         replica identity full;
-alter table booking     replica identity full;
-alter table extra       replica identity full;
-alter table killed_seed replica identity full;
-alter table adopted     replica identity full;
+alter table attraction   replica identity full;
+alter table food         replica identity full;
+alter table leg          replica identity full;
+alter table booking      replica identity full;
+alter table extra        replica identity full;
+alter table killed_seed  replica identity full;
+alter table adopted      replica identity full;
+alter table contribution replica identity full;
+
+-- ------------------------------------------------------------
+-- Limpeza: se este banco ja tinha a versao privada, tire o que
+-- sobrou dela. Sem isto, o gatilho continuaria batendo um pulso
+-- que ninguem mais escuta.
+-- ------------------------------------------------------------
+drop trigger  if exists pulso_savings      on savings;
+drop trigger  if exists pulso_contribution on contribution;
+drop function if exists bater_pulso_caixa();
+drop function if exists caixa_geral();
+drop table    if exists caixa_pulse;
