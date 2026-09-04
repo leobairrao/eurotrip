@@ -9,6 +9,21 @@ e a especificação divergirem, a especificação manda.
 
 ---
 
+## O projeto no Supabase
+
+| | |
+|---|---|
+| projeto | `eurotrip` |
+| região | `sa-east-1` — South America (São Paulo) |
+| URL | `https://qwwmjibqlgysjembhbxs.supabase.co` |
+| chaves | formato novo: `sb_publishable_…` (navegador) e `sb_secret_…` (só local) |
+
+A senha do Postgres foi gerada na criação do projeto. O app não usa ela — só as
+chaves acima. Se precisar de acesso direto com `psql`, dá para redefinir em
+**Settings › Database › Reset database password**.
+
+---
+
 ## O que é o que
 
 ```
@@ -55,9 +70,14 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ## Preparar o banco, na ordem
 
 ```bash
-# 1. no SQL Editor do Supabase, rode nesta ordem:
-#      supabase/01-schema.sql
-#      supabase/02-politicas.sql
+# 1. no SQL Editor do Supabase, cole e rode:
+#      supabase/00-tudo.sql        (esquema + politicas, numa colada so)
+#    ou, se preferir separado:
+#      supabase/01-schema.sql  depois  supabase/02-politicas.sql
+#
+#    O Supabase avisa "destructive operations": e o bloco de limpeza do fim,
+#    que derruba a versao privada da Caixa com `drop ... if exists`. Num banco
+#    novo esses objetos nao existem, entao sao no-ops.
 
 # 2. o conteúdo (34 dias, 104 atrações, 12 trechos, 7 bases…)
 npm run seed
