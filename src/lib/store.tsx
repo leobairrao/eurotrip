@@ -73,7 +73,8 @@ export function Provider({
   const [estado, setEstado] = useState<Estado>('ok');
   const [pendentes, setPendentes] = useState(0);
   const [online, setOnline] = useState<string[]>([]);
-  const db = useMemo<SupabaseClient>(() => supabaseBrowser(), []);
+  // null no modo demonstracao: a tela funciona, nada sai daqui.
+  const db = useMemo<SupabaseClient | null>(() => supabaseBrowser(), []);
 
   /**
    * As escritas que ainda nao voltaram do banco. Enquanto uma coluna
@@ -93,6 +94,11 @@ export function Provider({
   const enviar = useCallback(
     async (t: Tabela, pk: string, cols: Record<string, unknown>, tentativa = 0): Promise<void> => {
       const chaves = Object.keys(cols).map((c) => chave(t, pk, c));
+      if (!db) {
+        for (const k of chaves) pend.current.delete(k);
+        setPendentes(pend.current.size);
+        return;
+      }
       setEstado('salvando');
       setPendentes(pend.current.size);
 
@@ -198,6 +204,11 @@ export function Provider({
 
   const insert = useCallback(
     async (t: Tabela, row: Record<string, unknown>) => {
+      if (!db) {
+        // demonstracao: id de mentira, so para a tela reagir
+        setS((v) => inserirLocal(v, t, { id: `demo-${Math.random().toString(36).slice(2)}`, ...row }));
+        return;
+      }
       const { data, error } = await db.from(t as string).insert(row).select().single();
       if (error) { setEstado('erro'); return; }
       if (data) setS((v) => inserirLocal(v, t, data));
@@ -207,9 +218,10 @@ export function Provider({
 
   const remove = useCallback(
     async (t: Tabela, pk: string, seedId?: string | null) => {
+      setS((v) => removerLocal(v, t, pk));
+      if (!db) return;
       // O item apagado nao ressuscita na proxima semeadura (regra 5.14)
       if (seedId) await db.from('killed_seed').upsert({ seed_id: seedId }, { onConflict: 'seed_id' });
-      setS((v) => removerLocal(v, t, pk));
       const { error } = await db.from(t as string).delete().eq(PK[t as string], pk);
       if (error) setEstado('erro');
     },
@@ -218,7 +230,7 @@ export function Provider({
 
   // ---------------- Realtime (secao 8) ----------------
   useEffect(() => {
-    if (!me) return;
+    if (!db || !me) return;
     const ch = db.channel('eurotrip', { config: { presence: { key: me.who } } });
 
     const tabelas = ['day','attraction','food','leg','booking','stay','extra',
@@ -243,6 +255,7 @@ export function Provider({
   // Se a aba voltou do sono, o Realtime pode ter perdido evento.
   // Recarregar a pagina e o caminho honesto: nao ha estado local nao salvo.
   useEffect(() => {
+    if (!db) return;
     const onVis = () => {
       if (document.visibilityState === 'visible' && pend.current.size === 0) {
         void db.from('settings').select('eur_rate').eq('id', 1).maybeSingle().then(({ data }) => {

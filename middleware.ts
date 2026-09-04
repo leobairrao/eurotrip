@@ -5,6 +5,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  // Sem Supabase configurado o app roda em modo demonstracao: nao ha
+  // sessao para renovar, e tentar criar o cliente aqui derrubaria a pagina.
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

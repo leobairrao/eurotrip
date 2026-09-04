@@ -18,6 +18,12 @@ export default function Login({ erro }: { erro?: string }) {
     if (!alvo) return;
     setEstado('indo');
     const db = supabaseBrowser();
+    if (!db) {
+      // so acontece se faltar variavel de ambiente na Vercel
+      setEstado('falhou');
+      setDetalhe('o app não está configurado');
+      return;
+    }
 
     // A allowlist vive em app_user (secao 9.5). A funcao devolve so
     // true/false — nunca diz se a conta existe (secao 9.2).

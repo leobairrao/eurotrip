@@ -134,7 +134,8 @@ export default function Reservas() {
           const tk = s.adopted.includes(sid) || s.bookings.some((r) => r.seed_id === sid);
           return (
             <div key={sid} className={`sgr${tk ? ' taken' : ''}`}>
-              <div className="nm">{sg[0]}</div>
+              {/* o nome semeado pode trazer <b> (o CSS tem .sgr .nm b) — vai como HTML */}
+              <Nota html={sg[0]} className="nm" />
               {tk ? (
                 <div className="vl">na sua lista</div>
               ) : (

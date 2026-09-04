@@ -71,8 +71,9 @@ export default function Comidas() {
         })}
       </div>
 
+      {/* a chave leva o pais: trocar de pais limpa o campo de acrescentar, como no artefato */}
       {KINDS.map((k) => (
-        <Cartao key={k} kind={k} cor={k === 'prato' ? co.cc : k === 'restaurante' ? '--c-nl' : '--ochre'} />
+        <Cartao key={`${selCO}|${k}`} kind={k} cor={k === 'prato' ? co.cc : k === 'restaurante' ? '--c-nl' : '--ochre'} />
       ))}
 
       {f ? <Sugestoes f={f} /> : null}
@@ -216,14 +217,16 @@ function Sugestoes({ f }: { f: FoodSugg }) {
 
   const puxar = async (ix: number) => {
     const sid = `F${selCO}|${ix}`;
-    // Copia como prato tipico, e marca a semente como adotada para o + virar "na sua lista".
+    // Copia como prato tipico. O seed_id da linha e o da semente ('Fpt|3', secao 11 do
+    // 01-schema.sql): e o que faz o + virar "na sua lista" na hora e o x gravar
+    // killed_seed (regra 5.14).
     await insert('food', {
       country: selCO,
       name: stripTags(f.reg[ix][0]),
       note: f.reg[ix][1],
       kind: 'prato',
       day_iso: null,
-      seed_id: null,
+      seed_id: sid,
     });
     await insert('adopted', { seed_id: sid });
   };
@@ -239,7 +242,8 @@ function Sugestoes({ f }: { f: FoodSugg }) {
           <div className="sgh">vale provar</div>
           {f.reg.map((r, ix) => {
             const sid = `F${selCO}|${ix}`;
-            const tk = s.adopted.includes(sid);
+            // adotada = ja gravei em `adopted`, ou a linha semeada ja esta na lista dele
+            const tk = s.adopted.includes(sid) || s.foods.some((x) => x.seed_id === sid);
             return (
               <div key={sid} className={tk ? 'sgr taken' : 'sgr'}>
                 <Nota html={r[0]} className="nm" />

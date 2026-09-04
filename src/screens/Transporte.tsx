@@ -8,8 +8,8 @@ import { TK, TKE, TKPL } from '@/content';
 import { Inline, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
-import { brl, parseNum, shortDt } from '@/lib/fmt';
-import type { LegKind } from '@/lib/types';
+import { brl, parseNum, shortDt, stripTags } from '@/lib/fmt';
+import type { Currency, LegKind } from '@/lib/types';
 import { useRef } from 'react';
 
 // Object.keys perde o tipo; a ordem do literal e a ordem de exibicao.
@@ -200,19 +200,28 @@ function Acrescentar() {
   const moeda = useRef<HTMLSelectElement>(null);
 
   const juntar = () => {
-    const n = nome.get();
+    // o que ele digita e texto puro: arranca tag antes de salvar (secao 10.0)
+    const n = stripTags(nome.get());
     if (!n) return;
+    const kv = tipo.current?.value ?? 'trem';
+    // regra 5.11 — o que nao for R$ cai no euro, do mesmo lado do calculo
+    const moe: Currency = moeda.current?.value === 'brl' ? 'brl' : 'eur';
     // trecho novo entra no fim da sequencia do roteiro (10.5)
     const pos = s.legs.reduce((a, t) => Math.max(a, t.position), 0) + 1;
     void insert('leg', {
       position: pos,
       name: n,
-      kind: tipo.current?.value ?? 'trem',
+      kind: TIPOS.find((x) => x === kv) ?? 'trem',
       amount: parseNum(valor.get()),
-      currency: moeda.current?.value ?? 'eur',
+      currency: moe,
     });
     nome.limpar();
     valor.limpar();
+    // o artefato re-renderiza a tela toda depois de acrescentar: o
+    // formulario volta a trem e a euro. Os selects nao se re-montam, entao
+    // aqui e na mao.
+    if (tipo.current) tipo.current.value = 'trem';
+    if (moeda.current) moeda.current.value = 'eur';
   };
 
   return (

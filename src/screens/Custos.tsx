@@ -8,16 +8,14 @@ import { useRef } from 'react';
 import { STAYS, VOO } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
-import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, eur, parseNum } from '@/lib/fmt';
+import { brl, eur, parseNum, stripTags } from '@/lib/fmt';
 import type { Currency } from '@/lib/types';
 
 const CIDADES = STAYS.map((x) => x.c);
 
 export default function Custos() {
   const { s } = useApp();
-  const { setTab } = useUi();
 
   const ho = C.stayTotalAll(s, CIDADES);
   const at = C.attrEurAll(s, 'escolhida');       // regra 5.2: so 'escolhida' entra no custo
@@ -29,7 +27,7 @@ export default function Custos() {
   const rt = C.rate(s);
   const tb = C.totalBrl(s, CIDADES);
   const somaEur = ho + at + xe + tr.eur + rs.eur;
-  const trTudoBrl = tr.eur * rt + tr.brl;
+  const trTudoBrl = C.legBrl(s, '');   // 11.6: eur x cambio + brl
 
   return (
     <>
@@ -143,11 +141,6 @@ export default function Custos() {
             <b>{brl(C.legBrl(s, 'pago'))}</b> já pago e <b>{brl(C.legBrl(s, 'falta'))}</b> ainda
             previsto.
           </p>
-          <div className="addrow one">
-            <button type="button" onClick={() => setTab('transporte')}>
-              abrir a aba Transporte
-            </button>
-          </div>
           {/* regra 5.12 */}
           <div className="n warn">
             <b>não conte duas vezes</b>
@@ -281,7 +274,7 @@ function Acrescentar() {
     const n = nome.get();
     if (!n) return;
     const m: Currency = moeda.current?.value === 'brl' ? 'brl' : 'eur';
-    void insert('extra', { name: n, amount: parseNum(valor.get()), currency: m });
+    void insert('extra', { name: stripTags(n), amount: parseNum(valor.get()), currency: m });
     nome.limpar();
     valor.limpar();
     if (moeda.current) moeda.current.value = 'eur';
