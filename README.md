@@ -9,6 +9,18 @@ e a especificação divergirem, a especificação manda.
 
 ---
 
+## No ar
+
+**https://eurotrip-bice.vercel.app** — só os dois e-mails entram.
+
+| | |
+|---|---|
+| repositório | `github.com/leobairrao/eurotrip` (deploy automático a cada push em `main`) |
+| Vercel | projeto `eurotrip`, com **só** as duas variáveis `NEXT_PUBLIC_` |
+| Supabase Auth | Site URL e Redirect URLs apontando para produção e para `localhost:3000` |
+
+---
+
 ## O projeto no Supabase
 
 | | |
@@ -117,6 +129,18 @@ Depois, no painel do Supabase:
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 3. Ponha a URL de produção no Supabase Auth (acima).
 4. Teste o link mágico **nos dois e-mails** antes de mandar o link para a Lu.
+
+Para testar a entrada sem depender de e-mail (só na sua máquina, precisa da chave
+secreta):
+
+```bash
+node scripts/link.mjs leobairrao05@gmail.com                    # local
+BASE=https://eurotrip-bice.vercel.app node scripts/link.mjs leobairrao05@gmail.com
+```
+
+> A variável **Preview** não foi configurada na Vercel — só **Production**. Se algum dia
+> você abrir um branch e quiser que o deploy de preview funcione, duplique as duas
+> variáveis para o ambiente Preview.
 
 ---
 
