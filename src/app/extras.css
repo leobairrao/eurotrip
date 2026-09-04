@@ -1,0 +1,41 @@
+/* ============================================================
+   O pouco que o artefato nao tinha, porque nao existia login
+   nem duas pessoas. Mesma linguagem visual da secao 13:
+   sem canto arredondado, sem sombra, borda de 1px.
+   ============================================================ */
+
+/* ---- entrada (secao 9.1: um campo, um botao, e nada mais) ---- */
+.entrar { max-width: 420px; margin: 0 auto; padding: 72px 24px; }
+.entrar h1 { font-family: var(--display); font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.entrar .sub { font-family: var(--mono); font-size: 11px; color: var(--muted);
+  letter-spacing: .06em; margin: 6px 0 28px; }
+.entrar form { display: flex; flex-direction: column; gap: 10px; }
+.entrar input { padding: 11px 12px; background: var(--surface);
+  border: 1px solid var(--hairline-2); width: 100%; }
+.entrar button { font-family: var(--mono); font-size: 11px; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase; padding: 12px;
+  border: 1px solid var(--pine); color: var(--pine); background: var(--surface); }
+.entrar button[disabled] { opacity: .4; cursor: default; }
+.entrar .msg { font-family: var(--mono); font-size: 11.5px; line-height: 1.7;
+  border-left: 3px solid var(--hairline-2); padding: 8px 0 8px 12px; margin-top: 18px; }
+.entrar .msg.ok { border-left-color: var(--pine); color: var(--ink-2); }
+.entrar .msg.no { border-left-color: var(--rust); color: var(--ink-2); }
+.entrar .rodape { font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: .04em; margin-top: 40px; }
+
+/* ---- quem esta online: um pontinho e o nome, nada mais (secao 8) ---- */
+.presenca { display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: .04em; }
+.presenca i { width: 6px; height: 6px; border-radius: 50%; background: var(--pine); display: block; }
+.sairbtn { font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+  letter-spacing: .04em; text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---- aviso de modo demonstracao ---- */
+.demofaixa { background: var(--ochre-wash); border-bottom: 1px solid var(--ochre);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em; color: var(--ink-2); }
+.demofaixa div { max-width: 1000px; margin: 0 auto; padding: 7px 24px; }
+
+@media (max-width: 560px) {
+  .entrar { padding: 48px 16px; }
+  .demofaixa div { padding: 7px 16px; }
+}

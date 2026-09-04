@@ -73,8 +73,10 @@ export function longDt(iso: string): string {
 export function wdOf(iso: string): string {
   return WD[dObj(iso).getDay()];
 }
-export function daysTo(iso: string, hoje?: Date): number {
-  const t = hoje ? new Date(hoje) : new Date();
+/** hoje pode ser 'aaaa-mm-dd' (o do Snapshot) ou um Date. */
+export function daysTo(iso: string, hoje?: string | Date): number {
+  const t =
+    typeof hoje === 'string' ? dObj(hoje) : hoje ? new Date(hoje) : new Date();
   t.setHours(0, 0, 0, 0);
   return Math.round((dObj(iso).getTime() - t.getTime()) / 86400000);
 }
@@ -124,8 +126,8 @@ export function plMesV(n: number): string {
  * Os meses que ainda da para guardar: do mes de hoje ate dezembro de 2026.
  * Calculado na hora, nunca fixado (secao 10.8).
  */
-export function saveMonths(hoje?: Date): string[] {
-  const t = hoje ?? new Date();
+export function saveMonths(hoje?: string | Date): string[] {
+  const t = typeof hoje === 'string' ? dObj(hoje) : (hoje ?? new Date());
   const y = t.getFullYear();
   let m = t.getMonth();
   if (y > 2026) return ['2026-12'];

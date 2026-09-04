@@ -9,10 +9,11 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs",
     "seed": "node scripts/seed.mjs",
     "import": "node scripts/import.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs"
+    "usuarios": "node scripts/usuarios.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

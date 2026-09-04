@@ -1,0 +1,181 @@
+# Eurotrip 2026
+
+O app de planejamento da viagem do Leo e da Lu — 10/12/2026 a 12/01/2027, 34 dias,
+8 bases, 7 países. Reconstrução do artefato `referencia/artefato-v28.html` como site,
+com um motivo só: **duas pessoas mexendo no mesmo dado, ao mesmo tempo, sem perder nada.**
+
+A especificação completa está em [`ESPECIFICACAO.md`](ESPECIFICACAO.md). Onde este README
+e a especificação divergirem, a especificação manda.
+
+---
+
+## O que é o que
+
+```
+ESPECIFICACAO.md         a especificação, 16 seções
+dados/                   o conteúdo e o estado real do Leo (13 JSONs)
+referencia/              o app de hoje, funcionando, e o CSS dele
+supabase/                o SQL: esquema, RLS, Realtime, e a Caixa privada
+scripts/                 semeadura, importação, allowlist e os números de aceite
+src/content/             os JSONs que viram constante no código (seção 6.3)
+src/lib/                 formulas (seção 11), store em tempo real, tipos
+src/screens/             as nove telas
+tests/                   27 testes sobre as formulas e as regras
+```
+
+---
+
+## Rodar na sua máquina
+
+```bash
+npm install
+cp .env.local.example .env.local     # e preencha
+npm run dev                          # http://localhost:3000
+```
+
+**Sem `.env.local` o app ainda abre**, em *modo demonstração*: as nove telas com os
+dados reais do Leo, lidos direto de `dados/estado-atual-do-leo.json`. Serve para conferir
+o visual lado a lado com o artefato. Nada salva nesse modo.
+
+### As variáveis
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+> ⚠️ **A chave de service role fica só na sua máquina.** Ela não vai para a Vercel e não
+> vai para o navegador, em hipótese alguma. É usada apenas pelos scripts de
+> `scripts/`, que rodam localmente. As duas variáveis `NEXT_PUBLIC_` são as únicas
+> que o site precisa.
+
+---
+
+## Preparar o banco, na ordem
+
+```bash
+# 1. no SQL Editor do Supabase, rode nesta ordem:
+#      supabase/01-schema.sql
+#      supabase/02-politicas.sql
+
+# 2. o conteúdo (34 dias, 104 atrações, 12 trechos, 7 bases…)
+npm run seed
+
+# 3. o que o Leo já preencheu — dado real, não pode ser perdido
+npm run import
+
+# 4. os números de aceite. Se algum não bater, pare aqui.
+npm run check
+
+# 5. a allowlist: cria as duas contas e as duas linhas de app_user
+npm run usuarios
+```
+
+`npm run check` tem que imprimir:
+
+```
+ok   atrações escolhidas                8
+ok     ... todas de Lisboa             lisboa
+ok   total já pago                     R$ 5.337
+ok   câmbio                            6,2
+```
+
+Depois, no painel do Supabase:
+
+- **Authentication › Sign In / Providers** → desligue *Allow new users to sign up*.
+- **Authentication › URL Configuration** → ponha a URL de produção da Vercel em
+  *Site URL* e em *Redirect URLs* (com `/auth/callback`). Sem isso o link mágico
+  chega quebrado.
+
+---
+
+## Publicar na Vercel
+
+1. Suba o repositório e importe o projeto na Vercel.
+2. Variáveis de ambiente: **só** `NEXT_PUBLIC_SUPABASE_URL` e
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. Ponha a URL de produção no Supabase Auth (acima).
+4. Teste o link mágico **nos dois e-mails** antes de mandar o link para a Lu.
+
+---
+
+## Acrescentar conteúdo novo sem quebrar nada
+
+O conteúdo semeado é identificado por um `seed_id` **posicional**:
+
+```
+atração dele     m:<cidade>:<índice no array daquela cidade>     m:lisboa:0
+atração minha    s:<cidade>:<índice>                             s:roma:4
+trecho           t:<índice>                                      t:3
+comida           f:<país>:<índice>
+reserva          b:<índice>
+```
+
+> ### ⚠️ O índice é a identidade.
+> **Nunca reordene nem remova item do meio dos arrays nos JSONs.** Tirar um item do meio
+> desloca todos os seguintes, e a reconciliação passa a ver itens antigos como novos —
+> duplicata em massa. Só **acrescente no fim** do array de cada cidade/país. Se um item
+> precisa sumir, troque o texto no lugar; não apague a linha.
+>
+> O mesmo vale para `dados/transportes.json`: a posição é a identidade.
+
+Para acrescentar as listas que ainda faltam (Metz, Luxemburgo, Reims, Amsterdã e Roma):
+
+```bash
+# 1. acrescente os itens NO FIM do array da cidade em dados/atracoes-dele.json
+# 2. copie para src/content/ (o app lê de lá)
+cp dados/atracoes-dele.json src/content/atracoes-dele.json
+# 3. reconcilie
+npm run seed
+```
+
+`npm run seed` pode rodar quantas vezes quiser:
+
+| situação | o que acontece |
+|---|---|
+| o `seed_id` já está na tabela | não mexe (ele pode ter editado o nome, o preço) |
+| o `seed_id` está em `killed_seed` | **nunca volta** (regra 5.14) |
+| é novo | insere |
+
+---
+
+## Os testes
+
+```bash
+npm test          # as formulas da seção 11 e as regras da seção 5
+npm run typecheck
+npm run check     # os números de aceite, lidos do banco
+```
+
+`npm test` roda contra o código de produção (`src/lib/calc.ts`), sobre o estado real de
+`dados/estado-atual-do-leo.json` — não contra uma cópia.
+
+---
+
+## Duas coisas que parecem estranhas e são de propósito
+
+**1. A Caixa é privada, e o "geral" vem de uma função.**
+A RLS entrega a cada um só a própria linha de `savings` e `contribution`. O total dos
+dois vem de `caixa_geral()`, uma função `security definer` que devolve **só agregados** —
+nunca as linhas. Por isso a sub-aba *geral* não tem coluna do Leo e coluna da Lu: mostrar
+isso seria vazar o número do outro (seção 7).
+
+**2. Existe uma tabela `caixa_pulse` que só tem um contador.**
+Como a RLS filtra o Realtime, o Leo nunca receberia o evento da linha da Lu — e o *geral*
+dele não subiria quando ela lançasse um aporte. Um gatilho em `savings` e `contribution`
+incrementa esse contador, que os dois **podem** ler; o Realtime avisa, e cada cliente
+chama `caixa_geral()` de novo. O valor dela nunca trafega, só o aviso de que algo mudou.
+
+---
+
+## O teste que decide se deu certo
+
+Não é uma tela bonita. É este (seção 15):
+
+- Os dois em navegadores diferentes, um logado como Leo e outro como Lu.
+- O Leo marca uma atração num dia → **aparece na tela da Lu sem recarregar.**
+- A Lu lança o aporte dela → o **geral** do Leo sobe, mas ele **não vê o valor dela.**
+- Os dois digitando ao mesmo tempo em campos diferentes → **nenhum perde o que digitou.**
+- A Lu com o cursor num campo e chega mudança do Leo → **o campo dela não é sobrescrito
+  e o foco não é roubado.**

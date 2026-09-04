@@ -121,6 +121,13 @@ export interface Snapshot {
   /** Os agregados dos dois, via funcao security definer. */
   geral: CaixaGeral;
   me: AppUser | null;
+  /**
+   * A data de hoje, fixada UMA vez no servidor (ISO 'aaaa-mm-dd').
+   * Serve para "dias ate embarcar" e para a lista de meses da Caixa
+   * baterem no servidor e no cliente — senao o React reclama de
+   * hidratacao quando os dois estao em fusos diferentes.
+   */
+  hoje: string;
 }
 
 export const EMPTY_STAY = (city: string): Stay => ({

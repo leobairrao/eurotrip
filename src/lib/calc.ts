@@ -227,11 +227,11 @@ export const cxOpening = (s: Snapshot) => num(s.mySavings?.opening);
 export const cxGoal = (s: Snapshot) => num(s.mySavings?.goal);
 export const cxAporte = (s: Snapshot, ym: string) => num(s.myContributions[ym]);
 
-export function cxAportes(s: Snapshot, hoje?: Date): number {
+export function cxAportes(s: Snapshot, hoje?: string | Date): number {
   return saveMonths(hoje).reduce((a, ym) => a + cxAporte(s, ym), 0);
 }
-export const cxTotal = (s: Snapshot, hoje?: Date) => cxOpening(s) + cxAportes(s, hoje);
-export const cxFalta = (s: Snapshot, hoje?: Date) => Math.max(0, cxGoal(s) - cxTotal(s, hoje));
+export const cxTotal = (s: Snapshot, hoje?: string | Date) => cxOpening(s) + cxAportes(s, hoje);
+export const cxFalta = (s: Snapshot, hoje?: string | Date) => Math.max(0, cxGoal(s) - cxTotal(s, hoje));
 /** Converte o valor de quem pensa em euro para R$. */
 export const cxBrl = (s: Snapshot, v: number) => (cxCur(s) === 'eur' ? v * rate(s) : v);
 
@@ -249,7 +249,7 @@ export const geralMes = (s: Snapshot, ym: string) => num(s.geral.months[ym]);
  * Quantos meses ainda estao SEM aporte — e por eles que a falta se divide,
  * nao por todos (secao 10.8). Minimo 1, para nao dividir por zero.
  */
-export function mesesVazios(s: Snapshot, mine: boolean, hoje?: Date): number {
+export function mesesVazios(s: Snapshot, mine: boolean, hoje?: string | Date): number {
   const ms = saveMonths(hoje);
   let n = 0;
   for (const ym of ms) {
@@ -258,7 +258,7 @@ export function mesesVazios(s: Snapshot, mine: boolean, hoje?: Date): number {
   }
   return n || 1;
 }
-export function cxMes(s: Snapshot, mine: boolean, hoje?: Date): number {
+export function cxMes(s: Snapshot, mine: boolean, hoje?: string | Date): number {
   return (mine ? cxFalta(s, hoje) : geralFaltaBrl(s)) / mesesVazios(s, mine, hoje);
 }
 
