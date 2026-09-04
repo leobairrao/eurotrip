@@ -12,7 +12,7 @@ import { db, precisa } from './_db.mjs';
 
 const DOIS = [
   { email: 'leobairrao05@gmail.com',   who: 'leo' },
-  { email: 'luisaanadamelo@gmail.com', who: 'lu'  },
+  { email: 'luisaanandamelo@gmail.com', who: 'lu'  },
 ];
 
 // Procura a conta de auth pelo e-mail, paginando a lista.

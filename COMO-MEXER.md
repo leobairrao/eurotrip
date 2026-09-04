@@ -458,7 +458,7 @@ Para você não gastar tempo nas mesmas.
 | Vercel | projeto `eurotrip`, team `leobairrao's projects`. Só as duas variáveis `NEXT_PUBLIC_`, ambiente **Production** |
 | Supabase | projeto `eurotrip`, ref `qwwmjibqlgysjembhbxs`, região `sa-east-1` (São Paulo) |
 | chaves | formato novo: `sb_publishable_…` (navegador, pública por desenho) e `sb_secret_…` (só no `.env.local`, que está no `.gitignore`) |
-| quem entra | `leobairrao05@gmail.com` (leo) e `luisaanadamelo@gmail.com` (lu), na tabela `app_user` |
+| quem entra | `leobairrao05@gmail.com` (leo) e `luisaanandamelo@gmail.com` (lu), na tabela `app_user` |
 | cadastro aberto | **desligado** em Authentication → Sign In / Providers |
 
 **A variável de ambiente Preview não foi configurada** — só Production. Se abrir um
