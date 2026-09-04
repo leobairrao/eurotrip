@@ -6,19 +6,23 @@
 // A secao 7 propunha deixar a Caixa privada e mandava PERGUNTAR
 // antes de abrir. Perguntado em 04/09: o Leo escolheu abrir, igual
 // ao artefato de hoje (a nota esta em types.ts e no fim de
-// supabase/02-politicas.sql). Entao esta tela e o artefato 1:1:
-// os dois lancam, o geral mostra as duas colunas, e a barra tem a
-// fatia do Leo, a da Lu e a que falta.
+// supabase/02-politicas.sql). Entao os dois lancam e os dois veem.
 //
-// Cada um pensa na sua moeda (Leo em R$, Lu em €); o geral converte
+// O que MUDOU em 04/09: a grade fixa set/out/nov/dez saiu. Agora
+// cada aporte e uma linha com dia, nome e valor — um extrato, como
+// numa corretora — e o acumulado corre ao lado. "Aporte de outubro"
+// nao existe mais; existe "R$ 1.500 do 13o salario, em 12 de setembro".
+//
+// Cada um pensa na sua moeda (Leo em R$, Lu em EUR); o geral converte
 // tudo a R$ pelo cambio da aba Custos.
 // ============================================================
+import { useEffect, useRef } from 'react';
 import { ESTIM_EUR, STAYS, VOO } from '@/content';
-import { NumField } from '@/components/Field';
+import { DateField, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, daysTo, mesLabel, num, plMesV, saveMonths } from '@/lib/fmt';
+import { brl, daysTo, dtLabel, hojeLocal, isData, num, parseNum, plMesAte, stripTags } from '@/lib/fmt';
 import type { Who } from '@/lib/types';
 
 const CIDADES = STAYS.map((x) => x.c);
@@ -32,7 +36,7 @@ const SUB: ReadonlyArray<readonly ['geral' | Who, string]> = [
 export default function Caixa() {
   const { s } = useApp();
   const { selWho } = useUi();
-  const ms = saveMonths(s.hoje);   // do mes corrente a dez/26, nunca fixo
+  const meses = C.mesesAte(s.hoje);   // do mes corrente a dez/26, nunca fixo
   const dep = daysTo('2026-12-10', s.hoje);
   const w: Who | null = selWho === 'leo' ? 'leo' : selWho === 'lu' ? 'lu' : null;
 
@@ -41,9 +45,9 @@ export default function Caixa() {
       <div className="panelhead">
         <h2>Caixa</h2>
         <p>
-          Quanto vocês dois já têm guardado, e quanto falta por mês para chegar em dezembro com
-          tudo. São <b>{dep} dias</b> e <b>{ms.length} {ms.length > 1 ? 'meses' : 'mês'}</b> de
-          aporte — {mesLabel(ms[0])} a dez 26.
+          Quanto vocês dois já guardaram, e quanto falta por mês para chegar em dezembro com
+          tudo. São <b>{dep} dias</b> até embarcar e <b>{meses} {meses > 1 ? 'meses' : 'mês'}</b>{' '}
+          para guardar. Cada entrada de dinheiro é um aporte, com o dia e de onde veio.
         </p>
       </div>
 
@@ -64,9 +68,7 @@ function Subabas() {
         <button key={k} className="chip" aria-pressed={selWho === k} onClick={() => setSelWho(k)}>
           {rotulo}
           <span className="cn">
-            {k === 'geral'
-              ? brl(C.cxTotalBrl(s, s.hoje))
-              : C.cxMoney(s, C.cxTotal(s, k, s.hoje), k)}
+            {k === 'geral' ? brl(C.cxTotalBrl(s)) : C.cxMoney(s, C.cxTotal(s, k), k)}
           </span>
         </button>
       ))}
@@ -81,29 +83,34 @@ function Geral() {
   const { s } = useApp();
   const meta = C.cxMetaBrl(s);
   const rt = C.rate(s);
+  const n = C.cxConta(s, null);
 
   return (
     <>
       <div className="bigsum b5">
         <div>
-          <b>{brl(C.cxTotalBrl(s, s.hoje))}</b>
+          <b>{brl(C.cxTotalBrl(s))}</b>
           <span>já acumulado</span>
-          <i>Leo + Lu, convertido a R$ {num(s.settings.eur_rate).toLocaleString('pt-BR')}</i>
+          <i>
+            {n
+              ? `${n} ${n > 1 ? 'aportes' : 'aporte'}, convertidos a R$ ${num(s.settings.eur_rate).toLocaleString('pt-BR')}`
+              : 'nenhum aporte ainda'}
+          </i>
         </div>
         <div>
           <b>{brl(meta)}</b>
           <span>meta dos dois</span>
-          <i>{meta ? `${Math.round(C.cxPct(s, s.hoje))}% alcançado` : 'sem meta ainda'}</i>
+          <i>{meta ? `${Math.round(C.cxPct(s))}% alcançado` : 'sem meta ainda'}</i>
         </div>
         <div>
-          <b>{brl(C.cxFaltaBrl(s, s.hoje))}</b>
+          <b>{brl(C.cxFaltaBrl(s))}</b>
           <span>ainda falta</span>
           <i>{meta ? 'para bater a meta' : 'defina a meta abaixo'}</i>
         </div>
         <div>
           <b>{brl(C.cxMes(s, null, s.hoje))}</b>
           <span>por mês, os dois</span>
-          <i>dividido {plMesV(C.mesesVazios(s, null, s.hoje))}</i>
+          <i>dividido {plMesAte(C.mesesAte(s.hoje))}</i>
         </div>
         <div>
           <b>{brl(C.totalBrl(s, CIDADES))}</b>
@@ -114,19 +121,7 @@ function Geral() {
 
       <Barra />
 
-      <div className="card">
-        <div className="h">
-          <h3>Mês a mês</h3>
-          <div className="m">o acumulado é convertido a R$ pelo câmbio da aba Custos</div>
-        </div>
-        <div className="b">
-          <TabelaGeral />
-          <p className="mono foot" style={{ marginBottom: 0 }}>
-            Cada um lança na sua própria moeda: Leo em {C.cxCur(s, 'leo') === 'eur' ? '€' : 'R$'},
-            Lu em {C.cxCur(s, 'lu') === 'eur' ? '€' : 'R$'}. Dá para mudar nas abas Leo e Lu.
-          </p>
-        </div>
-      </div>
+      <Aportes w={null} />
 
       <div className="card" style={{ ['--cc' as string]: 'var(--ochre)' }}>
         <div className="h">
@@ -156,9 +151,9 @@ function Geral() {
 function Barra() {
   const { s } = useApp();
   if (C.cxMetaBrl(s) <= 0) return null;
-  const l = C.cxBrl(s, C.cxTotal(s, 'leo', s.hoje), 'leo');
-  const u = C.cxBrl(s, C.cxTotal(s, 'lu', s.hoje), 'lu');
-  const f = C.cxFaltaBrl(s, s.hoje);
+  const l = C.cxBrl(s, C.cxTotal(s, 'leo'), 'leo');
+  const u = C.cxBrl(s, C.cxTotal(s, 'lu'), 'lu');
+  const f = C.cxFaltaBrl(s);
   const t = l + u + f;
   const larg = (v: number) => ((v / t) * 100).toFixed(2) + '%';
   return (
@@ -176,86 +171,182 @@ function Barra() {
         <span><i style={{ background: 'var(--pine)' }} />Leo {brl(l)}</span>
         <span><i style={{ background: 'var(--c-it)' }} />Lu {brl(u)}</span>
         <span><i style={{ background: 'var(--surface-2)' }} />falta {brl(f)}</span>
-        <span>{Math.round(C.cxPct(s, s.hoje))}% da meta</span>
+        <span>{Math.round(C.cxPct(s))}% da meta</span>
       </div>
     </>
   );
 }
 
-/**
- * Mes · Leo · Lu · o mes dos dois · o acumulado dos dois.
- * O acumulado se refaz a cada tecla porque o React recalcula a coluna;
- * o campo e nao-controlado, entao o foco fica onde estava (regra 5.15).
- */
-function TabelaGeral() {
-  const { s, setAporte } = useApp();
-  const ms = saveMonths(s.hoje);
-  const ini = C.cxBrl(s, C.cxIni(s, 'leo'), 'leo') + C.cxBrl(s, C.cxIni(s, 'lu'), 'lu');
-  let ac = ini;
+// ------------------------------------------------------------
+// O extrato. E o MESMO componente nas tres sub-abas: no geral
+// (w = null) ganha a coluna "quem" e soma em R$; na de uma pessoa
+// mostra so os dela, na moeda dela.
+// ------------------------------------------------------------
+function Aportes({ w }: { w: Who | null }) {
+  const { s, patch, now, remove } = useApp();
+  const lista = C.cxLista(s, w);           // do mais velho para o mais novo
+
+  // O acumulado corre na ordem do tempo; a tela mostra ao contrario,
+  // igual a um extrato. Por isso a conta vem antes do reverse().
+  const acum = new Map<string, number>();
+  let ac = 0;
+  for (const c of lista) {
+    ac += w ? num(c.amount) : C.cxBrlDe(s, c);
+    acum.set(c.id, ac);
+  }
+  const linhas = lista.slice().reverse();
+  const cur = (q: Who) => (C.cxCur(s, q) === 'eur' ? '€' : 'R$');
+
   return (
-    <div className="tw">
-      <table className="rot cxt">
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th className="num">Leo</th>
-            <th className="num">Lu</th>
-            <th className="num hidem">no mês</th>
-            <th className="num">acumulado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* o saldo de hoje some quando e zero (secao 10.8) */}
-          <tr hidden={!ini}>
-            <td className="sb">saldo de hoje</td>
-            <td className="num">—</td>
-            <td className="num">—</td>
-            <td className="num hidem">—</td>
-            <td className="num">{ini ? brl(ini) : '—'}</td>
-          </tr>
-          {ms.map((ym) => {
-            const mes = C.cxMesBrl(s, ym);
-            ac += mes;
-            const acum = ac;
-            return (
-              <tr key={ym}>
-                <td className="pl2">{mesLabel(ym)}</td>
-                <td className="num">
+    <div className="card">
+      <div className="h">
+        <h3>{w ? `Aportes de ${WHO[w]}` : 'Aportes'}</h3>
+        <div className="m">
+          {w
+            ? `tudo em ${cur(w)} · do mais recente para o mais antigo`
+            : 'os dois, do mais recente para o mais antigo · o acumulado é convertido a R$ pelo câmbio da aba Custos'}
+        </div>
+      </div>
+      <div className="b">
+        {!linhas.length ? (
+          <div className="empty">
+            Nenhum aporte ainda. Cada vez que sobrar dinheiro, lance aqui embaixo — com o dia e
+            de onde veio.
+          </div>
+        ) : (
+          <div className="mt">
+            {linhas.map((c) => (
+              <div key={c.id} className={'mrow ap' + (w ? '' : ' apg')}>
+                <DateField
+                  fk={`contribution|${c.id}|on_date`}
+                  value={c.on_date}
+                  onCommit={(v) => patch('contribution', c.id, 'on_date', v)}
+                  className="dv"
+                  aria-label="dia do aporte"
+                />
+                <TextField
+                  fk={`contribution|${c.id}|label`}
+                  value={c.label}
+                  onCommit={(v) => patch('contribution', c.id, 'label', v)}
+                  className="nv"
+                  placeholder="de onde veio"
+                  aria-label="de onde veio"
+                />
+                {w ? null : (
+                  <select
+                    className="qv"
+                    value={c.who}
+                    onChange={(e) => now('contribution', c.id, 'who', e.currentTarget.value)}
+                    aria-label="de quem é o aporte"
+                  >
+                    <option value="leo">Leo</option>
+                    <option value="lu">Lu</option>
+                  </select>
+                )}
+                <span className="pw">
+                  <i>{cur(c.who)}</i>
                   <NumField
-                    fk={`contribution|leo|${ym}`}
-                    value={C.cxAporteRaw(s, ym, 'leo')}
-                    onCommit={(v) => setAporte('leo', ym, v)}
-                    className="cxv"
-                    placeholder="—"
-                    aria-label={`aporte do Leo em ${mesLabel(ym)}`}
+                    fk={`contribution|${c.id}|amount`}
+                    value={c.amount}
+                    onCommit={(v) => patch('contribution', c.id, 'amount', v)}
+                    className="pv"
+                    placeholder="valor"
+                    aria-label="valor do aporte"
                   />
-                </td>
-                <td className="num">
-                  <NumField
-                    fk={`contribution|lu|${ym}`}
-                    value={C.cxAporteRaw(s, ym, 'lu')}
-                    onCommit={(v) => setAporte('lu', ym, v)}
-                    className="cxv"
-                    placeholder="—"
-                    aria-label={`aporte da Lu em ${mesLabel(ym)}`}
-                  />
-                </td>
-                <td className="num hidem">{mes ? brl(mes) : '—'}</td>
-                <td className="num">{acum ? brl(acum) : '—'}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td>total</td>
-            <td className="num">{C.cxMoney(s, C.cxAportes(s, 'leo', s.hoje), 'leo')}</td>
-            <td className="num">{C.cxMoney(s, C.cxAportes(s, 'lu', s.hoje), 'lu')}</td>
-            <td className="num hidem">—</td>
-            <td className="num">{brl(C.cxTotalBrl(s, s.hoje))}</td>
-          </tr>
-        </tfoot>
-      </table>
+                </span>
+                <span className="acv" title="acumulado até este aporte">
+                  {w
+                    ? C.cxMoney(s, acum.get(c.id) ?? 0, w)
+                    : brl(acum.get(c.id) ?? 0)}
+                </span>
+                <button
+                  type="button"
+                  className="xb"
+                  aria-label="tirar aporte"
+                  onClick={() => void remove('contribution', c.id)}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Aportar w={w} />
+
+        <p className="mono foot" style={{ marginBottom: 0 }}>
+          {w
+            ? `${WHO[w]} lança em ${cur(w)}. Dá para mudar a moeda logo acima.`
+            : `Cada um lança na sua própria moeda: Leo em ${cur('leo')}, Lu em ${cur('lu')}. Dá para mudar nas abas Leo e Lu.`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * O formulario de aportar: campo local, nada vai ao banco antes do botao.
+ * O dia ja vem preenchido com hoje — e o caso comum.
+ */
+function Aportar({ w }: { w: Who | null }) {
+  const { s, me, insert } = useApp();
+  const dia = useRef<HTMLInputElement>(null);
+  const nome = useLocal();
+  const valor = useLocal();
+  const quem = useRef<HTMLSelectElement>(null);
+  const padrao: Who = w ?? (me?.who === 'lu' ? 'lu' : 'leo');
+
+  /**
+   * s.hoje e a data do SERVIDOR (UTC na Vercel), e serve para contar meses
+   * sem quebrar a hidratacao. Como data de um lancamento ela mente: as 22h
+   * no Brasil o servidor ja acha que e amanha. Depois de montar, o campo
+   * passa a mostrar o dia de quem esta olhando (achado da revisao de 04/09).
+   */
+  useEffect(() => {
+    if (dia.current && dia.current.value === s.hoje) dia.current.value = hojeLocal();
+  }, [s.hoje]);
+
+  const aportar = () => {
+    const v = parseNum(valor.get());
+    if (v === null || v <= 0) { valor.ref.current?.focus(); return; }
+    const d = dia.current?.value ?? '';
+    const who: Who = w ?? (quem.current?.value === 'lu' ? 'lu' : 'leo');
+    void insert('contribution', {
+      who,
+      on_date: isData(d) ? d : hojeLocal(),
+      label: stripTags(nome.get()),
+      amount: v,
+    });
+    nome.limpar();
+    valor.limpar();
+    if (dia.current) dia.current.value = hojeLocal();
+    if (quem.current) quem.current.value = padrao;
+  };
+
+  return (
+    <div className={'addrow ap' + (w ? '' : ' apg')}>
+      <input ref={dia} type="date" defaultValue={s.hoje} aria-label="dia do aporte" />
+      <input
+        ref={(el) => { nome.ref.current = el; }}
+        type="text"
+        placeholder="de onde veio (ex. 13º salário)"
+        aria-label="de onde veio"
+      />
+      {w ? null : (
+        <select ref={quem} defaultValue={padrao} aria-label="de quem é o aporte">
+          <option value="leo">Leo</option>
+          <option value="lu">Lu</option>
+        </select>
+      )}
+      <input
+        ref={(el) => { valor.ref.current = el; }}
+        type="text"
+        inputMode="decimal"
+        className="pv"
+        placeholder="valor"
+        aria-label="valor do aporte"
+      />
+      <button type="button" onClick={aportar}>aportar</button>
     </div>
   );
 }
@@ -282,7 +373,9 @@ function Pessoa({ w }: { w: Who }) {
   const { s } = useApp();
   const cur = C.cxCur(s, w) === 'eur' ? '€' : 'R$';
   const meta = C.cxMeta(s, w);
-  const total = C.cxTotal(s, w, s.hoje);
+  const total = C.cxTotal(s, w);
+  const n = C.cxConta(s, w);
+  const ult = C.cxUltimo(s, w);
 
   return (
     <>
@@ -290,7 +383,7 @@ function Pessoa({ w }: { w: Who }) {
         <div>
           <b>{C.cxMoney(s, total, w)}</b>
           <span>{WHO[w]} já tem</span>
-          <i>saldo de hoje + aportes</i>
+          <i>{n ? `somando ${n} ${n > 1 ? 'aportes' : 'aporte'}` : 'nenhum aporte ainda'}</i>
         </div>
         <div>
           <b>{C.cxMoney(s, meta, w)}</b>
@@ -302,32 +395,40 @@ function Pessoa({ w }: { w: Who }) {
           </i>
         </div>
         <div>
-          <b>{C.cxMoney(s, C.cxFalta(s, w, s.hoje), w)}</b>
+          <b>{C.cxMoney(s, C.cxFalta(s, w), w)}</b>
           <span>ainda falta</span>
           <i>{meta ? `em ${cur}` : 'defina a meta'}</i>
         </div>
         <div>
           <b>{C.cxMoney(s, C.cxMes(s, w, s.hoje), w)}</b>
           <span>por mês</span>
-          <i>{plMesV(C.mesesVazios(s, w, s.hoje))}</i>
+          <i>{plMesAte(C.mesesAte(s.hoje))}</i>
         </div>
         <div>
-          <b>{C.cxMoney(s, C.cxAportes(s, w, s.hoje), w)}</b>
-          <span>aportado até agora</span>
-          <i>sem contar o saldo de hoje</i>
+          {/* aporte ainda sem valor mostra '—', nao 'R$ 0' (regra 10.0) */}
+          <b>{ult && ult.amount !== null ? C.cxMoney(s, num(ult.amount), w) : '—'}</b>
+          <span>último aporte</span>
+          <i>
+            {!ult
+              ? 'nada lançado'
+              : ult.amount === null
+                ? `${dtLabel(ult.on_date)} · ainda sem valor`
+                : dtLabel(ult.on_date) + (ult.label ? ` · ${ult.label}` : '')}
+          </i>
         </div>
       </div>
 
       <div className="card">
         <div className="h">
           <h3>{WHO[w]}</h3>
-          <div className="m">tudo em {cur}</div>
+          <div className="m">a meta e a moeda em que {WHO[w]} pensa</div>
         </div>
         <div className="b">
           <Campos w={w} />
-          <TabelaPessoa w={w} />
         </div>
       </div>
+
+      <Aportes w={w} />
 
       {w === 'lu' ? (
         <div className="n free" style={{ maxWidth: 'none' }}>
@@ -340,22 +441,12 @@ function Pessoa({ w }: { w: Who }) {
   );
 }
 
-/** O saldo de hoje, a meta e a moeda. O saldo e separado dos aportes. */
+/** A meta e a moeda. O que ja esta guardado hoje e o primeiro aporte da lista. */
 function Campos({ w }: { w: Who }) {
   const { s, patch, now } = useApp();
   const sv = s.savings[w];
   return (
-    <div className="frow3">
-      <div className="fld">
-        <label>já guardado hoje</label>
-        <NumField
-          fk={`savings|${w}|opening`}
-          value={sv?.opening ?? null}
-          onCommit={(v) => patch('savings', w, 'opening', v)}
-          placeholder="0"
-          aria-label={`já guardado hoje, ${WHO[w]}`}
-        />
-      </div>
+    <div className="frow">
       <div className="fld">
         <label>meta de {WHO[w]}</label>
         <NumField
@@ -378,60 +469,6 @@ function Campos({ w }: { w: Who }) {
           <option value="eur">€ euros</option>
         </select>
       </div>
-    </div>
-  );
-}
-
-function TabelaPessoa({ w }: { w: Who }) {
-  const { s, setAporte } = useApp();
-  const ms = saveMonths(s.hoje);
-  const ini = C.cxIni(s, w);
-  let ac = ini;
-  return (
-    <div className="tw">
-      <table className="rot cxt">
-        <thead>
-          <tr>
-            <th>Mês</th>
-            <th className="num">{WHO[w]}</th>
-            <th className="num">acumulado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr hidden={!ini}>
-            <td className="sb">saldo de hoje</td>
-            <td className="num">—</td>
-            <td className="num">{ini ? C.cxMoney(s, ini, w) : '—'}</td>
-          </tr>
-          {ms.map((ym) => {
-            ac += C.cxAporte(s, ym, w);
-            const acum = ac;
-            return (
-              <tr key={ym}>
-                <td className="pl2">{mesLabel(ym)}</td>
-                <td className="num">
-                  <NumField
-                    fk={`contribution|${w}|${ym}`}
-                    value={C.cxAporteRaw(s, ym, w)}
-                    onCommit={(v) => setAporte(w, ym, v)}
-                    className="cxv"
-                    placeholder="—"
-                    aria-label={`aporte de ${WHO[w]} em ${mesLabel(ym)}`}
-                  />
-                </td>
-                <td className="num">{acum ? C.cxMoney(s, acum, w) : '—'}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td>total</td>
-            <td className="num">{C.cxMoney(s, C.cxAportes(s, w, s.hoje), w)}</td>
-            <td className="num">{C.cxMoney(s, C.cxTotal(s, w, s.hoje), w)}</td>
-          </tr>
-        </tfoot>
-      </table>
     </div>
   );
 }

@@ -75,13 +75,24 @@ export interface Extra {
 export interface Savings {
   who: Who;
   goal: number | null;
-  opening: number | null;
   currency: Currency;
 }
+/**
+ * Um aporte: um bolo de dinheiro que entrou no caixa num dia.
+ * Nao existe mais "o aporte de setembro" — existe "R$ 1.500 do 13o
+ * salario, em 12 de setembro". Uma linha por aporte, com id proprio,
+ * igual a `extra` e a `leg`.
+ */
 export interface Contribution {
+  id: string;
   who: Who;
-  month: string;
+  /** 'aaaa-mm-dd': o dia em que o dinheiro entrou. */
+  on_date: string;
+  /** De onde veio. Pode ficar vazio. */
+  label: string;
   amount: number | null;
+  /** So para desempatar dois aportes do MESMO dia no acumulado. */
+  created_at?: string;
 }
 export interface Settings {
   id: number;
@@ -107,7 +118,7 @@ export interface Snapshot {
   killed: string[];
   adopted: string[];
   /**
-   * As DUAS linhas da Caixa, e os aportes dos dois.
+   * As DUAS linhas da Caixa (meta e moeda de cada um), e os aportes.
    *
    * A secao 7 propunha deixar isto privado (cada um so a propria linha) e
    * mandava perguntar antes de abrir. Perguntado em 04/09: o Leo escolheu
@@ -115,8 +126,8 @@ export interface Snapshot {
    * Para fechar de novo, veja a nota no fim de supabase/02-politicas.sql.
    */
   savings: Record<Who, Savings>;
-  /** mes -> { leo, lu } */
-  contributions: Record<string, Partial<Record<Who, number | null>>>;
+  /** Todos os aportes dos dois, sem ordem garantida. Ordene com C.cxLista. */
+  contributions: Contribution[];
   me: AppUser | null;
   /**
    * A data de hoje, fixada UMA vez no servidor (ISO 'aaaa-mm-dd').

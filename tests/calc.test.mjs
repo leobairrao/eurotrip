@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import * as C from '@/lib/calc.ts';
-import { num, brl, eur, saveMonths, plMes, plMesV, norm, stripTags, inputNum, parseNum } from '@/lib/fmt.ts';
+import { num, brl, eur, saveMonths, dtLabel, isData, hojeLocal, plMes, plMesAte, norm, stripTags, inputNum, parseNum } from '@/lib/fmt.ts';
 import { ISOS, STAYS, VOO, ESTIM_EUR, CO, CT, FOOD } from '@/content/index.ts';
 
 const ST = { esc: 'escolhida', bac: 'backlog', sug: 'sugerida' };
@@ -73,10 +73,10 @@ function snapshotDoLeo() {
     killed: Object.keys(S.killed ?? {}),
     adopted: Object.keys(S.adopted ?? {}),
     savings: {
-      leo: { who: 'leo', goal: null, opening: null, currency: 'brl' },
-      lu:  { who: 'lu',  goal: null, opening: null, currency: 'eur' },
+      leo: { who: 'leo', goal: null, currency: 'brl' },
+      lu:  { who: 'lu',  goal: null, currency: 'eur' },
     },
-    contributions: {},
+    contributions: [],
     me: { id: 'x', email: 'leo@x', who: 'leo' },
     hoje: '2026-09-04',
   };
@@ -300,32 +300,86 @@ test('11.8 — meses do mes corrente ate dezembro de 2026', () => {
   assert.deepEqual(saveMonths(new Date(2027, 0, 5)), ['2026-12']);
 });
 
-test('11.8 — a falta se divide pelos meses AINDA VAZIOS', () => {
+/** Um aporte de mentira, com id e created_at estaveis para o teste. */
+const ap = (who, on_date, amount, label = '', i = 0) =>
+  ({ id: `${who}-${on_date}-${i}`, who, on_date, label, amount, created_at: `2026-01-0${i + 1}` });
+
+test('11.8 — a falta se divide pelos meses que faltam ate dezembro', () => {
   const hoje = new Date(2026, 8, 4);            // setembro de 2026 -> 4 meses
   const s = structuredClone(S);
-  s.savings.leo = { who: 'leo', goal: 4000, opening: 0, currency: 'brl' };
-  assert.equal(C.mesesVazios(s, 'leo', hoje), 4);
+  s.savings.leo = { who: 'leo', goal: 4000, currency: 'brl' };
+  assert.equal(C.mesesAte(hoje), 4);
   assert.equal(C.cxMes(s, 'leo', hoje), 1000);
 
-  s.contributions = { '2026-09': { leo: 1000 } };   // lancou setembro
-  assert.equal(C.cxTotal(s, 'leo', hoje), 1000);
-  assert.equal(C.cxFalta(s, 'leo', hoje), 3000);
-  assert.equal(C.mesesVazios(s, 'leo', hoje), 3, 'redistribui pelos que sobraram');
-  assert.equal(C.cxMes(s, 'leo', hoje), 1000);
+  // um aporte de R$ 1.000 muda o que falta, nao o numero de meses
+  s.contributions = [ap('leo', '2026-09-12', 1000, '13o salario')];
+  assert.equal(C.cxTotal(s, 'leo'), 1000);
+  assert.equal(C.cxFalta(s, 'leo'), 3000);
+  assert.equal(C.mesesAte(hoje), 4, 'o mes corrente continua contando');
+  assert.equal(C.cxMes(s, 'leo', hoje), 750);
+
+  // ja em dezembro, sobra um mes so
+  assert.equal(C.mesesAte(new Date(2026, 11, 20)), 1);
+  assert.equal(C.cxMes(s, 'leo', new Date(2026, 11, 20)), 3000);
+  // e em janeiro de 2027 nao divide por zero
+  assert.equal(C.mesesAte(new Date(2027, 0, 5)), 1);
+
   assert.equal(plMes(3), 'nos 3 meses que sobram');
   assert.equal(plMes(1), 'no mês que sobra');
-  assert.equal(plMesV(1), 'pelo único mês ainda vazio');
+  assert.equal(plMesAte(1), 'pelo mês que falta até dezembro');
+  assert.equal(plMesAte(4), 'pelos 4 meses até dezembro');
+});
+
+test('11.8 — varios aportes somam, e a lista vem em ordem de dia', () => {
+  const s = structuredClone(S);
+  s.contributions = [
+    ap('leo', '2026-09-12', 1500, '13o salario', 1),
+    ap('leo', '2026-08-28', 2200, 'notebook', 0),
+    ap('lu',  '2026-09-03', 300,  'sobra do mes', 2),
+    ap('leo', '2026-09-03', 400,  'sobra do mes', 3),
+  ];
+  assert.equal(C.cxTotal(s, 'leo'), 4100);
+  assert.equal(C.cxTotal(s, 'lu'), 300);
+  assert.equal(C.cxConta(s, 'leo'), 3);
+  assert.equal(C.cxConta(s, null), 4);
+
+  // do mais velho para o mais novo
+  assert.deepEqual(C.cxLista(s, 'leo').map((c) => c.on_date),
+    ['2026-08-28', '2026-09-03', '2026-09-12']);
+  assert.equal(C.cxUltimo(s, 'leo').label, '13o salario');
+  assert.equal(C.cxUltimo(s, 'lu').amount, 300);
+  assert.equal(C.cxUltimo(structuredClone(S), 'leo'), null, 'sem aporte, sem ultimo');
+
+  // aporte sem valor nao quebra a soma (regra 10.0: vazio e vazio)
+  s.contributions.push(ap('leo', '2026-10-01', null, 'ainda vou lancar', 4));
+  assert.equal(C.cxTotal(s, 'leo'), 4100);
+});
+
+test('11.8 — dois aportes no MESMO dia tem ordem estavel', () => {
+  const s = structuredClone(S);
+  s.contributions = [
+    { id: 'b', who: 'leo', on_date: '2026-09-03', label: 'segundo', amount: 100, created_at: '2026-09-03T12:00:00Z' },
+    { id: 'a', who: 'leo', on_date: '2026-09-03', label: 'primeiro', amount: 50, created_at: '2026-09-03T09:00:00Z' },
+  ];
+  assert.deepEqual(C.cxLista(s, 'leo').map((c) => c.label), ['primeiro', 'segundo']);
+  // sem created_at, desempata pelo id — mas nunca fica ambiguo
+  s.contributions = [
+    { id: 'b', who: 'leo', on_date: '2026-09-03', label: 'b', amount: 100 },
+    { id: 'a', who: 'leo', on_date: '2026-09-03', label: 'a', amount: 50 },
+  ];
+  assert.deepEqual(C.cxLista(s, 'leo').map((c) => c.label), ['a', 'b']);
 });
 
 test('11.8 — quem pensa em euro converte pelo cambio', () => {
   const s = structuredClone(S);
-  s.savings.lu = { who: 'lu', goal: 500, opening: 100, currency: 'eur' };
-  s.contributions = { '2026-09': { lu: 50 } };
-  const hoje = new Date(2026, 8, 4);
+  s.savings.lu = { who: 'lu', goal: 500, currency: 'eur' };
+  s.contributions = [ap('lu', '2026-09-01', 100, 'o que eu ja tinha', 0),
+                     ap('lu', '2026-09-20', 50, 'sobra', 1)];
   assert.equal(C.cxCur(s, 'lu'), 'eur');
   assert.equal(C.cxCur(s, 'leo'), 'brl');
-  assert.equal(C.cxTotal(s, 'lu', hoje), 150);
+  assert.equal(C.cxTotal(s, 'lu'), 150);
   assert.equal(C.cxBrl(s, 150, 'lu'), 930);         // 150 x 6,20
+  assert.equal(C.cxBrlDe(s, s.contributions[1]), 310);  // 50 x 6,20
   assert.equal(C.cxMoney(s, 150, 'lu'), '€ 150');
   assert.equal(C.cxMoney(s, 150, 'leo'), 'R$ 150');
   assert.equal(C.estimNaMoeda(s, 'lu'), ESTIM_EUR);
@@ -335,23 +389,101 @@ test('11.8 — quem pensa em euro converte pelo cambio', () => {
 test('11.8 — o geral soma os dois, cada um na sua moeda', () => {
   const hoje = new Date(2026, 8, 4);
   const s = structuredClone(S);
-  s.savings.leo = { who: 'leo', goal: 16770, opening: 1000, currency: 'brl' };
-  s.savings.lu  = { who: 'lu',  goal: 2795,  opening: 0,    currency: 'eur' };
-  s.contributions = { '2026-09': { leo: 1000, lu: 100 } };
+  s.savings.leo = { who: 'leo', goal: 16770, currency: 'brl' };
+  s.savings.lu  = { who: 'lu',  goal: 2795,  currency: 'eur' };
+  s.contributions = [
+    ap('leo', '2026-09-01', 1000, 'o que eu ja tinha', 0),
+    ap('leo', '2026-09-12', 1000, '13o salario', 1),
+    ap('lu',  '2026-09-12', 100,  'sobra', 2),
+  ];
 
-  assert.equal(C.cxTotal(s, 'leo', hoje), 2000);
-  assert.equal(C.cxTotal(s, 'lu', hoje), 100);
+  assert.equal(C.cxTotal(s, 'leo'), 2000);
+  assert.equal(C.cxTotal(s, 'lu'), 100);
   // 2000 + 100 x 6,20
-  assert.equal(C.cxTotalBrl(s, hoje), 2000 + 620);
+  assert.equal(C.cxTotalBrl(s), 2000 + 620);
   assert.equal(C.cxMetaBrl(s), 16770 + 2795 * 6.2);
-  assert.equal(C.cxFaltaBrl(s, hoje), C.cxMetaBrl(s) - C.cxTotalBrl(s, hoje));
-  // a coluna "no mes" do geral
-  assert.equal(C.cxMesBrl(s, '2026-09'), 1000 + 620);
-  assert.equal(C.cxMesBrl(s, '2026-10'), 0);
-  // no geral, mes vazio e mes em que NENHUM dos dois lancou
-  assert.equal(C.mesesVazios(s, null, hoje), 3);
-  assert.equal(C.mesesVazios(s, 'lu', hoje), 3);
-  assert.ok(C.cxPct(s, hoje) > 0 && C.cxPct(s, hoje) < 100);
+  assert.equal(C.cxFaltaBrl(s), C.cxMetaBrl(s) - C.cxTotalBrl(s));
+  assert.equal(C.cxMes(s, null, hoje), C.cxFaltaBrl(s) / 4);
+  assert.ok(C.cxPct(s) > 0 && C.cxPct(s) < 100);
+
+  // a lista do geral traz os dois, misturados por dia
+  assert.equal(C.cxLista(s, null).length, 3);
+  assert.equal(C.cxUltimo(s, null).on_date, '2026-09-12');
+});
+
+test('11.8 — sem meta, a falta e zero e a porcentagem tambem', () => {
+  const s = structuredClone(S);
+  s.contributions = [ap('leo', '2026-09-12', 500)];
+  assert.equal(C.cxMetaBrl(s), 0);
+  assert.equal(C.cxFaltaBrl(s), 0);
+  assert.equal(C.cxPct(s), 0);
+  assert.equal(C.cxFalta(s, 'leo'), 0, 'sem meta nao falta nada');
+});
+
+test('11.8 — created_at do Realtime e do PostgREST desempatam igual', () => {
+  // A MESMA linha chega em dois formatos conforme o caminho:
+  //   PostgREST '2026-09-04T09:00:00.123+00:00'   (espaco nenhum, com 'T')
+  //   Realtime  '2026-09-04 15:00:00.123+00'      (com espaco)
+  // Comparando como TEXTO, ' ' < 'T' e a das 15h viria antes da das 9h.
+  const s = structuredClone(S);
+  s.contributions = [
+    { id: 'b', who: 'leo', on_date: '2026-09-04', label: '15h pelo Realtime',
+      amount: 100, created_at: '2026-09-04 15:00:00.123+00' },
+    { id: 'a', who: 'leo', on_date: '2026-09-04', label: '9h pelo PostgREST',
+      amount: 50, created_at: '2026-09-04T09:00:00.123+00:00' },
+  ];
+  assert.deepEqual(C.cxLista(s, 'leo').map((c) => c.label),
+    ['9h pelo PostgREST', '15h pelo Realtime'], 'a hora manda, nao o formato');
+
+  // e o acumulado sai na ordem certa
+  const l = C.cxLista(s, 'leo');
+  assert.equal(l[0].amount, 50);
+  assert.equal(l[0].amount + l[1].amount, 150);
+});
+
+test('11.8 — created_at ilegivel nao quebra a ordem', () => {
+  const s = structuredClone(S);
+  s.contributions = [
+    { id: 'b', who: 'leo', on_date: '2026-09-04', label: 'b', amount: 1, created_at: 'lixo' },
+    { id: 'a', who: 'leo', on_date: '2026-09-04', label: 'a', amount: 1 },
+  ];
+  // os dois viram 0 e o id desempata — o que importa e nunca ficar ambiguo
+  assert.deepEqual(C.cxLista(s, 'leo').map((c) => c.label), ['a', 'b']);
+});
+
+test('10.0 — data so entra se existir de verdade, com ano plausivel', () => {
+  assert.equal(isData('2026-09-12'), true);
+  assert.equal(isData('2026-02-28'), true);
+  assert.equal(isData('2026-02-29'), false, '2026 nao e bissexto');
+  assert.equal(isData('2028-02-29'), true, '2028 e bissexto');
+  assert.equal(isData(''), false);
+  assert.equal(isData('2026-09'), false);
+  // os anos parciais que o <input type="date"> produz enquanto se digita
+  assert.equal(isData('0002-09-12'), false, 'ano 2');
+  assert.equal(isData('0020-09-12'), false);
+  assert.equal(isData('0202-09-12'), false);
+  assert.equal(isData('2026-13-01'), false, 'mes 13');
+  assert.equal(isData('2026-00-01'), false);
+  assert.equal(isData('2026-09-31'), false, '31 de setembro nao existe');
+  assert.equal(isData('2026-02-31'), false);
+  assert.equal(isData('3000-01-01'), false, 'ano fora da faixa');
+});
+
+test('10.0 — hojeLocal e do fuso de quem olha, no formato do banco', () => {
+  const h = hojeLocal();
+  assert.match(h, /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(isData(h), true);
+  const d = new Date();
+  assert.equal(h.slice(0, 4), String(d.getFullYear()), 'usa o fuso local, nao UTC');
+  assert.equal(+h.slice(8, 10), d.getDate());
+});
+
+test('11.8 — o dia do aporte vira rotulo sem passar por Date', () => {
+  assert.equal(dtLabel('2026-09-12'), '12 set 26');
+  assert.equal(dtLabel('2026-01-01'), '1 jan 26');
+  assert.equal(dtLabel('2026-12-31'), '31 dez 26');
+  assert.equal(dtLabel(''), '', 'vazio nao inventa data');
+  assert.equal(dtLabel('2026-09'), '2026-09', 'so devolve o que nao entende');
 });
 
 // ---------------- Painel: bate-volta por base ----------------

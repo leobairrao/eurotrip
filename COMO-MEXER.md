@@ -48,12 +48,13 @@ src/screens/           uma tela por arquivo, na ordem das abas
   Painel.tsx     278    Roteiro.tsx    745   ← a maior, e a mais complexa
   Atracoes.tsx   293    Comidas.tsx    284
   Transporte.tsx 258    Hospedagem.tsx 200
-  Reservas.tsx   247    Caixa.tsx      437
+  Reservas.tsx   247    Caixa.tsx      457
   Custos.tsx     306
 
 src/app/
   estilo-atual.css 587  O CSS, sem a tag <style>. NÃO RENOMEIE CLASSE.
-  extras.css       ~60  o pouco que o artefato não tinha (login, presença)
+  extras.css       ~86  o pouco que o artefato não tinha (login, presença,
+                        e o extrato de aportes da Caixa)
   page.tsx              servidor: sessão → allowlist → carrega tudo
   layout.tsx            html lang=pt-BR, as 3 fontes do Google
   auth/callback/        o link mágico volta aqui
@@ -63,6 +64,8 @@ supabase/
   00-tudo.sql           esquema + políticas, para uma colada só
   01-schema.sql         as 13 tabelas (seção 6.2)
   02-politicas.sql      RLS, Realtime, e a nota de como fechar a Caixa
+  03-caixa-aportes.sql  migração: a Caixa deixa de ser mês a mês (04/09).
+                        Só para banco que já existia. Num banco novo, 01 já basta.
 
 scripts/                rodam SÓ na sua máquina, com a chave secreta
   seed.mjs              primeira carga + reconciliação por seed_id
@@ -71,7 +74,7 @@ scripts/                rodam SÓ na sua máquina, com a chave secreta
   usuarios.mjs          cria as 2 contas e a allowlist
   link.mjs              gera link de entrada sem passar pelo e-mail
 
-tests/                  42 testes sobre o código de produção
+tests/                  51 testes sobre o código de produção
 ```
 
 ---
@@ -258,7 +261,7 @@ números que o usuário espera ver, calculados do estado real dele.
 ### Conferir se não quebrou nada
 
 ```bash
-npm test          # 42 testes: as fórmulas e a mesclagem
+npm test          # 51 testes: as fórmulas e a mesclagem
 npm run typecheck # TypeScript estrito
 npm run build     # o build da Vercel roda isso
 npm run check     # os 18 números de aceite, lidos DO BANCO
@@ -329,6 +332,53 @@ exato, com o SQL pronto.
 Você também escolheu que **os dois editam a coluna do outro** (igual ao artefato). A
 seção 2 prometia "ela digita" em vez de "o Leo digita por ela"; se quiser apertar isso,
 é trocar as duas políticas por `using (who = meu_who())`.
+
+### A Caixa é um extrato de aportes, não uma grade de meses
+
+A seção 10.8 pedia uma grade fixa: uma linha por mês (set/out/nov/dez), uma coluna por
+pessoa, e um campo `opening` separado chamado "já guardado hoje". Em 04/09 você pediu
+outra coisa — **poder criar aportes, quase como investimentos**. Foi feito.
+
+O que mudou de verdade:
+
+- `contribution` deixou de ter chave `(who, month)` e virou uma **lista com id próprio**,
+  igual a `extra` e a `leg`: `id, who, on_date, label, amount`.
+- **`savings.opening` saiu.** O que já estava guardado é o primeiro aporte da lista. Um
+  jeito só de pôr dinheiro no caixa — antes eram dois, e os dois precisavam ser somados
+  em todo lugar.
+- **"Mês vazio" deixou de existir.** O que falta se divide pelos meses de calendário que
+  ainda cabem. `mesesVazios()` e `plMesV()` foram embora; entraram `mesesAte()` e
+  `plMesAte()`.
+- De quebra: **a Caixa deixou de ser caso especial no merge e no store.** `setAporte()`
+  sumiu — o aporte usa `insert` / `patch` / `remove`, que já existiam para as outras
+  listas. São ~40 linhas de código especial a menos em `merge.ts` e `store.tsx`.
+
+**Se o seu banco é anterior a isso, rode `supabase/03-caixa-aportes.sql`.** Ele não apaga
+nada sem antes converter: cada aporte de mês vira um aporte no dia 1º daquele mês, e o
+`opening` de cada um vira um aporte com a data de hoje, chamado "o que eu já tinha". Rodar
+duas vezes não faz mal — ele percebe que já migrou.
+
+Três coisas que a revisão pegou depois, e que valem saber porque são fáceis de
+reintroduzir:
+
+- **O campo de data comita no `blur`, não a cada tecla.** A lista se ordena pela data;
+  comitando a cada tecla, digitar o ano "2026" grava `0002`, `0020`, `0202` no caminho —
+  cada um válido de forma, cada um jogando a linha para outro lugar do extrato. O React
+  move o `<div>` da linha e o navegador solta o foco do campo que está sendo digitado. A
+  regra 5.15 protege o **valor** contra a outra pessoa; aqui o foco era roubado pelo
+  próprio teclado. `isData()` também prende o ano entre 2000 e 2100.
+- **`created_at` é comparado como número, não como texto.** A mesma linha chega em dois
+  formatos: `'…T15:00:00+00:00'` pelo PostgREST e `'… 15:00:00+00'` pelo Realtime. Como
+  `' ' < 'T'`, comparar texto punha toda linha vinda do Realtime antes de toda linha
+  carregada, e o extrato do Leo saía numa ordem e o da Lu noutra. `Date.parse` do formato
+  do Realtime dá `NaN` sem normalizar o fuso `+00` para `+00:00` — está em `ts()`.
+- **A data de um lançamento é a de quem lança**, não `s.hoje`. `s.hoje` é fixado no
+  servidor (UTC na Vercel) para a hidratação bater; usar isso como data de negócio faria
+  um aporte das 22h no Brasil nascer com a data de amanhã.
+
+Uma coisa que **não** foi feita, de propósito: o aporte **não** tem moeda própria. Ele
+herda a moeda da pessoa (Leo em R$, Lu em €), que é como os dois já pensavam. Se um dia
+alguém receber um bolo na outra moeda, aí vale acrescentar a coluna.
 
 ### "Ainda por gastar" segue a especificação, não o artefato
 
@@ -424,7 +474,7 @@ Reset database password.
 
 ### Provado
 
-- **42 testes** rodando contra o código de produção (`src/lib/calc.ts` e
+- **51 testes** rodando contra o código de produção (`src/lib/calc.ts` e
   `src/lib/merge.ts`), sobre o estado real de `dados/estado-atual-do-leo.json` — não
   contra uma cópia.
 - **18 números de aceite** lidos do banco por `npm run check`.

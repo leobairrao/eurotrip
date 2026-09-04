@@ -39,3 +39,48 @@
   .entrar { padding: 48px 16px; }
   .demofaixa div { padding: 7px 16px; }
 }
+
+/* ============================================================
+   O extrato da Caixa (04/09): a grade set/out/nov/dez saiu e
+   entrou uma linha por aporte — dia, de onde veio, valor, e o
+   acumulado ate ali. Mesmo .mrow das outras listas, so com as
+   colunas desta.
+   ============================================================ */
+.mrow.ap { grid-template-columns: 132px 1fr 96px 104px 34px;
+  grid-template-areas: "dt nm pr ac x"; }
+.mrow.ap.apg { grid-template-columns: 132px 1fr 74px 96px 104px 34px;
+  grid-template-areas: "dt nm qu pr ac x"; }
+.mrow.ap .dv { grid-area: dt; font-family: var(--mono); font-size: 13px;
+  font-variant-numeric: tabular-nums; }
+.mrow.ap .nv { grid-area: nm; }
+.mrow.ap .qv { grid-area: qu; font-family: var(--mono); font-size: 12px; }
+.mrow.ap .pw { grid-area: pr; display: flex; align-items: center; gap: 5px; }
+.mrow.ap .pw i { font-style: normal; font-family: var(--mono); font-size: 11px;
+  color: var(--muted); flex: none; }
+.mrow.ap .pw .pv { grid-area: auto; }
+/* o acumulado nao e campo: e o numero que a linha produz */
+.mrow.ap .acv { grid-area: ac; font-family: var(--mono); font-size: 13px;
+  font-variant-numeric: tabular-nums; text-align: right; color: var(--pine);
+  font-weight: 600; }
+.mrow.ap .xb { grid-area: x; }
+
+.addrow.ap { grid-template-columns: 148px 1fr 96px auto; }
+.addrow.ap.apg { grid-template-columns: 148px 1fr 74px 96px auto; }
+
+/* o acumulado e um numero so: nunca quebra em duas linhas */
+.mrow.ap .acv { white-space: nowrap; }
+
+@media (max-width: 700px) {
+  /* no celular vira duas linhas: o dia e o nome em cima, o dinheiro embaixo.
+     As quatro colunas servem as duas linhas — por isso 'nm' e 'ac' ocupam
+     duas cada, senao o acumulado cai num vao de 32px e quebra no meio. */
+  .mrow.ap { grid-template-columns: 120px 1fr 78px 32px;
+    grid-template-areas: "dt nm nm x" "pr pr ac ac"; }
+  /* precisa repetir as colunas: a regra de desktop do .apg tem SEIS,
+     e uma area de quatro nomes contra seis colunas nao encaixa. */
+  .mrow.ap.apg { grid-template-columns: 120px 1fr 78px 32px;
+    grid-template-areas: "dt nm nm x" "qu pr ac ac"; }
+  .mrow.ap .dv { font-size: 12.5px; }
+  .mrow.ap .acv { font-size: 12.5px; }
+  .addrow.ap, .addrow.ap.apg { grid-template-columns: 1fr; }
+}

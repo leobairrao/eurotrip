@@ -8,7 +8,7 @@ import { DECISOES, ISOS, STAYS } from '@/content';
 import { Inline } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
-import { brl, daysTo, eur, num, plMes } from '@/lib/fmt';
+import { brl, daysTo, eur, num, plMesAte } from '@/lib/fmt';
 
 const CIDADES = STAYS.map((s) => s.c);
 
@@ -200,21 +200,21 @@ function Pendencias() {
   }
 
   const meta = C.cxMetaBrl(s);
-  const acum = C.cxTotalBrl(s, s.hoje);
+  const acum = C.cxTotalBrl(s);
   if (meta > 0) {
-    const falta = C.cxFaltaBrl(s, s.hoje);
+    const falta = C.cxFaltaBrl(s);
     pend.push({
       k: 'din',
       titulo: 'Dinheiro acumulado',
       corpo: falta > 0
-        ? `<b>${brl(acum)} de ${brl(meta)}</b> — faltam <b>${brl(falta)}</b>, ou ${brl(C.cxMes(s, null, s.hoje))} por mês ${plMes(C.mesesVazios(s, null, s.hoje))}. Detalhe na aba Caixa.`
+        ? `<b>${brl(acum)} de ${brl(meta)}</b> — faltam <b>${brl(falta)}</b>, ou ${brl(C.cxMes(s, null, s.hoje))} por mês, dividido ${plMesAte(C.mesesAte(s.hoje))}. Detalhe na aba Caixa.`
         : `<b>meta batida</b>: ${brl(acum)} guardados. Veja a aba Caixa.`,
     });
   } else {
     pend.push({
       k: 'din',
       titulo: 'Dinheiro acumulado',
-      corpo: `Você tem <b>${brl(acum)}</b> lançado e <b>nenhuma meta definida</b>. Abra a aba <b>Caixa</b>, ponha a meta e o quanto já está guardado — ela divide o que falta pelos meses que sobram.`,
+      corpo: `Você tem <b>${brl(acum)}</b> em aportes e <b>nenhuma meta definida</b>. Abra a aba <b>Caixa</b>, ponha a meta e lance o que já está guardado — ela divide o que falta pelos meses que sobram.`,
     });
   }
 

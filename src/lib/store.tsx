@@ -16,7 +16,7 @@ import {
 } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { supabaseBrowser } from './supabase/client';
-import type { AppUser, Snapshot, Who } from './types';
+import type { AppUser, Snapshot } from './types';
 
 import {
   PK, aplicarRemoto, chave, inserirLocal, mesclar, removerLocal, type Tabela,
@@ -38,8 +38,6 @@ interface Ctx {
   insert: (t: Tabela, row: Record<string, unknown>) => Promise<void>;
   /** O x. Se o item tem seed_id, grava em killed_seed antes (regra 5.14). */
   remove: (t: Tabela, pk: string, seedId?: string | null) => Promise<void>;
-  /** O aporte de um mes, de quem for. Os dois podem lancar (escolha de 04/09). */
-  setAporte: (who: Who, month: string, v: number | null) => void;
   estado: Estado;
   pendentes: number;
   online: string[];
@@ -112,16 +110,8 @@ export function Provider({
 
       let erro: string | null = null;
       try {
-        if (t === 'contribution') {
-          const [who, month] = pk.split('|');
-          const r = await db
-            .from('contribution')
-            .upsert({ who, month, ...payload }, { onConflict: 'who,month' });
-          erro = r.error?.message ?? null;
-        } else {
-          const r = await db.from(t as string).update(payload).eq(PK[t as string], pk);
-          erro = r.error?.message ?? null;
-        }
+        const r = await db.from(t as string).update(payload).eq(PK[t as string], pk);
+        erro = r.error?.message ?? null;
       } catch (e) {
         erro = e instanceof Error ? e.message : String(e);
       }
@@ -178,28 +168,6 @@ export function Provider({
       void enviar(t, pk, cols);
     },
     [aplicar, enviar],
-  );
-
-  const setAporte = useCallback(
-    (who: Who, month: string, v: number | null) => {
-      const pk = `${who}|${month}`;
-      const k = chave('contribution', pk, 'amount');
-      pend.current.set(k, v);
-      setS((old) => ({
-        ...old,
-        contributions: { ...old.contributions, [month]: { ...old.contributions[month], [who]: v } },
-      }));
-      const antigo = timers.current.get(k);
-      if (antigo) clearTimeout(antigo);
-      timers.current.set(
-        k,
-        setTimeout(() => {
-          timers.current.delete(k);
-          void enviar('contribution', pk, { amount: v });
-        }, 400),
-      );
-    },
-    [enviar],
   );
 
   const insert = useCallback(
@@ -268,8 +236,8 @@ export function Provider({
   }, [db]);
 
   const valor = useMemo<Ctx>(
-    () => ({ s, me, patch, now, nowMany, insert, remove, setAporte, estado, pendentes, online }),
-    [s, me, patch, now, nowMany, insert, remove, setAporte, estado, pendentes, online],
+    () => ({ s, me, patch, now, nowMany, insert, remove, estado, pendentes, online }),
+    [s, me, patch, now, nowMany, insert, remove, estado, pendentes, online],
   );
   return <C.Provider value={valor}>{children}</C.Provider>;
 }

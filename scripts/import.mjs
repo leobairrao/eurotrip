@@ -208,24 +208,35 @@ const log = [];
 }
 {
   const cx = S.cx ?? {};
+  const hoje = new Date().toISOString().slice(0, 10);
   let n = 0;
   for (const who of ['leo', 'lu']) {
     await precisa(
       await db.from('savings').update({
         goal: valOrNull((cx.meta ?? {})[who]),
-        opening: valOrNull((cx.ini ?? {})[who]),
         currency: (cx.cur ?? {})[who] === 'eur' ? 'eur' : 'brl',
       }).eq('who', who),
       `caixa ${who}`,
     );
     n++;
   }
+  // O JSON dele ainda fala a lingua velha (saldo de hoje + aporte por mes).
+  // Aqui vira aporte: o saldo com a data de hoje, cada mes no dia 1o.
+  // Mesma traducao de supabase/03-caixa-aportes.sql.
   const aportes = [];
+  for (const who of ['leo', 'lu']) {
+    const ini = valOrNull((cx.ini ?? {})[who]);
+    if (ini) aportes.push({ who, on_date: hoje, label: 'o que eu já tinha', amount: ini });
+  }
   for (const [month, o] of Object.entries(cx.ap ?? {}))
-    for (const who of ['leo', 'lu'])
-      if (valOrNull(o?.[who]) !== null) aportes.push({ who, month, amount: valOrNull(o[who]) });
+    for (const who of ['leo', 'lu']) {
+      const v = valOrNull(o?.[who]);
+      if (v) aportes.push({ who, on_date: `${month}-01`, label: `aporte de ${month}`, amount: v });
+    }
+  // insert, nao upsert: o aporte nao tem mais chave natural para conflitar.
+  // Rodar o import duas vezes duplicaria — e por isso ele so roda uma vez.
   if (aportes.length)
-    await precisa(await db.from('contribution').upsert(aportes, { onConflict: 'who,month' }), 'aportes');
+    await precisa(await db.from('contribution').insert(aportes), 'aportes');
   log.push(`caixa: ${n} linhas, ${aportes.length} aportes`);
 }
 {

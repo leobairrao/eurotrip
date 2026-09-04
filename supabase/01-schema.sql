@@ -128,21 +128,45 @@ create table if not exists extra (
 
 -- ---------- 8. Caixa: quanto cada um guardou ----------
 -- Uma linha por pessoa. 'currency' e a moeda em que ELA pensa.
+-- Nao ha mais 'opening': o que ja estava guardado e o primeiro aporte.
 create table if not exists savings (
   who         text primary key check (who in ('leo','lu')),
   goal        numeric(10,2),                 -- a meta dela
-  opening     numeric(10,2),                 -- o que ja tem hoje
   currency    text not null default 'brl' check (currency in ('eur','brl')),
   updated_at  timestamptz not null default now()
 );
--- Um aporte por pessoa por mes.
+-- Um aporte por ENTRADA de dinheiro, nao por mes (mudanca de 04/09/2026).
+-- 'R$ 1.500 do 13o salario, em 12 de setembro' e uma linha daqui.
+-- Quem ja tem um banco da versao por mes: rode 03-caixa-aportes.sql.
 create table if not exists contribution (
+  id          uuid primary key default gen_random_uuid(),
   who         text not null check (who in ('leo','lu')),
-  month       text not null,                 -- '2026-09' .. '2026-12'
+  on_date     date not null,                 -- o dia em que o dinheiro entrou
+  label       text not null default '',      -- de onde veio. Pode ficar vazio
   amount      numeric(10,2),
-  updated_at  timestamptz not null default now(),
-  primary key (who, month)
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
 );
+-- Os indices SO depois de a coluna existir.
+--
+-- Num banco anterior a 04/09 o `create table if not exists` acima e no-op:
+-- a tabela velha continua com (who, month) e NAO tem on_date. Um
+-- `create index ... (on_date)` solto estouraria "column does not exist" e
+-- derrubaria a colada inteira — justo no banco que precisa da migracao 03,
+-- que assim nunca chegaria a rodar. O `if not exists` do CREATE INDEX so
+-- olha o NOME do indice; nao protege disto.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'contribution' and column_name = 'on_date'
+  ) then
+    create index if not exists contribution_who_idx  on contribution (who);
+    create index if not exists contribution_date_idx on contribution (on_date);
+  else
+    raise notice 'contribution ainda esta no formato mes a mes — rode supabase/03-caixa-aportes.sql.';
+  end if;
+end $$;
 
 -- ---------- 9. configuracao ----------
 create table if not exists settings (

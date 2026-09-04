@@ -47,12 +47,12 @@ ESPECIFICACAO.md         a especificação, 16 seções
 COMO-MEXER.md            como o app funciona por dentro, e como alterá-lo
 dados/                   o conteúdo e o estado real do Leo (13 JSONs)
 referencia/              o app de hoje, funcionando, e o CSS dele
-supabase/                o SQL: esquema, RLS, Realtime, e a Caixa privada
+supabase/                o SQL: esquema, RLS, Realtime, e as migracoes
 scripts/                 semeadura, importação, allowlist e os números de aceite
 src/content/             os JSONs que viram constante no código (seção 6.3)
 src/lib/                 formulas (seção 11), store em tempo real, tipos
 src/screens/             as nove telas
-tests/                   27 testes sobre as formulas e as regras
+tests/                   47 testes sobre as formulas e as regras
 ```
 
 ---
@@ -95,6 +95,19 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 #    O Supabase avisa "destructive operations": e o bloco de limpeza do fim,
 #    que derruba a versao privada da Caixa com `drop ... if exists`. Num banco
 #    novo esses objetos nao existem, entao sao no-ops.
+#
+# 1b. SO se o seu banco e anterior a 04/09/2026, quando a Caixa deixou de ser
+#     mes a mes: rode tambem, DEPOIS do passo 1:
+#       supabase/03-caixa-aportes.sql
+#     Ele converte os aportes de mes em aportes com dia, e o "ja guardado hoje"
+#     no primeiro aporte de cada um — nada e apagado sem antes ser convertido.
+#     Rodar duas vezes nao faz mal: ele percebe que ja migrou.
+#     Num banco novo nao precisa: o 01 ja cria o formato novo.
+#
+#     O passo 1 num banco velho nao quebra: os indices de `contribution` so
+#     sao criados se a coluna `on_date` ja existir. Sem esse cuidado a colada
+#     inteira abortaria em "column on_date does not exist" e voce nunca
+#     chegaria aqui no 1b — que era justamente o conserto.
 
 # 2. o conteúdo (34 dias, 104 atrações, 12 trechos, 7 bases…)
 npm run seed
@@ -204,17 +217,19 @@ npm run check     # os números de aceite, lidos do banco
 
 ## Duas coisas que parecem estranhas e são de propósito
 
-**1. A Caixa é privada, e o "geral" vem de uma função.**
-A RLS entrega a cada um só a própria linha de `savings` e `contribution`. O total dos
-dois vem de `caixa_geral()`, uma função `security definer` que devolve **só agregados** —
-nunca as linhas. Por isso a sub-aba *geral* não tem coluna do Leo e coluna da Lu: mostrar
-isso seria vazar o número do outro (seção 7).
+**1. A Caixa é aberta: os dois veem e editam o número um do outro.**
+A seção 7 propunha o contrário — cada um lendo só a própria linha, e o *geral* vindo de
+uma função `security definer` que devolvesse só agregados. Perguntado em 04/09, o Leo
+escolheu abrir, igual ao artefato. Com isso `savings` e `contribution` viraram tabelas
+compartilhadas normais, e caíram a função `caixa_geral()`, a tabela `caixa_pulse` e o
+gatilho de pulso que existiam só porque **a RLS filtra o Realtime**. **Como fechar de
+novo está escrito, com o SQL pronto, no fim de `supabase/02-politicas.sql`.**
 
-**2. Existe uma tabela `caixa_pulse` que só tem um contador.**
-Como a RLS filtra o Realtime, o Leo nunca receberia o evento da linha da Lu — e o *geral*
-dele não subiria quando ela lançasse um aporte. Um gatilho em `savings` e `contribution`
-incrementa esse contador, que os dois **podem** ler; o Realtime avisa, e cada cliente
-chama `caixa_geral()` de novo. O valor dela nunca trafega, só o aviso de que algo mudou.
+**2. Os campos de digitação não são controlados pelo React.**
+Todo campo em `Field.tsx` usa `defaultValue`, não `value`. É o que permite duas pessoas
+digitarem ao mesmo tempo: quando chega mudança da outra, o valor novo só entra no DOM se
+aquele campo **não estiver com o foco**. Um campo controlado se remontaria a cada tecla,
+perderia o cursor e reformataria o número no meio da digitação.
 
 ---
 
@@ -224,7 +239,7 @@ Não é uma tela bonita. É este (seção 15):
 
 - Os dois em navegadores diferentes, um logado como Leo e outro como Lu.
 - O Leo marca uma atração num dia → **aparece na tela da Lu sem recarregar.**
-- A Lu lança o aporte dela → o **geral** do Leo sobe, mas ele **não vê o valor dela.**
+- A Lu lança um aporte → ele **aparece no extrato do Leo sem recarregar**, e o geral sobe.
 - Os dois digitando ao mesmo tempo em campos diferentes → **nenhum perde o que digitou.**
 - A Lu com o cursor num campo e chega mudança do Leo → **o campo dela não é sobrescrito
   e o foco não é roubado.**

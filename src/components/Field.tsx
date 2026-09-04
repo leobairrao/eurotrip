@@ -9,7 +9,7 @@
 // ============================================================
 import { useEffect, useId, useRef } from 'react';
 import { estaFocado, limparFoco, marcarFoco } from '@/lib/store';
-import { inputInt, inputNum, parseInt10, parseNum, stripTags } from '@/lib/fmt';
+import { inputInt, inputNum, isData, parseInt10, parseNum, stripTags } from '@/lib/fmt';
 
 interface Base {
   /** Chave unica do campo: "tabela|linha|coluna". E o que protege o foco. */
@@ -107,6 +107,45 @@ export function IntField({
       onFocus={() => marcarFoco(fk)}
       onBlur={() => limparFoco(fk)}
       onInput={(e) => onCommit(parseInt10(e.currentTarget.value))}
+      {...r}
+    />
+  );
+}
+
+// ---------------- data (o dia de um aporte) ----------------
+// O <input type="date"> ja fala 'aaaa-mm-dd', que e o formato do banco,
+// entao nao ha conversao nenhuma no meio.
+//
+// ESTE CAMPO COMITA NO BLUR, e nao a cada tecla. E de proposito, e a razao
+// e a mesma regra 5.15 por outro caminho (achado da revisao de 04/09):
+//
+//   a lista de aportes se ORDENA pela data. Comitando a cada tecla, digitar
+//   o ano "2026" grava 0002, depois 0020, depois 0202 — cada um valido de
+//   forma, cada um jogando a linha para outra posicao do extrato. O React
+//   move o <div> da linha, o navegador solta o foco do input que esta sendo
+//   digitado, e as tres teclas seguintes caem no vazio. O foco nao foi
+//   roubado pela outra pessoa; foi roubado pelo proprio teclado.
+//
+// No blur, a linha so muda de lugar depois que o dedo ja saiu do campo.
+// Data que nao existe (ou ano parcial) nao e comitada: o campo volta ao
+// que estava. Nunca fica sem dia.
+export function DateField({
+  value, onCommit, fk, ...r
+}: Base & { value: string; onCommit: (v: string) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useRemoto(ref, value, fk);
+  return (
+    <input
+      ref={ref}
+      type="date"
+      defaultValue={value}
+      onFocus={() => marcarFoco(fk)}
+      onBlur={() => {
+        limparFoco(fk);
+        const v = ref.current?.value ?? '';
+        if (isData(v)) { if (v !== value) onCommit(v); }
+        else if (ref.current) ref.current.value = value;
+      }}
       {...r}
     />
   );

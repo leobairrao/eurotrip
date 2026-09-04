@@ -7,7 +7,7 @@ import {
   BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf,
 } from '@/content';
 import { brl, eur, norm, num, saveMonths } from './fmt';
-import type { Snapshot, Status, Who } from './types';
+import type { Contribution, Snapshot, Status, Who } from './types';
 
 // ---------------- 11.2 blocos, noites e dias ----------------
 export interface Block { base: string; from: string; to: string; n: number }
@@ -221,11 +221,15 @@ export function aindaPorGastar(s: Snapshot, cities: string[]): number {
 }
 
 // ---------------- 11.8 Caixa ----------------
-// Cada um pensa na sua moeda: o Leo em R$, a Lu em €. O geral converte
+// Cada um pensa na sua moeda: o Leo em R$, a Lu em EUR. O geral converte
 // tudo a R$ pelo cambio da aba Custos.
+//
+// O aporte NAO e mais "o que entrou em setembro": e um bolo de dinheiro
+// com dia e nome ("R$ 1.500 do 13o salario, em 12 de setembro"). Por isso
+// nao existe mais "mes vazio" — o que falta se divide pelos meses de
+// calendario que ainda cabem, e ponto.
 export const cxCur = (s: Snapshot, w: Who): 'eur' | 'brl' =>
   s.savings[w]?.currency === 'eur' ? 'eur' : 'brl';
-export const cxIni  = (s: Snapshot, w: Who) => num(s.savings[w]?.opening);
 export const cxMeta = (s: Snapshot, w: Who) => num(s.savings[w]?.goal);
 
 /** Formata na moeda de quem pensa nela. */
@@ -234,52 +238,83 @@ export const cxMoney = (s: Snapshot, v: number, w: Who) =>
 /** Converte para R$ o valor de quem pensa em euro. */
 export const cxBrl = (s: Snapshot, v: number, w: Who) =>
   cxCur(s, w) === 'eur' ? v * rate(s) : v;
-
-export const cxAporte = (s: Snapshot, ym: string, w: Who) => num(s.contributions[ym]?.[w]);
-/** O texto cru do aporte, para o campo. Vazio e vazio, nao zero. */
-export const cxAporteRaw = (s: Snapshot, ym: string, w: Who): number | null => {
-  const v = s.contributions[ym]?.[w];
-  return v === undefined ? null : v;
-};
-
-export function cxAportes(s: Snapshot, w: Who, hoje?: string | Date): number {
-  return saveMonths(hoje).reduce((a, ym) => a + cxAporte(s, ym, w), 0);
-}
-export const cxTotal = (s: Snapshot, w: Who, hoje?: string | Date) =>
-  cxIni(s, w) + cxAportes(s, w, hoje);
-export const cxFalta = (s: Snapshot, w: Who, hoje?: string | Date) =>
-  Math.max(0, cxMeta(s, w) - cxTotal(s, w, hoje));
-
-// --- os dois somados, em R$ ---
-export const cxTotalBrl = (s: Snapshot, hoje?: string | Date) =>
-  cxBrl(s, cxTotal(s, 'leo', hoje), 'leo') + cxBrl(s, cxTotal(s, 'lu', hoje), 'lu');
-export const cxMetaBrl = (s: Snapshot) =>
-  cxBrl(s, cxMeta(s, 'leo'), 'leo') + cxBrl(s, cxMeta(s, 'lu'), 'lu');
-export const cxFaltaBrl = (s: Snapshot, hoje?: string | Date) =>
-  Math.max(0, cxMetaBrl(s) - cxTotalBrl(s, hoje));
-export function cxPct(s: Snapshot, hoje?: string | Date): number {
-  const m = cxMetaBrl(s);
-  return m > 0 ? Math.min(100, (cxTotalBrl(s, hoje) / m) * 100) : 0;
-}
-/** O aporte do mes, os dois somados em R$ — a coluna "no mes" do geral. */
-export const cxMesBrl = (s: Snapshot, ym: string) =>
-  cxBrl(s, cxAporte(s, ym, 'leo'), 'leo') + cxBrl(s, cxAporte(s, ym, 'lu'), 'lu');
+/** O valor de UM aporte em R$, pela moeda de quem o lancou. */
+export const cxBrlDe = (s: Snapshot, c: Contribution) => cxBrl(s, num(c.amount), c.who);
 
 /**
- * Quantos meses ainda estao SEM aporte — e por eles que a falta se divide,
- * nao por todos (secao 10.8). No geral: mes em que NENHUM dos dois lancou.
- * Minimo 1, para nao dividir por zero.
+ * created_at vira NUMERO antes de comparar. Comparar como texto parece
+ * funcionar e nao funciona: a mesma linha chega em dois formatos conforme
+ * o caminho (achado da revisao de 04/09).
+ *
+ *   pelo PostgREST (carregar/insert):  '2026-09-04T15:00:00.123+00:00'
+ *   pelo Realtime  (o eco do outro):   '2026-09-04 15:00:00.123+00'
+ *
+ * Um tem 'T', o outro tem espaco — e ' ' < 'T'. Comparando texto, TODA
+ * linha vinda do Realtime cairia antes de TODA linha vinda do carregamento
+ * no mesmo dia, e a ordem do extrato do Leo ficaria diferente da da Lu ate
+ * alguem apertar F5.
  */
-export function mesesVazios(s: Snapshot, w: Who | null, hoje?: string | Date): number {
-  let n = 0;
-  for (const ym of saveMonths(hoje)) {
-    if (w) { if (!cxAporte(s, ym, w)) n++; }
-    else if (!cxAporte(s, ym, 'leo') && !cxAporte(s, ym, 'lu')) n++;
-  }
-  return n || 1;
+function ts(v?: string): number {
+  if (!v) return 0;
+  const s = String(v)
+    .trim()
+    .replace(' ', 'T')            // o espaco do Realtime vira 'T'
+    .replace(/([+-]\d{2})$/, '$1:00');  // e o fuso '+00' vira '+00:00'
+  // Sem o segundo replace, Date.parse('...+00') devolve NaN — e ai TODA
+  // linha vinda do Realtime empataria em 0 e cairia no comeco do dia.
+  const n = Date.parse(s);
+  return isNaN(n) ? 0 : n;
 }
+
+/**
+ * A ordem do extrato: dia, depois quem chegou antes, depois o id.
+ * Precisa ser total e estavel, senao o acumulado dança a cada render.
+ */
+function ordAporte(a: Contribution, b: Contribution): number {
+  if (a.on_date !== b.on_date) return a.on_date < b.on_date ? -1 : 1;
+  const ca = ts(a.created_at), cb = ts(b.created_at);
+  if (ca !== cb) return ca < cb ? -1 : 1;
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+
+/** Os aportes, do mais VELHO para o mais novo. `null` traz os dois. */
+export function cxLista(s: Snapshot, w: Who | null): Contribution[] {
+  const l = w ? s.contributions.filter((c) => c.who === w) : s.contributions.slice();
+  return l.sort(ordAporte);
+}
+export const cxConta = (s: Snapshot, w: Who | null) => cxLista(s, w).length;
+/** O ultimo aporte que entrou, ou null. */
+export function cxUltimo(s: Snapshot, w: Who | null): Contribution | null {
+  const l = cxLista(s, w);
+  return l.length ? l[l.length - 1] : null;
+}
+
+/** O que a pessoa tem, na moeda dela: a soma dos aportes dela. */
+export function cxTotal(s: Snapshot, w: Who): number {
+  return s.contributions.reduce((a, c) => (c.who === w ? a + num(c.amount) : a), 0);
+}
+export const cxFalta = (s: Snapshot, w: Who) => Math.max(0, cxMeta(s, w) - cxTotal(s, w));
+
+// --- os dois somados, em R$ ---
+export const cxTotalBrl = (s: Snapshot) =>
+  cxBrl(s, cxTotal(s, 'leo'), 'leo') + cxBrl(s, cxTotal(s, 'lu'), 'lu');
+export const cxMetaBrl = (s: Snapshot) =>
+  cxBrl(s, cxMeta(s, 'leo'), 'leo') + cxBrl(s, cxMeta(s, 'lu'), 'lu');
+export const cxFaltaBrl = (s: Snapshot) => Math.max(0, cxMetaBrl(s) - cxTotalBrl(s));
+export function cxPct(s: Snapshot): number {
+  const m = cxMetaBrl(s);
+  return m > 0 ? Math.min(100, (cxTotalBrl(s) / m) * 100) : 0;
+}
+
+/**
+ * Quantos meses ainda cabem, do mes de hoje ate dezembro de 2026.
+ * Minimo 1, para nao dividir por zero em janeiro de 2027.
+ */
+export const mesesAte = (hoje?: string | Date) => saveMonths(hoje).length || 1;
+
+/** Quanto falta por mes: o que falta dividido pelos meses que sobram. */
 export function cxMes(s: Snapshot, w: Who | null, hoje?: string | Date): number {
-  return (w ? cxFalta(s, w, hoje) : cxFaltaBrl(s, hoje)) / mesesVazios(s, w, hoje);
+  return (w ? cxFalta(s, w) : cxFaltaBrl(s)) / mesesAte(hoje);
 }
 
 /** A estimativa convertida, para os botoes que so PREENCHEM o campo da meta. */

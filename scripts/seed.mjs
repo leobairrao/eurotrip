@@ -150,7 +150,7 @@ async function seedIdsDe(tabela) {
   );
   const novas = ['leo', 'lu']
     .filter((w) => !existentes.has(w))
-    .map((who) => ({ who, goal: null, opening: null, currency: who === 'lu' ? 'eur' : 'brl' }));
+    .map((who) => ({ who, goal: null, currency: who === 'lu' ? 'eur' : 'brl' }));
   if (novas.length) await precisa(await db.from('savings').insert(novas), 'inserir savings');
   conta('linhas de caixa', novas.length);
 }

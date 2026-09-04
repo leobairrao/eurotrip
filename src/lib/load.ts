@@ -6,7 +6,7 @@
 import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
 import type {
-  AppUser, Attraction, Booking, Extra, Food, Leg,
+  AppUser, Attraction, Booking, Contribution, Extra, Food, Leg,
   Savings, Settings, Snapshot, Stay, Who,
 } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -34,10 +34,10 @@ const vazio = (): Snapshot => ({
   killed: [],
   adopted: [],
   savings: {
-    leo: { who: 'leo', goal: null, opening: null, currency: 'brl' },
-    lu:  { who: 'lu',  goal: null, opening: null, currency: 'eur' },
+    leo: { who: 'leo', goal: null, currency: 'brl' },
+    lu:  { who: 'lu',  goal: null, currency: 'eur' },
   },
-  contributions: {},
+  contributions: [],
   me: null,
   hoje: hojeIso(),
 });
@@ -68,7 +68,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('killed_seed').select('seed_id'),
     db.from('adopted').select('seed_id'),
     db.from('savings').select('*'),
-    db.from('contribution').select('*'),
+    db.from('contribution').select('*').order('on_date'),
   ]);
 
   const s = vazio();
@@ -87,12 +87,9 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
 
   for (const r of (savings.data ?? []) as Savings[]) {
     if (r.who !== 'leo' && r.who !== 'lu') continue;
-    s.savings[r.who] = { ...r, goal: n(r.goal), opening: n(r.opening) };
+    s.savings[r.who] = { who: r.who, goal: n(r.goal), currency: r.currency };
   }
-  for (const c of contribution.data ?? []) {
-    const w = c.who as Who;
-    s.contributions[c.month] = { ...s.contributions[c.month], [w]: n(c.amount) };
-  }
+  s.contributions = (contribution.data ?? []).map(normAporte);
   return s;
 }
 
@@ -128,6 +125,12 @@ const normBooking = (r: Record<string, unknown>): Booking => ({
 const normExtra = (r: Record<string, unknown>): Extra => ({
   id: String(r.id), name: String(r.name), amount: n(r.amount),
   currency: r.currency as Extra['currency'],
+});
+const normAporte = (r: Record<string, unknown>): Contribution => ({
+  id: String(r.id), who: r.who === 'lu' ? 'lu' : 'leo',
+  on_date: String(r.on_date ?? ''), label: String(r.label ?? ''),
+  amount: n(r.amount),
+  created_at: r.created_at ? String(r.created_at) : undefined,
 });
 const normStay = (r: Record<string, unknown>): Stay => ({
   city: String(r.city), address: String(r.address ?? ''),
@@ -208,14 +211,29 @@ export async function carregarDemo(): Promise<Snapshot> {
     s.savings[w] = {
       who: w,
       goal: val((cx.meta ?? {})[w]),
-      opening: val((cx.ini ?? {})[w]),
       currency: (cx.cur ?? {})[w] === 'eur' ? 'eur' : 'brl',
     };
   }
+  // O JSON dele ainda fala a lingua velha (saldo de hoje + aporte por mes).
+  // Aqui viram aportes: o saldo com a data de hoje, cada mes no dia 1o.
+  // A mesma traducao que supabase/03-caixa-aportes.sql faz no banco.
+  for (const w of ['leo', 'lu'] as Who[]) {
+    const ini = val((cx.ini ?? {})[w]);
+    if (ini !== null && ini !== 0)
+      s.contributions.push({
+        id: `demo-ini-${w}`, who: w, on_date: s.hoje,
+        label: 'o que eu já tinha', amount: ini,
+      });
+  }
   for (const [month, o] of Object.entries<Record<string, unknown>>(cx.ap ?? {}))
-    for (const w of ['leo', 'lu'] as Who[])
-      if (val(o?.[w]) !== null)
-        s.contributions[month] = { ...s.contributions[month], [w]: val(o[w]) };
+    for (const w of ['leo', 'lu'] as Who[]) {
+      const v = val(o?.[w]);
+      if (v !== null && v !== 0)
+        s.contributions.push({
+          id: `demo-${w}-${month}`, who: w, on_date: `${month}-01`,
+          label: 'aporte do mês', amount: v,
+        });
+    }
   s.me = { id: 'demo', email: 'demonstração', who: 'leo' };
   return s;
 }

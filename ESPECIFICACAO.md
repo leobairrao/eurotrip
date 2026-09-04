@@ -635,21 +635,34 @@ onde se faz"** (área de texto, logo abaixo), valor e moeda. E as 13 sugestões 
 
 Sub-abas **geral / Leo / Lu**. Abre na do usuário logado.
 
-- **Os meses** vão do mês corrente até **dezembro de 2026**. Calcule na hora; não fixe a lista.
-- **Cada um na sua moeda:** Leo em R$, Lu em €. O geral converte tudo a R$ pelo câmbio.
-- **`opening`** ("já guardado hoje") é separado dos aportes mensais e aparece como uma linha
-  "saldo de hoje" que **fica escondida quando é zero**.
-- **Quanto falta por mês** divide o que falta pelos **meses ainda vazios**, não por todos. Se
-  ele já lançou setembro, a conta se redistribui pelos que sobraram.
-- A coluna **acumulado** tem que se atualizar em todos os meses seguintes **enquanto ele
-  digita**, sem perder o foco do campo.
+> **Mudou em 04/09/2026.** A versão escrita aqui era uma **grade fixa de meses**: uma
+> coluna por pessoa, uma linha por mês (set/out/nov/dez), mais um campo `opening`
+> chamado "já guardado hoje". O Leo pediu outra coisa — poder **criar aportes**, como
+> numa corretora. O que vale hoje está abaixo; a grade de meses e o `opening` saíram.
+> A migração do banco é `supabase/03-caixa-aportes.sql`.
+
+- **Um aporte é uma entrada de dinheiro**, não um mês: tem **dia**, **de onde veio** (texto
+  livre, pode ficar vazio) e **valor**. "R$ 1.500 do 13º salário, em 12 de setembro."
+- **Não existe mais `opening`.** O que a pessoa já tinha guardado é o primeiro aporte da
+  lista — um jeito só de pôr dinheiro no caixa.
+- **A lista é um extrato:** do mais recente para o mais antigo, com o **acumulado** até
+  aquele aporte na coluna da direita. O acumulado se refaz enquanto ele digita, sem perder
+  o foco do campo.
+- **Cada um na sua moeda:** Leo em R$, Lu em €. No geral cada linha mostra o símbolo de
+  quem lançou, e o acumulado é convertido a R$ pelo câmbio.
+- **É o mesmo componente nas três sub-abas.** No geral entra a coluna **quem** (um select,
+  dá para mover um aporte de uma pessoa para a outra) e o acumulado vira R$.
+- **Quanto falta por mês** divide o que falta pelos **meses de calendário que ainda cabem**,
+  do mês corrente até dezembro de 2026 — calculado na hora, nunca fixo. Não existe mais a
+  ideia de "mês vazio".
 - Uma **barra** Leo / Lu / falta, com a legenda e o percentual da meta.
 - Dois botões que **só preenchem o campo** da meta com a estimativa (€ 2.795 convertidos). A
   meta é decisão deles.
 - Plural correto: "no mês que sobra" × "nos 3 meses que sobram". Isso já apareceu errado.
 
-Na sub-aba da Lu, um aviso verde: *"a Lu ganha em euro — como au pair no Luxemburgo o salário
-dela já é em €, então ela guarda em € e não perde nada no câmbio."*
+Na sub-aba de uma pessoa, o quinto número do topo é o **último aporte** — valor, dia e de
+onde veio. Na sub-aba da Lu, um aviso verde: *"a Lu ganha em euro — como au pair no
+Luxemburgo o salário dela já é em €, então ela guarda em € e não perde nada no câmbio."*
 
 ### 10.9 — Custos
 
@@ -752,10 +765,17 @@ Note que **transporte e burocracia entram no total inteiros**, comprados ou não
 move o dinheiro entre "já pago" e "previsto".
 
 ### 11.8 — Caixa
+
+Reescrita em 04/09/2026, quando o aporte deixou de ser mensal (ver 10.8).
+
 ```
 meses()            do mês corrente até 2026-12. Em setembro/2026 são 4: set, out, nov, dez
-aportes(quem)      soma dos aportes dos meses
-total(quem)        opening(quem) + aportes(quem)
+mesesAte()         quantos são  (mínimo 1, para não dividir por zero em jan/2027)
+
+lista(quem)        os aportes de quem, ordenados por  dia → created_at → id
+                   a ordem tem que ser TOTAL e estável, senão o acumulado dança a cada
+                   render. `null` traz os dois, misturados por dia.
+total(quem)        soma dos aportes de quem, na moeda de quem
 falta(quem)        max(0, goal(quem) − total(quem))
 emReais(v, quem)   se a moeda de quem é euro → v × câmbio, senão v
 
@@ -764,10 +784,12 @@ metaGeralBrl       idem com goal
 faltaGeralBrl      max(0, metaGeralBrl − totalGeralBrl)
 percentual         min(100, totalGeralBrl / metaGeralBrl × 100)
 
-mesesVazios(quem)  quantos meses ainda estão sem aporte  (mínimo 1, para não dividir por zero)
-                   no geral: meses em que NENHUM dos dois lançou
-porMes(quem)       falta(quem) / mesesVazios(quem)
+porMes(quem)       falta(quem) / mesesAte()
 ```
+
+O **acumulado** de uma linha é a soma de todos os aportes até ela **na ordem do tempo** —
+por isso a conta corre na lista crescente e só depois a tela inverte para mostrar o mais
+recente em cima.
 
 ### 11.9 — As constantes de referência
 ```

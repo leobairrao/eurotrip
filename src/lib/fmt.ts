@@ -87,6 +87,56 @@ export function mesLabel(ym: string): string {
 }
 
 /**
+ * '2026-09-12' -> '12 set 26'. O dia de um aporte.
+ * Le a string direto, sem montar Date: um `new Date('2026-09-12')`
+ * volta um dia atras em quem esta a oeste de Greenwich.
+ */
+export function dtLabel(iso: string): string {
+  const p = String(iso ?? '').split('-');
+  if (p.length !== 3) return String(iso ?? '');
+  const m = MES[parseInt(p[1], 10) - 1];
+  if (!m) return String(iso);
+  return parseInt(p[2], 10) + ' ' + m + ' ' + p[0].slice(2);
+}
+
+/**
+ * Aceita so 'aaaa-mm-dd' de uma data que existe, com ano plausivel.
+ *
+ * A FORMA sozinha nao basta. Digitando o ano num <input type="date">, o
+ * navegador passa por '0002-09-12', '0020-...', '0202-...' antes de chegar
+ * em '2026-...' — os quatro tem a forma certa. Foi assim que um aporte quase
+ * foi parar no ano 2 (achado da revisao de 04/09). Por isso o ano tambem e
+ * conferido: 2000 a 2100 cobre com folga uma viagem em 2026.
+ */
+export function isData(v: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v ?? ''));
+  if (!m) return false;
+  const [y, mo, d] = [+m[1], +m[2], +m[3]];
+  if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) return false;
+  // 31 de fevereiro tem a forma certa e nao existe
+  const dt = new Date(y, mo - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
+}
+
+/**
+ * O 'aaaa-mm-dd' de hoje no fuso de QUEM ESTA OLHANDO.
+ *
+ * Nao confunda com s.hoje, que e fixado no servidor de proposito, para o
+ * servidor e o cliente pintarem "dias ate embarcar" igual (senao o React
+ * reclama de hidratacao). Isso serve para CONTAR; nao serve como data de um
+ * lancamento: na Vercel o servidor roda em UTC, entao as 22h no Brasil ele
+ * ja acha que e amanha. Use so depois de montar, nunca no primeiro render.
+ */
+export function hojeLocal(): string {
+  const d = new Date();
+  return (
+    d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0')
+  );
+}
+
+/**
  * norm(): minusculo, sem acento, sem pontuacao. E como a base do dia,
  * que e texto livre, acha a cidade (secao 10.2).
  */
@@ -118,8 +168,8 @@ export function stripTags(s: string): string {
 export function plMes(n: number): string {
   return n === 1 ? 'no mês que sobra' : 'nos ' + n + ' meses que sobram';
 }
-export function plMesV(n: number): string {
-  return n === 1 ? 'pelo único mês ainda vazio' : 'pelos ' + n + ' meses ainda vazios';
+export function plMesAte(n: number): string {
+  return n === 1 ? 'pelo mês que falta até dezembro' : 'pelos ' + n + ' meses até dezembro';
 }
 
 /**

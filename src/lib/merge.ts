@@ -16,19 +16,23 @@ export const PK: Record<string, string> = {
   extra: 'id',
   settings: 'id',
   savings: 'who',
+  contribution: 'id',
 };
 
 export type Tabela =
   | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'extra'
   | 'settings' | 'savings' | 'contribution' | 'killed_seed' | 'adopted';
 
-type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'extras';
+type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'extras' | 'contributions';
 export const LISTA: Record<string, Lista> = {
   attraction: 'attractions',
   food: 'foods',
   leg: 'legs',
   booking: 'bookings',
   extra: 'extras',
+  // Desde que o aporte virou uma linha com id proprio, a Caixa nao tem
+  // mais caso especial nenhum aqui: e uma lista igual as outras.
+  contribution: 'contributions',
 };
 
 export const chave = (t: string, pk: string, col: string) => `${t}|${pk}|${col}`;
@@ -51,13 +55,6 @@ export function mesclar(
     if (pk !== 'leo' && pk !== 'lu') return v;
     const w = pk as Who;
     return { ...v, savings: { ...v.savings, [w]: { ...v.savings[w], ...cols } as Savings } };
-  }
-  if (t === 'contribution') {
-    // pk = "<who>|<mes>"
-    const [w, ym] = pk.split('|') as [Who, string];
-    if (!ym) return v;
-    const amount = (cols as { amount?: number | null }).amount ?? null;
-    return { ...v, contributions: { ...v.contributions, [ym]: { ...v.contributions[ym], [w]: amount } } };
   }
   const l = LISTA[t];
   if (!l) return v;
@@ -103,20 +100,6 @@ export function aplicarRemoto(
     const atual = v[campo] as string[];
     if (p.eventType === 'DELETE') return { ...v, [campo]: atual.filter((x) => x !== sid) };
     return atual.includes(sid) ? v : { ...v, [campo]: [...atual, sid] };
-  }
-
-  if (t === 'contribution') {
-    const row = p.eventType === 'DELETE' ? p.old : p.new;
-    const w = row?.who as Who | undefined;
-    const ym = row?.month as string | undefined;
-    if (!w || !ym) return v;
-    const amount = p.eventType === 'DELETE' ? null : ((row?.amount ?? null) as number | null);
-    const chaveLocal = chave('contribution', `${w}|${ym}`, 'amount');
-    const local = pend.has(chaveLocal) ? (pend.get(chaveLocal) as number | null) : amount;
-    return {
-      ...v,
-      contributions: { ...v.contributions, [ym]: { ...v.contributions[ym], [w]: local } },
-    };
   }
 
   const pkCol = PK[t];
