@@ -1,0 +1,399 @@
+[
+  {
+    "pais": "lu",
+    "cc": "--c-pl",
+    "n": "Luxemburgo",
+    "reg": [
+      [
+        "<b>Judd mat Gaardebounen</b> — o prato nacional",
+        "Pescoço de porco defumado com favas. É comida de inverno e é o que se come no país. € 15–22 numa brasserie."
+      ],
+      [
+        "<b>Gromperekichelcher</b>",
+        "Bolinho de batata frito com cebola e salsinha, € 3–5 na barraca. É a comida de rua do Winterlights, e é a mais barata da cidade."
+      ],
+      [
+        "<b>Bouneschlupp</b>",
+        "Sopa de feijão verde com batata e bacon. € 6–10, e aquece."
+      ],
+      [
+        "<b>Glühwäin no Winterlights</b>",
+        "O vinho quente do mercado, € 4–5 com caução do copo. É a razão de o mercado ficar aberto até 21h."
+      ],
+      [
+        "<b>Kachkéis</b>",
+        "Queijo cozido cremoso, passado no pão com mostarda. Coisa de mercado, barata."
+      ],
+      [
+        "<b>Pâtisseries da Rue des Capucins</b>",
+        "Namur e as confeitarias antigas do centro. Caro, mas é onde a cidade toma café."
+      ]
+    ],
+    "av": [
+      [
+        "Restaurante de menu turístico na Place d'Armes",
+        "Luxemburgo é a capital com a renda mais alta da UE e o preço reflete isso. Duas ruas para dentro, o mesmo prato cai um terço."
+      ],
+      [
+        "Comer no dia 25",
+        "Quase tudo fecha. O que sobra são as barracas do Winterlights — resolva por ali ou compre no dia 23 em Metz."
+      ]
+    ],
+    "warn": [
+      "O país inteiro é caro, mas o transporte é grátis",
+      "Diária, restaurante e mercado custam mais que na França do lado. Em compensação <b>trem, tram e ônibus são gratuitos em todo o país</b>, sem exceção para turista — só primeira classe se paga."
+    ]
+  },
+  {
+    "pais": "be",
+    "cc": "--c-de",
+    "n": "Bélgica",
+    "reg": [
+      [
+        "<b>Fritas de fritkot</b> — a comida barata da Bélgica",
+        "€ 3–5 o cone numa barraca de rua, e é sério ali: fritas de duas frituras, no cone de papel, com molho. Almoço inteiro por menos do que um café em Amsterdã."
+      ],
+      [
+        "<b>Waffle de rua</b>",
+        "O de Liège é o denso e caramelizado, o de Bruxelas é o leve e quadrado. € 2–4 na barraca; num café sentado, o triplo."
+      ],
+      [
+        "<b>Moules-frites</b>",
+        "Mexilhão com fritas, o prato nacional. € 20–28 e vale uma vez — mas fuja da Rue des Bouchers, que é armadilha de turista com garçom te puxando pelo braço."
+      ],
+      [
+        "<b>Cerveja trapista</b>",
+        "Chimay, Westmalle, Orval. € 4–6 no bar, e é cerveja de mosteiro de verdade. Num supermercado Delhaize sai por € 2."
+      ],
+      [
+        "<b>Chocolate</b>",
+        "Fuja das lojas da Grand-Place. <b>Mary</b>, <b>Neuhaus</b> e as chocolaterias de bairro cobram metade pelo mesmo bombom."
+      ],
+      [
+        "<b>Speculoos e cuberdon</b>",
+        "O biscoito de especiarias e o docinho cônico de Gent, roxo e mole por dentro. Coisa de mercado, € 1–3."
+      ]
+    ],
+    "av": [
+      [
+        "Rue des Bouchers",
+        "A rua de restaurantes ao lado da Grand-Place. Preço de turista, comida média e garçom insistente. Ande dois quarteirões para fora e o mesmo prato cai 40%."
+      ],
+      [
+        "Chocolate na Grand-Place",
+        "Mesmas marcas, mesma caixa, o dobro do preço."
+      ]
+    ],
+    "warn": [
+      "Feriados fecham a Bélgica também",
+      "<b>25 e 26 de dezembro e 1º de janeiro</b> são feriado: supermercado fechado e restaurante em horário reduzido. Mas o mercado de Natal da Grand-Place funciona até <b>3 de janeiro</b>, e ali sempre tem o que comer."
+    ]
+  },
+  {
+    "pais": "es",
+    "cc": "--c-es",
+    "n": "Espanha",
+    "reg": [
+      [
+        "<b>Menú del día</b> — a maior economia de comida da viagem",
+        "€ 12–15, só no almoço e em dia de semana. Entrada, prato principal, bebida e sobremesa. É comida de trabalhador espanhol, não de turista, e é o motivo pelo qual a Espanha cabe no seu orçamento."
+      ],
+      [
+        "<b>Bocadillo de calamares</b>",
+        "O sanduíche de Madrid. E ele mora exatamente onde você já vai estar: na <b>Calle de la Sal</b> e nos arredores da Plaza Mayor. € 4–6."
+      ],
+      [
+        "<b>Churros com chocolate</b>",
+        "San Ginés fica a 3 min da Puerta del Sol e abre 24h. Clássico turístico, mas legítimo."
+      ],
+      [
+        "<b>Cocido madrileño</b>",
+        "O cozido de Madrid, servido em duas ou três voltas. Prato de inverno, e você vai em dezembro."
+      ],
+      [
+        "<b>Torta del Casar</b>",
+        "Em Cáceres. Queijo de Extremadura tão cremoso que se come de colher, com a casca cortada como tampa."
+      ],
+      [
+        "<b>Pa amb tomàquet, bomba, crema catalana</b>",
+        "Barcelona é catalã, não espanhola, e a comida muda. Vermut à tarde é instituição."
+      ]
+    ],
+    "av": [
+      [
+        "Mercado de San Miguel",
+        "Bonito e muito fotografado, com preço de restaurante. Entra, toma uma taça, tira a foto — e almoça em outro lugar."
+      ],
+      [
+        "\"Paella\" na Rambla",
+        "Paella é valenciana. Na Rambla ela é congelada e cara. Se quiser paella de verdade, coma em Valência — e Valência não está no roteiro."
+      ],
+      [
+        "La Boqueria na hora do almoço",
+        "Mesma armadilha da San Miguel, com mais gente."
+      ]
+    ]
+  },
+  {
+    "pais": "pt",
+    "cc": "--c-pt",
+    "n": "Portugal",
+    "reg": [
+      [
+        "<b>Prato do dia</b> em tasca de bairro — melhor custo-benefício da viagem",
+        "€ 8–10 com sopa, prato principal, bebida e café. Você já tinha achado o Pingo Doce (€ 5–7 a refeição pronta, e está certo) — mas por dois euros a mais você come comida feita na hora."
+      ],
+      [
+        "<b>Pastel de nata</b> — e o original fica no seu caminho",
+        "Os <b>Pastéis de Belém</b> são de 1837 e ficam a 200 metros do Mosteiro dos Jerónimos. Você vai passar na porta no dia 14. Coma quente, com canela."
+      ],
+      [
+        "<b>Bifana</b>",
+        "Sanduíche de porco em pão, € 3–4. Comida de balcão, de pé, rápida."
+      ],
+      [
+        "<b>Bacalhau à Brás</b>",
+        "Bacalhau desfiado com batata palha e ovo. O prato de bacalhau mais fácil de gostar dos 365 que Portugal reivindica."
+      ],
+      [
+        "<b>Caldo verde</b>",
+        "Sopa de couve com chouriço. Dezembro pede."
+      ],
+      [
+        "<b>Ginjinha</b>",
+        "Licor de ginja num copinho, € 1,50, em pé no balcão. A Ginjinha original é ao lado do Rossio — no seu dia 12."
+      ],
+      [
+        "<b>Peixe grelhado em Cascais</b>",
+        "No dia 15, à beira-mar. É o motivo de ir a Cascais tanto quanto a vista."
+      ]
+    ],
+    "av": [
+      [
+        "Time Out Market",
+        "Bonito, muito fotografado, e com preço de restaurante para comida de praça de alimentação. É a armadilha mais eficiente de Lisboa."
+      ],
+      [
+        "Restaurante com foto no menu na Baixa",
+        "Regra universal, mas na Rua Augusta ela é especialmente verdadeira."
+      ]
+    ]
+  },
+  {
+    "pais": "fr",
+    "cc": "--c-fr",
+    "n": "França",
+    "reg": [
+      [
+        "<b>Boulangerie de manhã</b>",
+        "Croissant e pain au chocolat por € 2–4. O café da manhã mais barato e o melhor da viagem, ao mesmo tempo. Não tome café da manhã de hotel na França."
+      ],
+      [
+        "<b>Formule midi</b>",
+        "O menu de almoço, € 15–18: entrada + prato, ou prato + sobremesa. Mesma lógica do menú del día espanhol. O jantar do mesmo restaurante custa o dobro."
+      ],
+      [
+        "<b>Soupe à l'oignon gratinée</b>",
+        "Sopa de cebola com queijo derretido por cima. Feita para uma noite de dezembro em Paris."
+      ],
+      [
+        "<b>Vin chaud</b>",
+        "Vinho quente com especiarias, € 3–5 nas barracas de rua. Em dezembro é praticamente obrigatório."
+      ],
+      [
+        "<b>Crêpe de rua</b>",
+        "Salgado ou doce, € 4–7, e você come andando. Jantar de emergência perfeito."
+      ],
+      [
+        "<b>Jantar de supermercado</b>",
+        "Monoprix ou Franprix: queijo, baguette, vinho e frutas por € 12 para dois. Não é derrota, é como parisiense faz."
+      ]
+    ],
+    "av": [
+      [
+        "Restaurante com garçom te chamando na rua",
+        "Especialmente em Montmartre e no Quartier Latin."
+      ],
+      [
+        "Qualquer coisa com vista da Torre Eiffel",
+        "Você paga a vista, não a comida. Compre a comida em outro lugar e coma sentado no Champ de Mars."
+      ]
+    ],
+    "warn": [
+      "No dia 25 quase tudo fecha",
+      "Restaurantes e mercados fecham em massa no Natal, e o metrô roda em horário de feriado. <b>Compre comida no dia 24 ou reserve restaurante com antecedência</b> — senão vocês jantam o que sobrou na mochila numa das noites mais bonitas da viagem."
+    ]
+  },
+  {
+    "pais": "nl",
+    "cc": "--c-nl",
+    "n": "Holanda",
+    "reg": [
+      [
+        "<b>Haring</b> — a coisa mais holandesa que existe",
+        "Arenque cru com cebola picada e pepino, na banca de rua, € 3–4. Come segurando pela cauda ou no pãozinho. Estranho na primeira mordida e depois não."
+      ],
+      [
+        "<b>Stroopwafel fresco</b>",
+        "Não o de pacote: o feito na hora na feira, com o caramelo ainda mole. € 2–3."
+      ],
+      [
+        "<b>Bitterballen</b>",
+        "Bolinhas de ragu frito com mostarda, acompanhando cerveja. O petisco nacional."
+      ],
+      [
+        "<b>Patat met</b>",
+        "Batata frita com maionese, ou com <i>satésaus</i> (molho de amendoim indonésio). € 3–5."
+      ],
+      [
+        "<b>Rijsttafel indonésio</b>",
+        "Herança colonial: a comida \"nacional\" holandesa que ninguém espera. Uma mesa de 10 a 20 pratinhos."
+      ],
+      [
+        "<b>Cozinhar no Airbnb</b>",
+        "O Albert Heijn é o supermercado padrão. Nas 3 noites de Haarlem, cozinhar duas vezes economiza uns € 40 — e a Holanda é onde a comida mais dói."
+      ]
+    ],
+    "av": [
+      [
+        "Restaurante na Damrak e arredores da estação",
+        "Zona de pura extração turística."
+      ],
+      [
+        "\"Coffeeshop\" quando você quer café",
+        "Coffeeshop vende maconha. Café se pede em <i>café</i> ou <i>koffiehuis</i>."
+      ]
+    ]
+  },
+  {
+    "pais": "de",
+    "cc": "--c-de",
+    "n": "Alemanha",
+    "reg": [
+      [
+        "<b>Döner kebab</b> — e Berlim é onde ele foi inventado",
+        "O döner de pão como o mundo conhece nasceu em Berlim, feito por imigrantes turcos nos anos 70. € 5–7 e é refeição completa. Provavelmente o melhor custo-benefício de toda a viagem."
+      ],
+      [
+        "<b>Currywurst</b>",
+        "Salsicha fatiada com ketchup curry e batata frita. O <i>Konnopke's Imbiss</i>, embaixo do metrô elevado em Prenzlauer Berg, é instituição desde 1930."
+      ],
+      [
+        "<b>Schnitzel e Eisbein</b>",
+        "Comida alemã de inverno, porção generosa, preço honesto."
+      ],
+      [
+        "<b>Berliner Weisse</b>",
+        "Cerveja ácida servida com xarope de framboesa ou de aspérula. Verde ou vermelha, e bem estranha."
+      ],
+      [
+        "<b>Aldi, Lidl, Netto</b>",
+        "Os supermercados mais baratos da Europa Ocidental estão na Alemanha. Café da manhã e lanche resolvidos por centavos."
+      ]
+    ],
+    "av": [
+      [
+        "Nada em volta da Alexanderplatz",
+        "Área de passagem, comida de passagem."
+      ]
+    ],
+    "warn": [
+      "Você chega dia 29 — os mercados de Natal já fecharam",
+      "A maioria encerra no dia 23 ou 24. Glühwein e Bratwurst de barraca de Natal ficam para outra viagem. Alguns mercados de inverno seguem até o começo de janeiro — vale checar quando estiver perto."
+    ]
+  },
+  {
+    "pais": "pl",
+    "cc": "--c-pl",
+    "n": "Polônia",
+    "reg": [
+      [
+        "<b>Bar mleczny</b> — a refeição mais barata da viagem inteira",
+        "O \"bar de leite\" é uma cantina subsidiada que sobrou do período socialista e continua funcionando. Refeição completa por 20–30 zł (<b>~€ 5</b>). Não é turístico, é onde poloneses almoçam, e é a coisa mais interessante de comer na Polônia."
+      ],
+      [
+        "<b>Pierogi</b>",
+        "Os <i>ruskie</i> (batata e queijo) são o padrão. Cozidos ou fritos na manteiga com cebola."
+      ],
+      [
+        "<b>Żurek</b>",
+        "Sopa de centeio fermentado, servida dentro de um pão. Azeda, densa, e perfeita a −4 °C."
+      ],
+      [
+        "<b>Zapiekanka</b>",
+        "Meia baguete gratinada com cogumelo e queijo, € 2–3. O ponto clássico é o <i>Plac Nowy</i>, em Kazimierz — no seu bairro."
+      ],
+      [
+        "<b>Obwarzanek</b>",
+        "O pretzel trançado de rua de Cracóvia, ~1 zł. Café da manhã de 25 centavos."
+      ],
+      [
+        "<b>Kotlet schabowy</b>",
+        "O schnitzel polonês, com batata e repolho. Comida de domingo."
+      ]
+    ],
+    "av": [
+      [
+        "Restaurante na Rynek Główny com menu em seis idiomas",
+        "A praça é linda e você deve passar horas nela — mas coma uma rua para dentro."
+      ]
+    ],
+    "warn": [
+      "No dia de Auschwitz, leve comida",
+      "Vocês vão ficar 10 horas fora, saindo às 6h30. Não há nada decente para comer por lá, e não é um lugar onde você quer estar procurando restaurante."
+    ]
+  },
+  {
+    "pais": "it",
+    "cc": "--c-it",
+    "n": "Itália",
+    "reg": [
+      [
+        "<b>Café em pé no balcão custa um terço do preço</b>",
+        "€ 1,20 em pé, € 4 sentado na mesma cafeteria. Não é golpe, é lei: mesa tem serviço. Os italianos tomam café em pé, em 90 segundos, e vão embora."
+      ],
+      [
+        "<b>Os quatro clássicos romanos</b>",
+        "Cacio e pepe, carbonara, amatriciana e gricia. <b>Carbonara não tem creme de leite</b> — é ovo, queijo, guanciale e pimenta. Se o menu disser <i>cream</i>, você está no lugar errado."
+      ],
+      [
+        "<b>Pizza al taglio</b>",
+        "Pizza por peso, cortada na tesoura, comida em pé. € 3–5 e é o almoço mais eficiente de Roma."
+      ],
+      [
+        "<b>Supplì</b>",
+        "Bolinho de arroz frito com muçarela derretida no meio. O primo romano do arancini."
+      ],
+      [
+        "<b>Carciofi alla giudia</b>",
+        "Alcachofra frita inteira, do Ghetto judeu de Roma. Prato de 500 anos, e janeiro é temporada de alcachofra."
+      ],
+      [
+        "<b>Maritozzo</b>",
+        "Pão doce aberto e recheado de chantilly. Café da manhã romano."
+      ],
+      [
+        "<b>Trastevere e Testaccio</b>",
+        "Onde os romanos comem de verdade. Testaccio é o bairro do mercado e das trattorias de família."
+      ]
+    ],
+    "av": [
+      [
+        "Qualquer lugar a 200 m do Coliseu ou da Fontana di Trevi",
+        "Regra simples e quase infalível."
+      ],
+      [
+        "Menu com foto, ou garçom te chamando na porta",
+        "Restaurante romano bom não precisa te convencer na rua."
+      ],
+      [
+        "Gelato de cor berrante",
+        "Pistache de verdade é fosco e acinzentado, não verde-neon. Cor viva significa corante e gordura vegetal."
+      ]
+    ],
+    "warn": [
+      "O <i>coperto</i> não é golpe",
+      "€ 2–3 por pessoa de couvert é normal, legal, e vem no menu. Reclamar disso é de turista."
+    ]
+  }
+]

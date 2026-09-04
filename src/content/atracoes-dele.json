@@ -1,0 +1,181 @@
+{
+  "madrid": [
+    [
+      "Puerta del Sol",
+      0,
+      "sempre"
+    ],
+    [
+      "Plaza Mayor e a região",
+      0,
+      "sempre"
+    ],
+    [
+      "Calle de la Sal",
+      0,
+      "a ruazinha ao lado da Plaza Mayor — é onde mora o bocadillo de calamares"
+    ],
+    [
+      "Mercado de San Miguel",
+      0,
+      "entrar é grátis; comer ali é preço de restaurante"
+    ],
+    [
+      "Plaza de la Villa",
+      0,
+      "sempre"
+    ],
+    [
+      "Palacio Real",
+      0,
+      "GRÁTIS seg–qui 16h–18h de outubro a março, só mostrando o passaporte brasileiro. Fora dessa janela, € 14"
+    ],
+    [
+      "Catedral de la Almudena",
+      0,
+      "a nave é doação de € 1; museu e cúpula € 7"
+    ],
+    [
+      "Plaza de Oriente",
+      0,
+      "em frente ao Palácio — os dois se fazem juntos"
+    ],
+    [
+      "Plaza de España",
+      0,
+      "sempre"
+    ],
+    [
+      "Templo de Debod",
+      0,
+      "por fora, sempre — é o melhor pôr do sol de Madrid. Por dentro: ter–dom, grátis, com fila"
+    ],
+    [
+      "Santiago Bernabéu",
+      37,
+      "o Bernabéu Tour dá vestiário, túnel e beira do gramado. Seg–sáb 9h–19h; fecha só 25/12 e 1/1"
+    ],
+    [
+      "Paseo del Prado",
+      0,
+      "a avenida em si é grátis e costura quase tudo dessa lista"
+    ],
+    [
+      "Museo del Prado",
+      0,
+      "GRÁTIS seg–sáb 18h–20h e dom 17h–19h. Fila de ~40 min e lotado. Fora disso, € 15"
+    ],
+    [
+      "Palacio de Cibeles",
+      0,
+      "o prédio e a praça são grátis; o mirador do 8º andar custa € 3"
+    ],
+    [
+      "Banco de España",
+      0,
+      "só a fachada — não abre para visita"
+    ],
+    [
+      "Parque de El Retiro",
+      0,
+      "grátis, e o Palacio de Cristal lá dentro também"
+    ],
+    [
+      "Puerta de Alcalá",
+      0,
+      "sempre — fica na saída do Retiro"
+    ],
+    [
+      "Toledo (bate-volta)",
+      22,
+      "a cidade se anda de graça; o preço é o trem ida e volta. 33 min de Atocha"
+    ],
+    [
+      "Segovia (bate-volta)",
+      26,
+      "AVE de 27 min; o aqueduto e o alcázar. O preço é o trem ida e volta"
+    ],
+    [
+      "Ávila (bate-volta)",
+      19,
+      "a muralha inteira, 1h30 de trem. O preço é o trem ida e volta"
+    ]
+  ],
+  "lisboa": [
+    [
+      "Praça do Comércio",
+      0,
+      "sempre"
+    ],
+    [
+      "Rua Augusta",
+      0,
+      "a rua é grátis; subir no Arco custa € 4,50"
+    ],
+    [
+      "Praça Dom Pedro IV (Rossio)",
+      0,
+      "sempre"
+    ],
+    [
+      "Elevador de Santa Justa",
+      0,
+      "a passarela de cima é GRÁTIS a pé pelo Largo do Carmo — mesma vista. Andar no elevador, € 6,20"
+    ],
+    [
+      "Miradouro de Santa Luzia",
+      0,
+      "sempre"
+    ],
+    [
+      "Mosteiro dos Jerónimos",
+      0,
+      "a IGREJA é grátis e é a parte que impressiona; o claustro custa € 18"
+    ],
+    [
+      "Padrão dos Descobrimentos",
+      0,
+      "por fora, grátis; o mirante no topo, € 10"
+    ],
+    [
+      "Torre de Belém",
+      0,
+      "por fora, grátis; por dentro € 15, fila longa e pouca coisa para ver"
+    ],
+    [
+      "Cascais",
+      6,
+      "trem do Cais do Sodré, 40 min colados na costa. O preço é ida e volta"
+    ],
+    [
+      "Lisboa Card",
+      0,
+      "fiz a conta com a sua lista: você PERDE € 16 comprando. Só viraria a favor se entrasse no claustro e na Torre"
+    ],
+    [
+      "Sintra — Palácio da Pena",
+      20,
+      "horário marcado; só o parque sai € 10"
+    ],
+    [
+      "Sintra — Quinta da Regaleira",
+      15,
+      "o poço iniciático; compre online"
+    ],
+    [
+      "Sintra — Castelo dos Mouros",
+      12,
+      "a muralha e a vista de cima"
+    ],
+    [
+      "Sintra — Palácio de Monserrate",
+      12,
+      "o mais afastado dos quatro"
+    ],
+    [
+      "Sintra — trem e ônibus",
+      19,
+      "Rossio–Sintra € 5 ida e volta, mais o ônibus 434 a € 13,50"
+    ]
+  ]
+}

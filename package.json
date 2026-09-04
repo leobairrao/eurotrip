@@ -1,0 +1,31 @@
+{
+  "name": "eurotrip-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "seed": "node scripts/seed.mjs",
+    "import": "node scripts/import.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.47.10",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.7.3"
+  }
+}

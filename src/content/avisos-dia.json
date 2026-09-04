@@ -1,0 +1,92 @@
+{
+  "2026-12-10": [
+    "warn",
+    "O voo de ida",
+    "FLN 20h15 (LA4519) → GRU 21h40, conexão de 1h55, GRU 23h35 (LA8066) → Madrid. Pousa <b>13h40 do dia 11</b>."
+  ],
+  "2026-12-11": [
+    "warn",
+    "O trem para Cáceres tem só 3 por dia",
+    "São 3h07 de Madrid. <b>Confira o horário antes de sair de Barajas</b> — perder um custa meio dia."
+  ],
+  "2026-12-16": [
+    "warn",
+    "Dia inteiro de viagem",
+    "Lisboa → Cáceres de carro (3h30) e Cáceres → Madrid de trem (3h07). <b>Se o carro não precisar voltar a Cáceres, isto vira um voo de 1h20</b> e você ganha o dia. Pergunte ao CK."
+  ],
+  "2026-12-17": [
+    "free",
+    "Palacio Real grátis hoje, 16h–18h",
+    "A janela é <b>seg a qui</b>, out a mar, com o passaporte brasileiro. Hoje é quinta — é a sua primeira das duas chances."
+  ],
+  "2026-12-18": [
+    "free",
+    "Museo del Prado grátis 18h–20h",
+    "Sexta. Fila de uns 40 min e lotado, mas de graça."
+  ],
+  "2026-12-19": [
+    "warn",
+    "Voo Madrid → Luxemburgo, e a Lu te encontra",
+    "Pouco mais de 2h. No aeroporto: <b>ônibus 16 até a estação é de graça</b>, e o trem para Metz são 45 min, € 8–10."
+  ],
+  "2026-12-24": [
+    "alert",
+    "Todo o transporte de Luxemburgo para às 20h",
+    "CFL, tram e ônibus, <b>sem exceção</b>. Você tem que estar num trem de volta a Metz antes disso. O Winterlights abre 11h–21h, mas você não fica até o fim. <b>Compre a comida do dia 25 hoje ou dia 23.</b>"
+  ],
+  "2026-12-25": [
+    "warn",
+    "Trens em horário de feriado",
+    "Reduzido nos dois sentidos — confira ida e volta. A cidade fecha; o Winterlights abre 11h–21h. Dorme em Metz."
+  ],
+  "2026-12-26": [
+    "warn",
+    "Metz → Reims não tem trem direto",
+    "1h25 no melhor caso, média 2h24, uma troca, desde ~€ 31. E <b>hoje é feriado na Moselle</b> (Saint-Étienne): serviço reduzido. Confira antes."
+  ],
+  "2026-12-27": [
+    "warn",
+    "Escurece 16h55",
+    "Paris no inverno tem pouca luz. Para Paris, <b>TER 1h35 é bem mais barato que TGV 45 min</b>."
+  ],
+  "2026-12-28": [
+    "warn",
+    "O mercado de Natal de Reims encerra hoje",
+    "150 chalés nas Hautes Promenades. Se quiser ver, é hoje."
+  ],
+  "2026-12-29": [
+    "alert",
+    "Reims → Amsterdã é a perna mais cara",
+    "4h38 no melhor caso, uma troca. <b>Compre com muita antecedência.</b>"
+  ],
+  "2026-12-31": [
+    "free",
+    "Réveillon: o show oficial é grátis",
+    "Fogos de particular são <b>proibidos</b> em Amsterdã. O Electric Fireworks é no Museumplein — infantil 19h, principal 22h. Centro lotadíssimo: combinem ponto de encontro antes."
+  ],
+  "2027-01-02": [
+    "warn",
+    "A Lu volta hoje, e você voa para Roma",
+    "Ela vai de trem para Luxemburgo: 5h39, uma troca em Bruxelas, tudo de dia, desde € 38. Você voa Amsterdã → Roma, ~2h30. Dia 2 ainda é pico de volta de festas."
+  ],
+  "2027-01-06": [
+    "alert",
+    "Epifania — feriado italiano",
+    "Muita coisa fecha em Roma. Dia bom para o que é ao ar livre."
+  ],
+  "2027-01-10": [
+    "warn",
+    "Voo Roma → Madrid",
+    "~2h30. Última noite da viagem: durma em cima de uma linha de metrô com acesso a Barajas — a <b>linha 8</b> vai direto ao aeroporto."
+  ],
+  "2027-01-11": [
+    "free",
+    "Dia inteiro em Madrid, e Palacio Real de novo",
+    "O voo é só <b>23h35</b>, então o dia é todo seu. É <b>segunda</b>: a janela grátis das 16h–18h vale. Deixe a mala guardada na estação."
+  ],
+  "2027-01-12": [
+    "warn",
+    "No ar",
+    "MAD 23h35 (LA705) → SCL 8h55, conexão de 7h45, SCL 16h40 (LA726) → FLN 19h55. <b>Não marque nada para o dia 13.</b>"
+  ]
+}

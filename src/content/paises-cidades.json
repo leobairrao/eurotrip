@@ -1,0 +1,110 @@
+{
+  "paises": [
+    {
+      "k": "es",
+      "n": "Espanha",
+      "cc": "--c-es",
+      "cities": [
+        "madrid",
+        "caceres"
+      ]
+    },
+    {
+      "k": "pt",
+      "n": "Portugal",
+      "cc": "--c-pt",
+      "cities": [
+        "lisboa"
+      ]
+    },
+    {
+      "k": "fr",
+      "n": "França",
+      "cc": "--c-fr",
+      "cities": [
+        "metz",
+        "estrasburgo",
+        "reims",
+        "paris"
+      ]
+    },
+    {
+      "k": "lu",
+      "n": "Luxemburgo",
+      "cc": "--c-pl",
+      "cities": [
+        "luxemburgo"
+      ]
+    },
+    {
+      "k": "de",
+      "n": "Alemanha",
+      "cc": "--c-de",
+      "cities": [
+        "trier"
+      ]
+    },
+    {
+      "k": "nl",
+      "n": "Holanda",
+      "cc": "--c-nl",
+      "cities": [
+        "amsterda"
+      ]
+    },
+    {
+      "k": "it",
+      "n": "Itália",
+      "cc": "--c-it",
+      "cities": [
+        "roma"
+      ]
+    }
+  ],
+  "cidades": {
+    "madrid": {
+      "n": "Madrid",
+      "co": "es"
+    },
+    "caceres": {
+      "n": "Cáceres",
+      "co": "es"
+    },
+    "lisboa": {
+      "n": "Lisboa",
+      "co": "pt"
+    },
+    "metz": {
+      "n": "Metz",
+      "co": "fr"
+    },
+    "estrasburgo": {
+      "n": "Estrasburgo",
+      "co": "fr"
+    },
+    "reims": {
+      "n": "Reims",
+      "co": "fr"
+    },
+    "paris": {
+      "n": "Paris",
+      "co": "fr"
+    },
+    "luxemburgo": {
+      "n": "Luxemburgo",
+      "co": "lu"
+    },
+    "trier": {
+      "n": "Trier",
+      "co": "de"
+    },
+    "amsterda": {
+      "n": "Amsterdã",
+      "co": "nl"
+    },
+    "roma": {
+      "n": "Roma",
+      "co": "it"
+    }
+  }
+}

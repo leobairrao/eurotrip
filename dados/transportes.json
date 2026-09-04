@@ -1,0 +1,62 @@
+[
+  {
+    "n": "Madrid → Cáceres",
+    "w": "trem, 3h07 — só 3 por dia. Confira o horário antes de sair de Barajas",
+    "k": "trem"
+  },
+  {
+    "n": "Cáceres → Lisboa",
+    "w": "carro do irmão do CK, ~3h30. Aqui entra combustível e pedágio, se rachar",
+    "k": "carro"
+  },
+  {
+    "n": "Lisboa → Cáceres → Madrid",
+    "w": "o dia 16 inteiro. <b>Se o carro não precisar voltar</b>, isto vira um voo Lisboa → Madrid de 1h20",
+    "k": "carro"
+  },
+  {
+    "n": "Madrid → Luxemburgo",
+    "w": "o voo do dia 19, onde a Lu te encontra. Rota pequena em semana pré-Natal: compre até meados de outubro",
+    "k": "aviao"
+  },
+  {
+    "n": "Luxemburgo → Metz",
+    "w": "ônibus 16 do aeroporto até a estação é de graça; o trem são 45 min, € 8–10",
+    "k": "onibus"
+  },
+  {
+    "n": "Bate-voltas de Metz no TER",
+    "w": "Estrasburgo (48 min–1h24, desde € 11), Trier via Luxemburgo, Nancy ou Colmar",
+    "k": "trem"
+  },
+  {
+    "n": "Metz ⇄ Luxemburgo, 24 e 25",
+    "w": "o lado luxemburguês é <b>grátis</b> — você paga só até a fronteira",
+    "k": "trem"
+  },
+  {
+    "n": "Metz → Reims",
+    "w": "sem trem direto: 1h25 no melhor caso, média 2h24, uma troca, desde ~€ 31",
+    "k": "trem"
+  },
+  {
+    "n": "Reims ⇄ Paris no TER",
+    "w": "1h35 por trecho, e bem mais barato que o TGV. São dois bate-voltas",
+    "k": "trem"
+  },
+  {
+    "n": "Reims → Amsterdã",
+    "w": "4h38, uma troca. <b>É a perna mais cara da viagem</b> — compre com muita antecedência",
+    "k": "trem"
+  },
+  {
+    "n": "Amsterdã → Roma",
+    "w": "o voo do dia 2, ~2h30. Dia 2 ainda é pico de volta de festas",
+    "k": "aviao"
+  },
+  {
+    "n": "Roma → Madrid",
+    "w": "o voo do dia 10, ~2h30. Baixa temporada — deve ser o mais barato dos três",
+    "k": "aviao"
+  }
+]

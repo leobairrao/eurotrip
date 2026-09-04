@@ -1,0 +1,44 @@
+[
+  {
+    "c": "caceres",
+    "area": "Casa do irmão do CK",
+    "res": "Hospedagem resolvida e de graça. Só confirmar com o CK antes de contar com ela.",
+    "free": 1
+  },
+  {
+    "c": "lisboa",
+    "area": "Arroios · Campo de Ourique",
+    "res": "<b>Arroios</b> é residencial, com metrô direto pra Baixa em 10 min e muito brasileiro. <b>Campo de Ourique</b> é bairro de família, tranquilo, com o elétrico 28 passando perto. Os dois custam metade do Chiado.",
+    "warn": "Intendente e Martim Moniz estão gentrificando rápido, mas ainda são mais brutos à noite."
+  },
+  {
+    "c": "madrid",
+    "area": "Chamberí · Argüelles · Tetuán",
+    "res": "<b>Chamberí</b> é elegante e residencial, 15 min a pé do centro. <b>Argüelles</b> é zona universitária, mais barata. <b>Tetuán</b>, que você mencionou, fica logo ao norte de Chamberí: mais barato, muita comida boa, e <i>vizinho do Bernabéu</i> — encaixa com o tour do estádio.",
+    "warn": "Tetuán é mais bruto e menos bonito que Chamberí. A melhor parte é Cuatro Caminos; a faixa de Estrecho na Bravo Murillo é mais movimentada à noite."
+  },
+  {
+    "c": "metz",
+    "area": "Centro · Montigny-lès-Metz · ou perto da Gare",
+    "res": "Sua casa por <b>7 noites</b>, e a base de todos os bate-voltas. Metz é cidade de província de 120 mil habitantes — hotéis a partir de <b>€ 28–92</b> na semana do mercado de Natal, contra € 289–411 em Estrasburgo. Fique perto da <b>Gare de Metz</b>, que é de onde saem Luxemburgo (45 min), Estrasburgo, Nancy e Paris. <b>Montigny-lès-Metz</b> e <b>Woippy</b> são ainda mais baratos.",
+    "warn": "A área imediatamente colada na estação é sem graça à noite, mas não é perigosa. Metz é uma das cidades mais seguras da França."
+  },
+  {
+    "c": "reims",
+    "area": "Fora do centro · perto da Gare de Reims",
+    "res": "Três noites, e o que você precisa daqui é a <b>estação</b>: é de lá que sai o trem para Paris. O centro de Reims é pequeno e se anda todo a pé, então ficar 15 ou 20 min afastado não custa nada em tempo e corta bem a diária.",
+    "warn": "Evite a área de Croix-Rouge e Orgeval, a oeste, que é a periferia social da cidade. O eixo estação–catedral é tranquilo."
+  },
+  {
+    "c": "amsterda",
+    "area": "Haarlem · Amsterdam Noord",
+    "res": "<b>Haarlem</b> fica a 15 min de trem, tem canais próprios, é muito segura e <b>está fora da taxa municipal de 12,5% de Amsterdã</b>. É a maior economia isolada do roteiro: ~€ 170 nas três noites. <b>Amsterdam Noord</b> é a alternativa, com balsa gratuita saindo da Centraal.",
+    "warn": "Amsterdã cobra 33,5% de imposto sobre pernoite desde 2026 — 21% de IVA mais 12,5% municipal. Um quarto de € 200 sai por € 267."
+  },
+  {
+    "c": "roma",
+    "area": "Prati · Pigneto",
+    "res": "<b>Prati</b>, do lado do Vaticano: residencial, seguro, com metrô, e bem mais barato que Trastevere ou o Centro Storico. <b>Pigneto</b> é a opção jovem e barata.",
+    "warn": "Não durma colado na Termini — é a região mais degradada do centro à noite."
+  }
+]

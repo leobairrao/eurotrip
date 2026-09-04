@@ -1,0 +1,2571 @@
+<title>Eurotrip 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+
+<style id="css">
+  :root{
+    --ground:#F2F4F1;--surface:#FBFCFA;--surface-2:#E8ECE6;
+    --ink:#141C18;--ink-2:#3D4A43;--muted:#66756C;
+    --hairline:#D3DACF;--hairline-2:#BDC7B9;
+    --pine:#1F4D3D;--pine-wash:#E2EBE4;
+    --ochre:#96690F;--ochre-wash:#F2EAD6;
+    --rust:#9E3A2C;--rust-wash:#F5E4E0;
+    --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+    --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --c-es:#1F4D3D;--c-pt:#2C6E63;--c-fr:#34618A;
+    --c-nl:#B06A16;--c-de:#7A5C1F;--c-pl:#9E3A2C;--c-it:#6B4E8C;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0F1512;--surface:#161E19;--surface-2:#1D2721;
+    --ink:#E4EAE4;--ink-2:#B9C4BC;--muted:#8B998F;
+    --hairline:#29352E;--hairline-2:#3A4941;
+    --pine:#63B893;--pine-wash:#16251E;
+    --ochre:#D8A94F;--ochre-wash:#241E11;
+    --rust:#E08975;--rust-wash:#2A1815;
+    --c-es:#63B893;--c-pt:#5FB8A8;--c-fr:#79ABD6;
+    --c-nl:#DFA254;--c-de:#CBAE63;--c-pl:#E08975;--c-it:#A891CC;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0F1512;--surface:#161E19;--surface-2:#1D2721;
+    --ink:#E4EAE4;--ink-2:#B9C4BC;--muted:#8B998F;
+    --hairline:#29352E;--hairline-2:#3A4941;
+    --pine:#63B893;--pine-wash:#16251E;
+    --ochre:#D8A94F;--ochre-wash:#241E11;
+    --rust:#E08975;--rust-wash:#2A1815;
+    --c-es:#63B893;--c-pt:#5FB8A8;--c-fr:#79ABD6;
+    --c-nl:#DFA254;--c-de:#CBAE63;--c-pl:#E08975;--c-it:#A891CC;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--body);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;margin:0}
+  button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  :focus-visible{outline:2px solid var(--pine);outline-offset:2px}
+
+  /* ---- shell ---- */
+  .top{position:sticky;top:0;z-index:20;background:var(--ground);border-bottom:1px solid var(--hairline)}
+  .topin{max-width:1000px;margin:0 auto;padding:14px 24px 0}
+  .brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .brand h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+  .brand .sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em}
+  .brand .save{margin-left:auto;display:flex;align-items:center;gap:9px}
+  .savedot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+  .savedot.cloud{background:var(--pine)}
+  .savedot.dirty{background:var(--ochre)}
+  .savetxt{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.04em}
+  .savebtn{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;padding:6px 12px;border:1px solid var(--pine);color:var(--pine)}
+  .savebtn[disabled]{opacity:.4;cursor:default}
+
+  .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;padding:11px 15px;color:var(--muted);
+    border-bottom:2px solid transparent;white-space:nowrap;flex:0 0 auto}
+  .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--pine)}
+  .tabs button:hover{color:var(--ink-2)}
+
+  main{max-width:1000px;margin:0 auto;padding:30px 24px 90px}
+  .panelhead{margin-bottom:26px}
+  .panelhead h2{font-size:clamp(26px,5vw,38px);font-weight:800;letter-spacing:-.028em;line-height:1.04;margin-bottom:8px}
+  .panelhead p{margin:0;color:var(--ink-2);max-width:66ch;font-size:17px}
+
+  /* ---- chips ---- */
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:24px}
+  .chip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.05em;
+    padding:7px 12px;border:1px solid var(--hairline-2);color:var(--ink-2);background:var(--surface)}
+  .chip[aria-pressed="true"]{background:var(--cc,var(--pine));border-color:var(--cc,var(--pine));color:var(--ground)}
+  .chip .cn{opacity:.62;margin-left:6px;font-weight:400}
+
+  /* ---- cards ---- */
+  .card{border:1px solid var(--hairline-2);background:var(--surface);
+    border-top:4px solid var(--cc,var(--pine));margin-bottom:22px}
+  .card > .h{padding:20px 24px 16px;border-bottom:1px solid var(--hairline)}
+  .card > .h h3{font-size:24px;font-weight:800;letter-spacing:-.024em;margin-bottom:5px}
+  .card > .h .m{font-family:var(--mono);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .card > .b{padding:20px 24px}
+  .card > .b > *:first-child{margin-top:0}
+  .card > .b p{margin:0 0 10px;color:var(--ink-2);max-width:72ch}
+  .card > .b p:last-child{margin-bottom:0}
+  .card strong{color:var(--ink);font-weight:600}
+  .sechead{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+
+  /* ---- day ---- */
+  .day{display:grid;grid-template-columns:92px 1fr;gap:0 20px;padding:16px 0;
+    border-bottom:1px solid var(--hairline);align-items:start}
+  .day:last-child{border-bottom:0}
+  .day .dt{font-family:var(--mono);font-variant-numeric:tabular-nums;padding-top:2px}
+  .day .dt b{display:block;font-size:14.5px;font-weight:600;color:var(--ink)}
+  .day .dt i{display:block;font-style:normal;font-size:9.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin-top:2px}
+  .day h4{font-size:17px;font-weight:700;letter-spacing:-.015em;margin-bottom:5px}
+  .day p{margin:0 0 7px;font-size:15.5px;color:var(--ink-2);max-width:72ch}
+  .day p:last-child{margin-bottom:0}
+  .day strong{color:var(--ink);font-weight:600}
+  .day--move{background:var(--surface-2)}
+  .day--move h4{color:var(--muted);font-weight:600}
+  .day--anchor .dt b{color:var(--pine)}
+  .day--today{background:var(--pine-wash)}
+
+  .tg{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+  .tg span{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;padding:3px 7px;border:1px solid currentColor}
+  .tg .free{color:var(--pine)}.tg .book{color:var(--rust)}
+  .tg .fixed{color:var(--ochre)}.tg .move{color:var(--muted)}
+
+  .n{margin:9px 0 0;padding:11px 14px;background:var(--ground);
+    border-left:3px solid var(--nc,var(--muted));font-size:14.5px;color:var(--ink-2);max-width:72ch}
+  .day--move .n,.day--today .n{background:var(--surface)}
+  .n b{color:var(--ink);font-weight:600}
+  .n > b:first-child{display:block;font-family:var(--mono);font-size:9px;font-weight:600;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--nc,var(--muted));margin-bottom:4px}
+  .n.free{--nc:var(--pine)}.n.warn{--nc:var(--ochre)}.n.alert{--nc:var(--rust)}
+
+  /* ---- lists ---- */
+  ul.pl{margin:0;padding:0;list-style:none;display:grid;gap:11px}
+  ul.pl li{position:relative;padding-left:22px;font-size:15.5px;color:var(--ink-2)}
+  ul.pl li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+    background:var(--cc,var(--pine))}
+  ul.pl li .pr{font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-weight:600;color:var(--pine);white-space:nowrap}
+  ul.pl li b{color:var(--ink);font-weight:600}
+  ul.pl li em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--muted);
+    display:block;margin-top:2px}
+
+  /* ---- calendario ---- */
+  .cal{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));margin-bottom:26px}
+  .mo{border:1px solid var(--hairline);background:var(--surface);padding:16px 18px 18px}
+  .mo h4{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .grid7 .wd{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);text-align:center;padding-bottom:4px}
+  .cd{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;
+    border:1px solid transparent;color:var(--muted);position:relative}
+  .cd.off{opacity:.28}
+  .cd.trip{border-color:var(--hairline-2);color:var(--ink);background:var(--ground);cursor:pointer}
+  .cd.trip:hover{border-color:var(--dc,var(--pine))}
+  .cd.sel{background:var(--dc,var(--pine));border-color:var(--dc,var(--pine));color:var(--ground);font-weight:600}
+  .cd .pip{position:absolute;bottom:4px;width:5px;height:5px;background:var(--dc,var(--pine))}
+  .cd.sel .pip{background:var(--ground)}
+  .cd.mvd .pip{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+  .calleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:10.5px;
+    color:var(--muted);margin-top:12px}
+  .calleg span{display:inline-flex;align-items:center;gap:6px}
+  .calleg i{width:7px;height:7px;display:inline-block;font-style:normal;background:var(--muted)}
+  .calleg i.d{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+
+  /* ---- atracoes ---- */
+  .at{display:grid;gap:1px;background:var(--hairline);border:1px solid var(--hairline);margin-top:10px}
+  .atr{background:var(--ground);padding:11px 14px;display:grid;
+    grid-template-columns:24px 1fr auto;gap:4px 13px;align-items:start}
+  .atr.on{background:var(--pine-wash)}
+  .atr input{width:17px;height:17px;margin:3px 0 0;accent-color:var(--pine);cursor:pointer}
+  .atr .nm{font-size:15px;font-weight:600;color:var(--ink)}
+  .atr .wh{grid-column:2;font-size:13.5px;color:var(--muted);margin-top:1px}
+  .atr .vl{font-family:var(--mono);font-size:14px;font-weight:600;
+    font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:2px}
+  .atr.free .vl{color:var(--pine)}
+  .atsum{display:flex;flex-wrap:wrap;gap:6px 22px;padding:13px 15px;margin-top:10px;
+    background:var(--surface-2);font-family:var(--mono);font-size:12.5px;
+    font-variant-numeric:tabular-nums;color:var(--ink-2)}
+  .atsum b{color:var(--ink)}
+  .bigsum{border:1px solid var(--hairline-2);border-top:4px solid var(--pine);
+    background:var(--surface);padding:20px 24px;margin-bottom:24px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:18px}
+  .bigsum > div b{display:block;font-family:var(--display);font-size:27px;font-weight:800;
+    letter-spacing:-.026em;font-variant-numeric:tabular-nums;line-height:1}
+  .bigsum > div span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+  /* ---- tables ---- */
+  .tw{overflow-x:auto;border:1px solid var(--hairline);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:520px}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--hairline);font-size:15px}
+  thead th{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);background:var(--surface-2);
+    border-bottom:1px solid var(--hairline-2);white-space:nowrap}
+  tbody tr:last-child td{border-bottom:0}
+  td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.pl2{font-weight:600;font-family:var(--display);letter-spacing:-.01em}
+  td.sb{font-size:13px;color:var(--muted)}
+  tfoot td{font-family:var(--mono);font-weight:600;background:var(--surface-2);
+    border-top:1px solid var(--hairline-2)}
+  .gr{color:var(--pine);font-weight:600}.rd{color:var(--rust);font-weight:600}
+  tr.pk td{background:var(--ochre-wash)}
+
+  /* ---- stay form ---- */
+  .form{display:grid;gap:12px;margin-top:16px}
+  .fld{display:grid;gap:5px}
+  .fld label{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted)}
+  .fld input,.fld textarea{padding:9px 11px;background:var(--ground);
+    border:1px solid var(--hairline-2);font-size:15px;width:100%}
+  .fld textarea{min-height:64px;resize:vertical;font-family:var(--body)}
+  .fld input:focus,.fld textarea:focus{border-color:var(--pine);outline:none}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .calcline{font-family:var(--mono);font-size:12.5px;color:var(--pine);
+    font-variant-numeric:tabular-nums;padding-top:4px}
+  .saved{margin-top:14px;padding:13px 15px;background:var(--pine-wash);
+    border-left:3px solid var(--pine)}
+  .saved .k{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--pine);margin-bottom:5px;display:block}
+  .saved .v{font-size:15.5px;color:var(--ink);font-weight:600}
+  .saved .x{font-size:14px;color:var(--ink-2);margin-top:4px}
+  .saved a{color:var(--pine);word-break:break-all;font-size:14px}
+
+  /* ---- booking checklist ---- */
+  .bk{display:grid;gap:1px;background:var(--hairline);border:1px solid var(--hairline)}
+  .bkr{background:var(--surface);padding:15px 18px;display:grid;
+    grid-template-columns:26px 130px 1fr;gap:6px 16px;align-items:start}
+  .bkr.done{background:var(--pine-wash)}
+  .bkr.done h4,.bkr.done p{opacity:.55}
+  .bkr.done h4{text-decoration:line-through}
+  .bkr input[type=checkbox]{width:19px;height:19px;margin:3px 0 0;accent-color:var(--pine);cursor:pointer}
+  .bkr .w{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;
+    color:var(--wc,var(--muted));line-height:1.4;padding-top:2px}
+  .bkr h4{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:3px}
+  .bkr p{margin:0;font-size:14.5px;color:var(--ink-2);max-width:66ch}
+  .bkr.now{--wc:var(--rust)}
+  .bkr.hard{--wc:var(--ochre)}
+
+  /* ---- dashboard ---- */
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px;background:var(--hairline);border:1px solid var(--hairline);margin-bottom:24px}
+  .kpi > div{background:var(--surface);padding:18px 20px}
+  .kpi b{display:block;font-family:var(--display);font-size:30px;font-weight:800;
+    letter-spacing:-.028em;font-variant-numeric:tabular-nums;line-height:1}
+  .kpi span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin-top:7px}
+  .kpi small{display:block;font-size:13px;color:var(--ink-2);margin-top:5px}
+
+  .bar{display:flex;height:38px;overflow:hidden;border:1px solid var(--hairline-2);margin-bottom:10px}
+  .bar > div{display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;
+    color:var(--ground);min-width:0;overflow:hidden}
+  .key{display:flex;flex-wrap:wrap;gap:5px 18px;font-family:var(--mono);
+    font-size:11px;color:var(--muted);margin-bottom:26px}
+  .key span{display:inline-flex;align-items:center;gap:6px}
+  .key i{width:9px;height:9px;display:inline-block;font-style:normal}
+
+  footer{max-width:1000px;margin:0 auto;padding:24px;border-top:1px solid var(--hairline);
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+
+  @media (max-width:700px){
+    body{font-size:16px}
+    .topin{padding:12px 16px 0}
+    main{padding:24px 16px 80px}
+    .brand .save{margin-left:0;width:100%}
+    .card > .h{padding:16px 18px 14px}
+    .card > .b{padding:16px 18px}
+    .card > .h h3{font-size:20px}
+    .day{grid-template-columns:1fr;gap:7px 0}
+    .day .dt{display:flex;align-items:baseline;gap:9px;padding-bottom:5px;
+      border-bottom:1px solid var(--hairline)}
+    .day .dt i{margin-top:0}
+    .frow,.frow3{grid-template-columns:1fr}
+    .atr{grid-template-columns:24px 1fr}
+    .atr .vl{grid-column:2}
+    .bkr{grid-template-columns:26px 1fr}
+    .bkr .w{grid-column:2}
+    .bkr h4,.bkr p{grid-column:2}
+  }
+  /* ---- v12: listas editáveis ---- */
+  .subtabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:24px}
+  .mt{display:grid;gap:1px;background:var(--hairline);border:1px solid var(--hairline);margin-top:4px}
+  .mrow{background:var(--ground);padding:10px 12px;display:grid;
+    grid-template-columns:1fr 104px 84px 34px;gap:7px 9px;align-items:center;
+    grid-template-areas:"nm st pr x" "wh wh wh wh"}
+  .mrow .sv{grid-area:st;font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;
+    padding:6px 4px;text-align:center;text-align-last:center}
+  .mrow.st-esc{background:var(--pine-wash);box-shadow:inset 3px 0 0 var(--pine)}
+  .mrow.st-esc .sv{color:var(--pine);font-weight:600;border-color:var(--pine)}
+  .mrow.st-bac{box-shadow:inset 3px 0 0 var(--ochre)}
+  .mrow.st-bac .sv{color:var(--ochre)}
+  .mrow.st-sug{background:var(--surface-2)}
+  .mrow.st-sug .nv,.mrow.st-sug .wh{opacity:.62}
+  .mrow.st-sug .sv{color:var(--muted)}
+
+  .filt{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 20px}
+  .fchip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.05em;
+    padding:7px 12px;border:1px solid var(--hairline-2);color:var(--ink-2);background:var(--surface)}
+  .fchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+  .fchip.f-esc[aria-pressed="true"]{background:var(--pine);border-color:var(--pine)}
+  .fchip.f-bac[aria-pressed="true"]{background:var(--ochre);border-color:var(--ochre)}
+  .fchip .cn{opacity:.62;margin-left:6px;font-weight:400}
+  .mrow.food{grid-template-columns:1fr 34px;grid-template-areas:"nm x" "wh wh"}
+  .mrow.x3{grid-template-columns:1fr 96px 62px 34px;
+    grid-template-areas:"nm pr cu x" "wh wh wh wh"}
+  .mrow .nv{grid-area:nm}
+  .mrow .pv{grid-area:pr}
+  .mrow select{grid-area:cu}
+  .mrow .xb{grid-area:x}
+  .mrow .wh{grid-area:wh;font-size:13.5px;color:var(--muted);line-height:1.45}
+  .mrow input,.mrow select{padding:7px 9px;background:var(--surface);
+    border:1px solid var(--hairline-2);font-size:15px;width:100%}
+  .mrow input:focus,.mrow select:focus{border-color:var(--pine);outline:none}
+  .mrow input.pv{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+  .mrow .pv:placeholder-shown{background:transparent;border-color:transparent}
+  .mrow:hover .pv:placeholder-shown{border-color:var(--hairline)}
+  .mrow .pv:focus{background:var(--surface);border-color:var(--pine)}
+  .nv{background:transparent!important;border-color:transparent!important;
+    font-weight:600;color:var(--ink);padding-left:2px!important;padding-right:2px!important;
+    text-overflow:ellipsis}
+  .mrow:hover .nv,.bkr:hover .nv{border-color:var(--hairline)!important}
+  .nv:focus{background:var(--surface)!important;border-color:var(--pine)!important}
+  .bkr.rr .rw .nv{font-size:16px}
+  .xb{font-family:var(--mono);font-size:16px;line-height:1;color:var(--muted);
+    border:1px solid var(--hairline-2);background:var(--surface);padding:7px 0;width:100%}
+  .xb:hover{color:var(--rust);border-color:var(--rust)}
+  .addrow{display:grid;grid-template-columns:1fr 96px auto;gap:8px;margin-top:12px}
+  .addrow.two{grid-template-columns:1fr auto}
+  .addrow.three{grid-template-columns:1fr 96px 62px auto}
+  .addrow.one{grid-template-columns:auto;justify-content:start}
+  .addrow input,.addrow select{padding:9px 11px;background:var(--ground);
+    border:1px solid var(--hairline-2);font-size:15px;width:100%}
+  .addrow input:focus{border-color:var(--pine);outline:none}
+  .addrow input.pv{font-family:var(--mono);text-align:right}
+  .addrow button{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;padding:0 16px;border:1px solid var(--pine);
+    color:var(--pine);background:var(--surface);white-space:nowrap}
+  .addrow button:hover{background:var(--pine);color:var(--ground)}
+
+  /* ---- sugestões ---- */
+  .sg{margin-top:22px;border-top:1px dashed var(--hairline-2);padding-top:15px}
+  .sgh{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .sgr{display:grid;grid-template-columns:1fr auto auto;gap:3px 11px;
+    padding:9px 0;border-bottom:1px solid var(--hairline);align-items:center}
+  .sgr:last-child{border-bottom:0}
+  .sgr.taken{opacity:.42}
+  .sgr .nm{font-size:15px;color:var(--ink-2)}
+  .sgr .nm b{color:var(--ink)}
+  .sgr .wh{grid-column:1/-1;font-size:13px;color:var(--muted);line-height:1.45}
+  .sgr .vl{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;
+    color:var(--muted);white-space:nowrap}
+  .plus{font-family:var(--mono);font-size:14px;line-height:1;color:var(--pine);
+    border:1px solid var(--hairline-2);background:var(--surface);padding:5px 12px}
+  .plus:hover{background:var(--pine);color:var(--ground);border-color:var(--pine)}
+
+  .empty{padding:15px 17px;background:var(--surface-2);font-size:15px;
+    color:var(--muted);border-left:3px solid var(--hairline-2)}
+  .empty b{color:var(--ink-2)}
+  p.foot{font-size:12px;color:var(--muted);line-height:1.6;margin:14px 0 26px;max-width:72ch}
+
+  /* ---- reservas editáveis ---- */
+  .bkr.rr{grid-template-columns:26px 1fr 34px;gap:8px 14px;align-items:center}
+  .bkr.rr .rw input{padding:7px 9px;background:var(--ground);
+    border:1px solid var(--hairline-2);font-size:16px;font-weight:600;width:100%}
+  .bkr.rr .rw input:focus{border-color:var(--pine);outline:none}
+  .bkr.rr .rb{grid-column:2/4}
+  .bkr.rr .rb p{margin:0;font-size:14px;color:var(--ink-2)}
+  .bkr.rr.done .rw input{text-decoration:line-through;opacity:.55}
+
+  @media (max-width:700px){
+    .mrow{grid-template-columns:112px 1fr 32px;
+      grid-template-areas:"nm nm x" "st pr pr" "wh wh wh"}
+    .mrow .sv{font-size:11px}
+    .mrow .pv{max-width:96px}
+    .mrow.x3{grid-template-columns:78px 58px 1fr 32px;
+      grid-template-areas:"nm nm nm x" "pr cu wh wh"}
+    .mrow.food{grid-template-columns:1fr 32px}
+    .addrow,.addrow.two,.addrow.three{grid-template-columns:1fr}
+    .addrow.one{grid-template-columns:1fr}
+    .addrow button{padding:11px 16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* ---- v19: painel com 5 números e tabela do roteiro ---- */
+  .bigsum.b5{grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:16px}
+  .bigsum.b5 > div b{font-size:24px}
+  .bigsum > div i{display:block;font-style:normal;font-family:var(--mono);
+    font-size:11px;line-height:1.45;color:var(--ink-2);margin-top:5px}
+  .mrow.pgo .pv{color:var(--pine);font-weight:600;border-color:var(--pine);background:var(--surface)}
+  @media (max-width:700px){
+    .bigsum.b5{grid-template-columns:1fr 1fr}
+    .bigsum.b5 > div:last-child{grid-column:1/-1}
+  }
+  table.rot{min-width:0}
+  table.rot thead th{white-space:normal}
+  table.rot td.sb{font-size:12.5px;line-height:1.45}
+  @media (max-width:700px){
+    table.rot th,table.rot td{padding:9px 10px}
+    table.rot td.pl2{font-size:14.5px}
+  }
+
+  /* ---- v20: caixa ---- */
+  input.cxv{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;
+    padding:6px 8px;background:var(--ground);border:1px solid var(--hairline-2);
+    font-size:15px;width:100%;max-width:120px;margin-left:auto;display:block}
+  input.cxv:focus{border-color:var(--pine);outline:none;background:var(--surface)}
+  input.cxv:placeholder-shown{border-color:var(--hairline)}
+  table.rot td.num{vertical-align:middle}
+  tfoot td.num{font-variant-numeric:tabular-nums}
+  .bkr .w{text-transform:uppercase;letter-spacing:.11em;font-size:9.5px}
+  @media (max-width:700px){
+    input.cxv{max-width:86px;padding:6px 6px;font-size:14px}
+    table.rot th.num,table.rot td.num{padding:8px 6px}
+  }
+  @media (max-width:700px){table.cxt .hidem{display:none}}
+
+  /* ---- v20: caixa e pendências (o bloco que não entrou no build da v20) ---- */
+  table.cxt th.num,table.cxt td.num{text-align:right}
+  table.cxt td.pl2,table.cxt th:first-child{white-space:nowrap}
+  .addrow.fit{grid-template-columns:auto auto;justify-content:start;gap:9px}
+
+  /* pendência: rótulo em cima, texto na largura toda */
+  .bkr.pnd{display:block;padding:16px 20px 17px}
+  .bkr.pnd .w{display:block;padding:0;margin-bottom:6px;
+    font-size:9.5px;letter-spacing:.13em;text-transform:uppercase}
+  .bkr.pnd h4{font-size:17px;margin-bottom:4px}
+  .bkr.pnd p{max-width:82ch;font-size:15px}
+  @media (max-width:700px){
+    .addrow.fit{grid-template-columns:1fr}
+    .bkr.pnd{padding:14px 16px 15px}
+    .bkr.pnd h4{font-size:16px}
+  }
+
+  /* ---- v22: Dias virou parte do Roteiro ---- */
+  .day--pick{cursor:pointer;margin:0 -24px;padding-left:24px;padding-right:24px}
+  .day--pick:hover{background:var(--surface-2)}
+  .day--pick:hover .dt b{color:var(--pine)}
+  .day--pick:focus-visible{outline:2px solid var(--pine);outline-offset:-2px}
+  @media (max-width:700px){
+    .day--pick{margin:0 -18px;padding-left:18px;padding-right:18px}
+  }
+
+  /* ---- v24: atração no dia ---- */
+  .atr.pkd{grid-template-columns:1fr auto 34px;align-items:center}
+  .atr.pkd .nm{grid-column:1}
+  .atr.pkd .vl{grid-column:2}
+  .atr.pkd .xb{grid-column:3;width:34px}
+  .atr.pkd .wh{grid-column:1/-1;margin-top:2px;font-size:12.5px}
+  .stg{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;padding:2px 6px;border:1px solid currentColor;
+    white-space:nowrap;vertical-align:2px}
+  .stg.st-esc{color:var(--pine)}
+  .stg.st-bac{color:var(--ochre)}
+  .stg.st-sug{color:var(--muted)}
+  .dtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .dtg{font-family:var(--mono);font-size:11px;padding:3px 8px;
+    background:var(--surface-2);color:var(--ink-2);border-left:2px solid var(--muted)}
+  .dtg b{color:var(--ink);font-weight:600}
+  .dtg.st-esc{border-left-color:var(--pine)}
+  .dtg.st-bac{border-left-color:var(--ochre)}
+  .dtg.st-sug{border-left-color:var(--hairline-2);opacity:.7}
+  .dtg.tot{background:transparent;border-left:0;color:var(--pine);font-weight:600}
+  .dtag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;
+    padding:2px 6px;background:var(--pine);color:var(--ground);white-space:nowrap}
+  .mrow.st-sug .dtag{background:var(--muted)}
+  @media (max-width:700px){
+    .atr.pkd{grid-template-columns:1fr 32px}
+    .atr.pkd .vl{grid-column:1;grid-row:2}
+    .atr.pkd .xb{grid-column:2;grid-row:1}
+    .dtg{font-size:10.5px}
+  }
+
+  /* ---- v25: roteiro em branco, avisos meus separados ---- */
+  .cd .nt{position:absolute;top:0;right:0;width:0;height:0;
+    border-top:7px solid var(--ochre);border-left:7px solid transparent}
+  .cd .nt.nt-alert{border-top-color:var(--rust)}
+  .cd .nt.nt-free{border-top-color:var(--pine)}
+  .cd.sel .nt{border-top-color:var(--ground)}
+  .calleg i.nt{width:0;height:0;background:none;
+    border-top:7px solid var(--ochre);border-left:7px solid transparent}
+  .ntags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .ntg{font-family:var(--mono);font-size:11px;padding:3px 9px;
+    border:1px solid currentColor;border-left-width:3px;white-space:normal}
+  .ntg.nt-warn{color:var(--ochre)}
+  .ntg.nt-alert{color:var(--rust)}
+  .ntg.nt-free{color:var(--pine)}
+
+  /* ---- v26: reservas com valor ---- */
+  .bkr.rr{grid-template-columns:26px 1fr 96px 58px 34px;gap:8px 12px}
+  .bkr.rr .rb{grid-column:2/-1}
+  .bkr.rr .rv{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;
+    padding:7px 9px;background:var(--ground);border:1px solid var(--hairline-2);
+    font-size:15px;width:100%;font-weight:400}
+  .bkr.rr .rv:focus{border-color:var(--pine);outline:none}
+  .bkr.rr .rv:placeholder-shown{border-color:var(--hairline);background:transparent}
+  .bkr.rr .rm{padding:7px 4px;background:var(--ground);border:1px solid var(--hairline-2);
+    font-family:var(--mono);font-size:12.5px;width:100%;text-align:center;text-align-last:center}
+  .bkr.rr .rm:focus{border-color:var(--pine);outline:none}
+  .bkr.rr.done .rv{color:var(--pine);font-weight:600;border-color:var(--pine);
+    background:var(--surface);text-decoration:none;opacity:1}
+  .bkr.rr.done .rb p{opacity:.55}
+  @media (max-width:700px){
+    .bkr.rr{grid-template-columns:26px 1fr 62px 32px;gap:8px}
+    .bkr.rr input[type=checkbox]{grid-column:1;grid-row:1}
+    .bkr.rr .rw{grid-column:2/4;grid-row:1}
+    .bkr.rr .xb{grid-column:4;grid-row:1}
+    .bkr.rr .rv{grid-column:2;grid-row:2}
+    .bkr.rr .rm{grid-column:3/5;grid-row:2}
+    .bkr.rr .rb{grid-column:1/-1;grid-row:3}
+  }
+  .fld select{padding:9px 11px;background:var(--ground);color:var(--ink);
+    border:1px solid var(--hairline-2);font-family:inherit;font-size:15px;width:100%}
+  .fld select:focus{border-color:var(--pine);outline:none}
+
+  /* ---- v27: comidas em prato / restaurante / café ---- */
+  .mrow.fk-pr,.mrow.fk-rest,.mrow.fk-cafe{
+    grid-template-columns:1fr 118px 34px;
+    grid-template-areas:"nm st x" "wh wh wh"}
+  .mrow.fk-pr{box-shadow:inset 3px 0 0 var(--hairline-2)}
+  .mrow.fk-rest{box-shadow:inset 3px 0 0 var(--c-nl)}
+  .mrow.fk-cafe{box-shadow:inset 3px 0 0 var(--ochre)}
+  .mrow.fk-rest .sv{color:var(--c-nl)}
+  .mrow.fk-cafe .sv{color:var(--ochre)}
+  .stg.fkc-pr{color:var(--muted)}
+  .stg.fkc-rest{color:var(--c-nl)}
+  .stg.fkc-cafe{color:var(--ochre)}
+  .dtg.fk-rest{border-left-color:var(--c-nl)}
+  .dtg.fk-cafe{border-left-color:var(--ochre)}
+  .dtg.fk-pr{border-left-color:var(--hairline-2)}
+  @media (max-width:700px){
+    .mrow.fk-pr,.mrow.fk-rest,.mrow.fk-cafe{
+      grid-template-columns:1fr 112px 32px;
+      grid-template-areas:"nm nm x" "st st st" "wh wh wh"}
+    .mrow.fk-pr .sv,.mrow.fk-rest .sv,.mrow.fk-cafe .sv{max-width:132px}
+  }
+  /* ---- v28: emoji por tipo, e a aba Transporte ---- */
+  /* atracao ganhou um 4o controle: nome | situacao | tipo | preco | x */
+  .mrow.at5{grid-template-columns:1fr 104px 116px 84px 34px;
+    grid-template-areas:"nm st ak pr x" "wh wh wh wh wh"}
+  .mrow .kv{grid-area:ak}
+  .mrow.at5 .kv{color:var(--ink-2)}
+  .mrow.at5.st-esc .kv{border-color:var(--pine)}
+  .stg.akc-pass,.stg.akc-tour{color:var(--ink-2)}
+  /* transporte: nome | tipo | valor | moeda | comprado | x */
+  .mrow.tr5{grid-template-columns:1fr 116px 98px 56px 30px 34px;
+    grid-template-areas:"nm tk pr cu ok x" "wh wh wh wh wh wh"}
+  .mrow.tr5 .kv{grid-area:tk}
+  .mrow .ck{grid-area:ok;width:18px;height:18px;padding:0;margin:0 auto;
+    accent-color:var(--pine);cursor:pointer;border:0;background:none}
+  .mrow.tr5.tk-trem{box-shadow:inset 3px 0 0 var(--c-fr)}
+  .mrow.tr5.tk-aviao{box-shadow:inset 3px 0 0 var(--rust)}
+  .mrow.tr5.tk-onibus{box-shadow:inset 3px 0 0 var(--c-nl)}
+  .mrow.tr5.tk-carro{box-shadow:inset 3px 0 0 var(--ochre)}
+  .mrow.tr5.pgo{background:var(--pine-wash)}
+  .stg.tkc-trem{color:var(--c-fr)}
+  .stg.tkc-aviao{color:var(--rust)}
+  .stg.tkc-onibus{color:var(--c-nl)}
+  .stg.tkc-carro{color:var(--ochre)}
+  .dtg.tk-trem{border-left-color:var(--c-fr)}
+  .dtg.tk-aviao{border-left-color:var(--rust)}
+  .dtg.tk-onibus{border-left-color:var(--c-nl)}
+  .dtg.tk-carro{border-left-color:var(--ochre)}
+  .dtg.pgo{background:var(--pine-wash)}
+  .addrow.four{grid-template-columns:1fr 116px 96px 62px auto}
+  .dtag.off{background:none;border:1px solid var(--hairline-2);color:var(--muted)}
+  /* os chips de contagem da aba Transporte nao sao botao: nao dar mao neles */
+  span.fchip{cursor:default}
+  /* a legenda dos emojis, embaixo do calendario */
+  .emoleg{display:flex;flex-wrap:wrap;gap:6px 15px;margin-top:8px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--muted)}
+  .emoleg span{display:inline-flex;align-items:center;gap:5px}
+  @media (max-width:700px){
+    .mrow.at5{grid-template-columns:78px 104px 1fr 32px;
+      grid-template-areas:"nm nm nm x" "st ak pr pr" "wh wh wh wh"}
+    .mrow.at5 .sv{font-size:10px;padding:6px 2px}
+    .mrow.at5 .pv{font-size:13px;padding:7px 4px}
+    .mrow.at5 .pv{max-width:none}
+    .mrow.tr5{grid-template-columns:1fr 62px 32px;
+      grid-template-areas:"nm nm x" "tk tk tk" "pr cu ok" "wh wh wh"}
+    .mrow.tr5 .pv{max-width:none}
+    .addrow.four{grid-template-columns:1fr}
+    .tabs button{padding:11px 10px;font-size:10.5px;letter-spacing:.07em}
+  }
+</style>
+
+<script id="state" type="application/json">{"days":{"2026-12-10":{"c":"em trânsito","p":""},"2026-12-11":{"c":"Cáceres","p":""},"2026-12-12":{"c":"Lisboa","p":""},"2026-12-13":{"c":"Lisboa","p":""},"2026-12-14":{"c":"Lisboa","p":""},"2026-12-15":{"c":"Lisboa","p":""},"2026-12-16":{"c":"Madrid","p":""},"2026-12-17":{"c":"Madrid","p":""},"2026-12-18":{"c":"Madrid","p":""},"2026-12-19":{"c":"Metz","p":""},"2026-12-20":{"c":"Metz","p":""},"2026-12-21":{"c":"Metz","p":""},"2026-12-22":{"c":"Metz","p":""},"2026-12-23":{"c":"Metz","p":""},"2026-12-24":{"c":"Metz","p":""},"2026-12-25":{"c":"Metz","p":""},"2026-12-26":{"c":"Reims","p":""},"2026-12-27":{"c":"Reims","p":""},"2026-12-28":{"c":"Reims","p":""},"2026-12-29":{"c":"Amsterdã","p":""},"2026-12-30":{"c":"Amsterdã","p":""},"2026-12-31":{"c":"Amsterdã","p":""},"2027-01-01":{"c":"Amsterdã","p":""},"2027-01-02":{"c":"Roma","p":""},"2027-01-03":{"c":"Roma","p":""},"2027-01-04":{"c":"Roma","p":""},"2027-01-05":{"c":"Roma","p":""},"2027-01-06":{"c":"Roma","p":""},"2027-01-07":{"c":"Roma","p":""},"2027-01-08":{"c":"Roma","p":""},"2027-01-09":{"c":"Roma","p":""},"2027-01-10":{"c":"Madrid","p":""},"2027-01-11":{"c":"Madrid","p":""},"2027-01-12":{"c":"em trânsito","p":""}},"mine":{"madrid":[{"id":"mmtmyxyv41","sid":"m:madrid:0","n":"Puerta del Sol","pr":0,"w":"sempre","st":"bac"},{"id":"mmtmyxyv42","sid":"m:madrid:1","n":"Plaza Mayor e a região","pr":0,"w":"sempre","st":"bac"},{"id":"mmtmyxyv43","sid":"m:madrid:2","n":"Calle de la Sal","pr":0,"w":"a ruazinha ao lado da Plaza Mayor — é onde mora o bocadillo de calamares","st":"bac"},{"id":"mmtmyxyv44","sid":"m:madrid:3","n":"Mercado de San Miguel","pr":0,"w":"entrar é grátis; comer ali é preço de restaurante","st":"bac"},{"id":"mmtmyxyv45","sid":"m:madrid:4","n":"Plaza de la Villa","pr":0,"w":"sempre","st":"bac"},{"id":"mmtmyxyv46","sid":"m:madrid:5","n":"Palacio Real","pr":0,"w":"GRÁTIS seg–qui 16h–18h de outubro a março, só mostrando o passaporte brasileiro. Fora dessa janela, € 14","st":"bac"},{"id":"mmtmyxyv47","sid":"m:madrid:6","n":"Catedral de la Almudena","pr":0,"w":"a nave é doação de € 1; museu e cúpula € 7","st":"bac"},{"id":"mmtmyxyv48","sid":"m:madrid:7","n":"Plaza de Oriente","pr":0,"w":"em frente ao Palácio — os dois se fazem juntos","st":"bac"},{"id":"mmtmyxyv49","sid":"m:madrid:8","n":"Plaza de España","pr":0,"w":"sempre","st":"bac"},{"id":"mmtmyxyv4a","sid":"m:madrid:9","n":"Templo de Debod","pr":0,"w":"por fora, sempre — é o melhor pôr do sol de Madrid. Por dentro: ter–dom, grátis, com fila","st":"bac"},{"id":"mmtmyxyv4b","sid":"m:madrid:10","n":"Santiago Bernabéu","pr":37,"w":"o Bernabéu Tour dá vestiário, túnel e beira do gramado. Seg–sáb 9h–19h; fecha só 25/12 e 1/1","st":"bac"},{"id":"mmtmyxyv4c","sid":"m:madrid:11","n":"Paseo del Prado","pr":0,"w":"a avenida em si é grátis e costura quase tudo dessa lista","st":"bac"},{"id":"mmtmyxyv4d","sid":"m:madrid:12","n":"Museo del Prado","pr":0,"w":"GRÁTIS seg–sáb 18h–20h e dom 17h–19h. Fila de ~40 min e lotado. Fora disso, € 15","st":"bac"},{"id":"mmtmyxyv4e","sid":"m:madrid:13","n":"Palacio de Cibeles","pr":0,"w":"o prédio e a praça são grátis; o mirador do 8º andar custa € 3","st":"bac"},{"id":"mmtmyxyv4f","sid":"m:madrid:14","n":"Banco de España","pr":0,"w":"só a fachada — não abre para visita","st":"bac"},{"id":"mmtmyxyv4g","sid":"m:madrid:15","n":"Parque de El Retiro","pr":0,"w":"grátis, e o Palacio de Cristal lá dentro também","st":"bac"},{"id":"mmtmyxyv4h","sid":"m:madrid:16","n":"Puerta de Alcalá","pr":0,"w":"sempre — fica na saída do Retiro","st":"bac"},{"id":"mmtmyxyv4i","sid":"m:madrid:17","n":"Toledo (bate-volta)","pr":22,"w":"a cidade se anda de graça; o preço é o trem ida e volta. 33 min de Atocha","st":"bac"},{"id":"mmtmyxyv4j","sid":"m:madrid:18","n":"Segovia (bate-volta)","pr":26,"w":"AVE de 27 min; o aqueduto e o alcázar. O preço é o trem ida e volta","st":"bac"},{"id":"mmtmyxyv4k","sid":"m:madrid:19","n":"Ávila (bate-volta)","pr":19,"w":"a muralha inteira, 1h30 de trem. O preço é o trem ida e volta","st":"bac"},{"id":"mmtmyxyv410","sid":"s:madrid:0","n":"Museo Reina Sofía","pr":0,"w":"grátis seg e qua–sáb 19h–21h, dom 10h–14h30 — a Guernica está lá","st":"sug"},{"id":"mmtmyxyv411","sid":"s:madrid:1","n":"Museo Thyssen","pr":0,"w":"grátis nas segundas, coleção permanente","st":"sug"},{"id":"mmtmyxyv412","sid":"s:madrid:2","n":"Mirador do Palacio de Cibeles","pr":3,"w":"€ 3 pela vista do eixo que você já vai andar inteiro","st":"sug"},{"id":"mmtmyxyv413","sid":"s:madrid:3","n":"Barrio de las Letras","pr":0,"w":"as ruas com versos no chão, entre Sol e o Prado","st":"sug"},{"id":"mmtmyxyv414","sid":"s:madrid:4","n":"Matadero Madrid","pr":0,"w":"antigo matadouro virou centro cultural na beira do rio — de graça","st":"sug"}],"lisboa":[{"id":"mmtmyxyv4l","sid":"m:lisboa:0","n":"Praça do Comércio","pr":0,"w":"sempre","st":"esc","day":""},{"id":"mmtmyxyv4m","sid":"m:lisboa:1","n":"Rua Augusta","pr":0,"w":"a rua é grátis; subir no Arco custa € 4,50","st":"esc","day":""},{"id":"mmtmyxyv4n","sid":"m:lisboa:2","n":"Praça Dom Pedro IV (Rossio)","pr":0,"w":"sempre","st":"esc","day":""},{"id":"mmtmyxyv4o","sid":"m:lisboa:3","n":"Elevador de Santa Justa","pr":0,"w":"a passarela de cima é GRÁTIS a pé pelo Largo do Carmo — mesma vista. Andar no elevador, € 6,20","st":"esc","day":""},{"id":"mmtmyxyv4p","sid":"m:lisboa:4","n":"Miradouro de Santa Luzia","pr":0,"w":"sempre","st":"esc","day":""},{"id":"mmtmyxyv4q","sid":"m:lisboa:5","n":"Mosteiro dos Jerónimos","pr":0,"w":"a IGREJA é grátis e é a parte que impressiona; o claustro custa € 18","st":"esc","day":""},{"id":"mmtmyxyv4r","sid":"m:lisboa:6","n":"Padrão dos Descobrimentos","pr":0,"w":"por fora, grátis; o mirante no topo, € 10","st":"esc","day":""},{"id":"mmtmyxyv4s","sid":"m:lisboa:7","n":"Torre de Belém","pr":0,"w":"por fora, grátis; por dentro € 15, fila longa e pouca coisa para ver","st":"esc","day":""},{"id":"mmtmyxyv4t","sid":"m:lisboa:8","n":"Cascais","pr":6,"w":"trem do Cais do Sodré, 40 min colados na costa. O preço é ida e volta","st":"bac"},{"id":"mmtmyxyv4u","sid":"m:lisboa:9","n":"Lisboa Card","pr":0,"w":"fiz a conta com a sua lista: você PERDE € 16 comprando. Só viraria a favor se entrasse no claustro e na Torre","st":"bac"},{"id":"mmtmyxyv4v","sid":"m:lisboa:10","n":"Sintra — Palácio da Pena","pr":20,"w":"horário marcado; só o parque sai € 10","st":"bac"},{"id":"mmtmyxyv4w","sid":"m:lisboa:11","n":"Sintra — Quinta da Regaleira","pr":15,"w":"o poço iniciático; compre online","st":"bac"},{"id":"mmtmyxyv4x","sid":"m:lisboa:12","n":"Sintra — Castelo dos Mouros","pr":12,"w":"a muralha e a vista de cima","st":"bac"},{"id":"mmtmyxyv4y","sid":"m:lisboa:13","n":"Sintra — Palácio de Monserrate","pr":12,"w":"o mais afastado dos quatro","st":"bac"},{"id":"mmtmyxyv4z","sid":"m:lisboa:14","n":"Sintra — trem e ônibus","pr":19,"w":"Rossio–Sintra € 5 ida e volta, mais o ônibus 434 a € 13,50","st":"bac"},{"id":"mmtmyxyv418","sid":"s:lisboa:0","n":"Elétrico 28","pr":3,"w":"€ 3,20 avulso; lotado e com batedor de carteira, mas é o passeio","st":"sug"},{"id":"mmtmyxyv419","sid":"s:lisboa:1","n":"Miradouro da Senhora do Monte","pr":0,"w":"o mais alto e o menos turístico dos miradouros","st":"sug"},{"id":"mmtmyxyv41a","sid":"s:lisboa:2","n":"Time Out Market","pr":0,"w":"entrar é grátis; comer é caro","st":"sug"},{"id":"mmtmyxyv41b","sid":"s:lisboa:3","n":"LX Factory","pr":0,"w":"fábrica virou bairro criativo, com a livraria Ler Devagar","st":"sug"},{"id":"mmtmyxyv41c","sid":"s:lisboa:4","n":"Praia de Carcavelos","pr":0,"w":"na mesma linha de trem de Cascais, sem custo extra","st":"sug"}],"caceres":[{"id":"mmtmyxyv415","sid":"s:caceres:0","n":"Cidade velha murada","pr":0,"w":"patrimônio da Unesco, de graça — dá pra andar tudo em 2h. Você chega à noite, e ela iluminada é o melhor momento","st":"sug"},{"id":"mmtmyxyv416","sid":"s:caceres:1","n":"Plaza Mayor e o Arco de la Estrella","pr":0,"w":"a entrada da cidade velha","st":"sug"},{"id":"mmtmyxyv417","sid":"s:caceres:2","n":"Torre de Bujaco","pr":3,"w":"a torre almóada, pela vista da praça","st":"sug"}],"metz":[{"id":"mmtmyxyv41d","sid":"s:metz:0","n":"Catedral de Saint-Étienne","pr":0,"w":"\u003cb>6.500 m² de vitral, a maior superfície de vitral do mundo\u003c/b>, com painéis do Chagall. Apelido: a lanterna de Deus. Entrada gratuita","st":"sug"},{"id":"mmtmyxyv41e","sid":"s:metz:1","n":"Mercado de Natal nas cinco praças","pr":0,"w":"20/11 a 30/12, entrada franca — République, Saint-Jacques, Saint-Louis, d'Armes e Comédie. Aberto depois do Natal","st":"sug"},{"id":"mmtmyxyv41f","sid":"s:metz:2","n":"Sentier des Lanternes","pr":0,"w":"mais de 2.000 lanternas acesas no Square Boufflers. Confira se cobram entrada na edição de 2026","st":"sug"},{"id":"mmtmyxyv41g","sid":"s:metz:3","n":"Roda-gigante da Place d'Armes","pr":8,"w":"a vista panorâmica de Metz de cima","st":"sug"},{"id":"mmtmyxyv41h","sid":"s:metz:4","n":"Place Saint-Louis","pr":0,"w":"as arcadas medievais, sempre","st":"sug"},{"id":"mmtmyxyv41i","sid":"s:metz:5","n":"Temple Neuf","pr":0,"w":"na ilha do Moselle, refletido na água — a foto de Metz","st":"sug"},{"id":"mmtmyxyv41j","sid":"s:metz:6","n":"Centre Pompidou-Metz","pr":12,"w":"se quiser um museu grande; o telhado é a atração","st":"sug"}],"estrasburgo":[{"id":"mmtmyxyv41k","sid":"s:estrasburgo:0","n":"Catedral de Notre-Dame","pr":0,"w":"gótica, arenito rosa, uma das grandes da Europa. A nave é grátis","st":"sug"},{"id":"mmtmyxyv41l","sid":"s:estrasburgo:1","n":"Plataforma da catedral","pr":8,"w":"66 m de altura, 330 degraus, e a Alsácia inteira lá de cima","st":"sug"},{"id":"mmtmyxyv41m","sid":"s:estrasburgo:2","n":"Petite France","pr":0,"w":"as casas de enxaimel na água — o cartão-postal, e é de graça","st":"sug"},{"id":"mmtmyxyv41n","sid":"s:estrasburgo:3","n":"Christkindelsmärik","pr":0,"w":"mais de 300 chalés, o maior mercado de Natal da França, desde 1570. \u003cb>Costuma encerrar dia 24\u003c/b> — vá antes","st":"sug"},{"id":"mmtmyxyv41o","sid":"s:estrasburgo:4","n":"Terraço do Barrage Vauban","pr":0,"w":"o mirante grátis sobre a Petite France e os Ponts Couverts","st":"sug"},{"id":"mmtmyxyv41p","sid":"s:estrasburgo:5","n":"Colmar (mais 30 min)","pr":12,"w":"a cidade de Natal mais bonita da Alsácia, se você trocar um dia de Estrasburgo por ela","st":"sug"}],"reims":[{"id":"mmtmyxyv41q","sid":"s:reims:0","n":"Catedral de Notre-Dame","pr":0,"w":"\u003cb>onde 25 reis da França foram coroados\u003c/b>, Carlos VII com Joana d'Arc do lado. Unesco, e a nave é grátis","st":"sug"},{"id":"mmtmyxyv41r","sid":"s:reims:1","n":"Palais du Tau","pr":9,"w":"o palácio dos arcebispos ao lado da catedral. Unesco","st":"sug"},{"id":"mmtmyxyv41s","sid":"s:reims:2","n":"Basílica Saint-Remi","pr":0,"w":"a terceira Unesco da cidade, e essa é grátis","st":"sug"},{"id":"mmtmyxyv41t","sid":"s:reims:3","n":"Cave de champanhe","pr":30,"w":"Taittinger, Veuve Clicquot ou Pommery, em pedreiras de cré romanas a 20 m de profundidade. Visita com degustação","st":"sug"},{"id":"mmtmyxyv41u","sid":"s:reims:4","n":"Mercado de Natal","pr":0,"w":"25/11 a 27/12, 150 chalés nas Hautes Promenades, ao lado da Porte de Mars romana","st":"sug"},{"id":"mmtmyxyv41v","sid":"s:reims:5","n":"Épernay, Avenue de Champagne","pr":12,"w":"25 min de trem; a avenida onde ficam as grandes casas","st":"sug"}],"paris":[{"id":"mmtmyxyv41w","sid":"s:paris:0","n":"Trocadéro e a Torre Eiffel por fora","pr":0,"w":"a melhor foto da torre é de graça, do Trocadéro","st":"sug"},{"id":"mmtmyxyv41x","sid":"s:paris:1","n":"Notre-Dame","pr":0,"w":"reaberta desde dezembro de 2024; a nave é grátis, com fila","st":"sug"},{"id":"mmtmyxyv41y","sid":"s:paris:2","n":"Sacré-Cœur e Montmartre","pr":0,"w":"a basílica é grátis; subir na cúpula € 7","st":"sug"},{"id":"mmtmyxyv41z","sid":"s:paris:3","n":"Arco do Triunfo — terraço","pr":16,"w":"€ 16 pela vista do eixo; por baixo é grátis","st":"sug"},{"id":"mmtmyxyv420","sid":"s:paris:4","n":"Louvre","pr":22,"w":"o museu gigante que você toparia; reserve horário","st":"sug"},{"id":"mmtmyxyv421","sid":"s:paris:5","n":"Versalhes","pr":21,"w":"bate-volta de RER; os jardins no inverno são grátis","st":"sug"},{"id":"mmtmyxyv422","sid":"s:paris:6","n":"Terraço das Galeries Lafayette","pr":0,"w":"entrada gratuita: a cúpula art nouveau por dentro e um terraço com a Ópera e a Torre de frente","st":"sug"},{"id":"mmtmyxyv423","sid":"s:paris:7","n":"Coulée verte René-Dumont","pr":0,"w":"linha de trem elevada virou jardim suspenso, 4,5 km pelo 12º. É a avó do High Line e quase nenhum turista conhece","st":"sug"}],"luxemburgo":[{"id":"mmtmyxyv424","sid":"s:luxemburgo:0","n":"Chemin de la Corniche","pr":0,"w":"Goethe chamou de \u003cb>o balcão mais bonito da Europa\u003c/b> — a muralha virada para o vale. De graça","st":"sug"},{"id":"mmtmyxyv425","sid":"s:luxemburgo:1","n":"O Grund","pr":0,"w":"o bairro no fundo do vale, que parece vilarejo dentro da capital","st":"sug"},{"id":"mmtmyxyv426","sid":"s:luxemburgo:2","n":"Elevador panorâmico do Pfaffenthal","pr":0,"w":"chão de vidro, sobe 71 m, e é de graça","st":"sug"},{"id":"mmtmyxyv427","sid":"s:luxemburgo:3","n":"Place de la Constitution","pr":0,"w":"o mirante sobre o vale do Pétrusse","st":"sug"},{"id":"mmtmyxyv428","sid":"s:luxemburgo:4","n":"Winterlights","pr":0,"w":"20/11/2026 a 3/1/2027, todo dia 11h–21h, e \u003cb>aberto nos dias 24 e 25\u003c/b>","st":"sug"},{"id":"mmtmyxyv429","sid":"s:luxemburgo:5","n":"Casemates du Bock","pr":10,"w":"os túneis da fortaleza escavados na rocha. Confira o horário de inverno","st":"sug"},{"id":"mmtmyxyv42a","sid":"s:luxemburgo:6","n":"Vianden","pr":0,"w":"castelo no alto do morro, no norte do país. \u003cb>O transporte até lá é grátis\u003c/b> — você paga só o ingresso do castelo","st":"sug"}],"trier":[{"id":"mmtmyxyv42b","sid":"s:trier:0","n":"Porta Nigra","pr":6,"w":"o portão romano do século II, o maior ao norte dos Alpes. Unesco","st":"sug"},{"id":"mmtmyxyv42c","sid":"s:trier:1","n":"Catedral de Trier","pr":0,"w":"a mais antiga da Alemanha; a nave é grátis","st":"sug"},{"id":"mmtmyxyv42d","sid":"s:trier:2","n":"Anfiteatro romano","pr":4,"w":"cabia 20 mil pessoas","st":"sug"},{"id":"mmtmyxyv42e","sid":"s:trier:3","n":"Termas Imperiais","pr":4,"w":"as ruínas das termas de Constantino","st":"sug"},{"id":"mmtmyxyv42f","sid":"s:trier:4","n":"Hauptmarkt","pr":0,"w":"a praça central, e o mercado de Natal quando roda","st":"sug"}],"amsterda":[{"id":"mmtmyxyv42g","sid":"s:amsterda:0","n":"Canais do centro e o Jordaan","pr":0,"w":"a cidade a pé é o melhor de Amsterdã, e é grátis","st":"sug"},{"id":"mmtmyxyv42h","sid":"s:amsterda:1","n":"Balsa para Amsterdam Noord","pr":0,"w":"grátis, sai da Centraal — e dá a vista da cidade pela água","st":"sug"},{"id":"mmtmyxyv42i","sid":"s:amsterda:2","n":"Amsterdam Light Festival","pr":0,"w":"os canais iluminados de fim de novembro a meados de janeiro; a rota a pé não se paga","st":"sug"},{"id":"mmtmyxyv42j","sid":"s:amsterda:3","n":"Casa de Anne Frank","pr":16,"w":"só online; a venda abre 6 semanas antes numa terça e esgota em horas","st":"sug"},{"id":"mmtmyxyv42k","sid":"s:amsterda:4","n":"Rijksmuseum","pr":25,"w":"o museu grande, se você topar um","st":"sug"},{"id":"mmtmyxyv42l","sid":"s:amsterda:5","n":"Utrecht (bate-volta)","pr":16,"w":"27 min de trem; canais de dois níveis com cafés na altura da água","st":"sug"},{"id":"mmtmyxyv42m","sid":"s:amsterda:6","n":"Zaanse Schans (moinhos)","pr":10,"w":"entrar no vilarejo é grátis; o preço é o transporte","st":"sug"}],"roma":[{"id":"mmtmyxyv42n","sid":"s:roma:0","n":"Coliseu, Fórum e Palatino","pr":18,"w":"ingresso combinado de 24h; reserve horário","st":"sug"},{"id":"mmtmyxyv42o","sid":"s:roma:1","n":"Fontana di Trevi, Escadaria e Piazza Navona","pr":0,"w":"sempre — e ficam a pé uma da outra","st":"sug"},{"id":"mmtmyxyv42p","sid":"s:roma:2","n":"Basílica de São Pedro","pr":0,"w":"a basílica é grátis com fila; subir na cúpula € 8–10","st":"sug"},{"id":"mmtmyxyv42q","sid":"s:roma:3","n":"Panteão","pr":7,"w":"passou a cobrar em 2023","st":"sug"},{"id":"mmtmyxyv42r","sid":"s:roma:4","n":"Museus do Vaticano e Capela Sistina","pr":20,"w":"reserve; a fila sem reserva é de horas","st":"sug"},{"id":"mmtmyxyv42s","sid":"s:roma:5","n":"Trastevere e o Gianicolo","pr":0,"w":"o bairro e o mirante, de graça","st":"sug"},{"id":"mmtmyxyv42t","sid":"s:roma:6","n":"Ostia Antica (bate-volta)","pr":18,"w":"40 min de metrô e trem. É a Pompeia de Roma e quase ninguém vai","st":"sug"},{"id":"mmtmyxyv42u","sid":"s:roma:7","n":"Nápoles e Pompeia (bate-volta)","pr":60,"w":"1h10 de trem rápido; o preço é trem mais ingresso","st":"sug"},{"id":"mmtmyxyv42v","sid":"s:roma:8","n":"Tivoli — Villa d'Este (bate-volta)","pr":25,"w":"os jardins de fontes, 1h de ônibus","st":"sug"},{"id":"mmtmyxyv42w","sid":"s:roma:9","n":"Florença (bate-volta)","pr":70,"w":"1h30 de trem rápido; o preço é o trem ida e volta","st":"sug"}]},"adopted":{},"foods":{"pt":[{"id":"fmtmyxyv42x","n":"Supermercado Pingo Doce","w":"comer bem, rápido e barato — foi você que trouxe"}],"es":[{"id":"fmtn451kt1","n":"teste","w":"","k":"cafe","day":""},{"id":"fmtn4545e2","n":"teste 2","w":"","k":"rest","day":""},{"id":"fmtn455vw3","n":"comida 1","w":"","k":"pr","day":""}]},"res":[{"id":"rmtmyxyv42y","n":"Passaporte","w":"R$ 257,25 no gov.br/pf, presencial obrigatório. 3 a 6 semanas ponta a ponta. É a única coisa que pode inviabilizar a viagem — e o voo já está pago.","v":"257,25"},{"id":"rmtmyxyv42z","n":"Seguro viagem","w":"Obrigatório no Schengen: cobertura mínima de € 30 mil. R$ 200–450 para 32 dias."},{"id":"rmtmyxyv430","n":"Comprovante de recursos financeiros","w":"A fronteira espanhola pode pedir. Referência de 2026: ~€ 118 por dia de viagem, ou extrato/cartão que sustente a estadia."},{"id":"rmtmyxyv431","n":"Cartão internacional","w":"Conta multimoeda com euro comprado antes bate qualquer cartão de crédito no IOF."},{"id":"rmtmyxyv432","n":"Chip internacional","w":"eSIM europeu cobre os países todos. € 15–25 no mês inteiro."},{"id":"rmtn33kss1","n":"teste","w":""}],"resdone":{"rmtmyxyv42y":true},"stays":{},"extra":[],"tr":[{"id":"tmtmzmcmn1","sid":"t:0","n":"Madrid → Cáceres","v":"","m":"eur","w":"trem, 3h07 — só 3 por dia. Confira o horário antes de sair de Barajas"},{"id":"tmtmzmcmn2","sid":"t:1","n":"Cáceres → Lisboa","v":"","m":"eur","w":"carro do irmão do CK, ~3h30. Aqui entra combustível e pedágio, se rachar"},{"id":"tmtmzmcmn3","sid":"t:2","n":"Lisboa → Cáceres → Madrid","v":"","m":"eur","w":"o dia 16 inteiro. \u003cb>Se o carro não precisar voltar\u003c/b>, isto vira um voo Lisboa → Madrid de 1h20"},{"id":"tmtmzmcmn4","sid":"t:3","n":"Madrid → Luxemburgo","v":"","m":"eur","w":"o voo do dia 19, onde a Lu te encontra. Rota pequena em semana pré-Natal: compre até meados de outubro"},{"id":"tmtmzmcmn5","sid":"t:4","n":"Luxemburgo → Metz","v":"","m":"eur","w":"ônibus 16 do aeroporto até a estação é de graça; o trem são 45 min, € 8–10"},{"id":"tmtmzmcmn6","sid":"t:5","n":"Bate-voltas de Metz no TER","v":"","m":"eur","w":"Estrasburgo (48 min–1h24, desde € 11), Trier via Luxemburgo, Nancy ou Colmar"},{"id":"tmtmzmcmn7","sid":"t:6","n":"Metz ⇄ Luxemburgo, 24 e 25","v":"","m":"eur","w":"o lado luxemburguês é \u003cb>grátis\u003c/b> — você paga só até a fronteira"},{"id":"tmtmzmcmn8","sid":"t:7","n":"Metz → Reims","v":"","m":"eur","w":"sem trem direto: 1h25 no melhor caso, média 2h24, uma troca, desde ~€ 31"},{"id":"tmtmzmcmn9","sid":"t:8","n":"Reims ⇄ Paris no TER","v":"","m":"eur","w":"1h35 por trecho, e bem mais barato que o TGV. São dois bate-voltas"},{"id":"tmtmzmcmna","sid":"t:9","n":"Reims → Amsterdã","v":"","m":"eur","w":"4h38, uma troca. \u003cb>É a perna mais cara da viagem\u003c/b> — compre com muita antecedência"},{"id":"tmtmzmcmnb","sid":"t:10","n":"Amsterdã → Roma","v":"","m":"eur","w":"o voo do dia 2, ~2h30. Dia 2 ainda é pico de volta de festas"},{"id":"tmtmzmcmnc","sid":"t:11","n":"Roma → Madrid","v":"","m":"eur","w":"o voo do dia 10, ~2h30. Baixa temporada — deve ser o mais barato dos três"}],"cx":{"meta":{},"ini":{},"ap":{},"cur":{"leo":"brl","lu":"eur"}},"rate":"6,20","seeded":1,"seed2":1,"seedv":8,"dseed":{"2026-12-10":"","2026-12-11":"","2026-12-12":"","2026-12-13":"","2026-12-14":"","2026-12-15":"","2026-12-16":"","2026-12-17":"","2026-12-18":"","2026-12-19":"","2026-12-20":"","2026-12-21":"","2026-12-22":"","2026-12-23":"","2026-12-24":"","2026-12-25":"","2026-12-26":"","2026-12-27":"","2026-12-28":"","2026-12-29":"","2026-12-30":"","2026-12-31":"","2027-01-01":"","2027-01-02":"","2027-01-03":"","2027-01-04":"","2027-01-05":"","2027-01-06":"","2027-01-07":"","2027-01-08":"","2027-01-09":"","2027-01-10":"","2027-01-11":"","2027-01-12":""},"killed":{},"_ts":1788536421676}</script>
+<div id="app"></div>
+<script id="app-js">(function(){
+"use strict";
+
+var FONTS="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap";
+
+/* ============ PAÍSES E CIDADES ============ */
+var CO=[
+ {k:"es",n:"Espanha",cc:"--c-es",cities:["madrid","caceres"]},
+ {k:"pt",n:"Portugal",cc:"--c-pt",cities:["lisboa"]},
+ {k:"fr",n:"França",cc:"--c-fr",cities:["metz","estrasburgo","reims","paris"]},
+ {k:"lu",n:"Luxemburgo",cc:"--c-pl",cities:["luxemburgo"]},
+ {k:"de",n:"Alemanha",cc:"--c-de",cities:["trier"]},
+ {k:"nl",n:"Holanda",cc:"--c-nl",cities:["amsterda"]},
+ {k:"it",n:"Itália",cc:"--c-it",cities:["roma"]}
+];
+var CT={
+ madrid:{n:"Madrid",co:"es"},caceres:{n:"Cáceres",co:"es"},
+ lisboa:{n:"Lisboa",co:"pt"},
+ metz:{n:"Metz",co:"fr"},estrasburgo:{n:"Estrasburgo",co:"fr"},
+ reims:{n:"Reims",co:"fr"},paris:{n:"Paris",co:"fr"},
+ luxemburgo:{n:"Luxemburgo",co:"lu"},trier:{n:"Trier",co:"de"},
+ amsterda:{n:"Amsterdã",co:"nl"},roma:{n:"Roma",co:"it"}
+};
+function ccOf(city){var c=CT[city];if(!c)return"--pine";for(var i=0;i<CO.length;i++)if(CO[i].k===c.co)return CO[i].cc;return"--pine";}
+
+/* ============ O QUE O LEO MANDOU (semente da lista dele) ============ */
+var SEED={
+ madrid:[
+  ["Puerta del Sol",0,"sempre"],
+  ["Plaza Mayor e a região",0,"sempre"],
+  ["Calle de la Sal",0,"a ruazinha ao lado da Plaza Mayor — é onde mora o bocadillo de calamares"],
+  ["Mercado de San Miguel",0,"entrar é grátis; comer ali é preço de restaurante"],
+  ["Plaza de la Villa",0,"sempre"],
+  ["Palacio Real",0,"GRÁTIS seg–qui 16h–18h de outubro a março, só mostrando o passaporte brasileiro. Fora dessa janela, € 14"],
+  ["Catedral de la Almudena",0,"a nave é doação de € 1; museu e cúpula € 7"],
+  ["Plaza de Oriente",0,"em frente ao Palácio — os dois se fazem juntos"],
+  ["Plaza de España",0,"sempre"],
+  ["Templo de Debod",0,"por fora, sempre — é o melhor pôr do sol de Madrid. Por dentro: ter–dom, grátis, com fila"],
+  ["Santiago Bernabéu",37,"o Bernabéu Tour dá vestiário, túnel e beira do gramado. Seg–sáb 9h–19h; fecha só 25/12 e 1/1"],
+  ["Paseo del Prado",0,"a avenida em si é grátis e costura quase tudo dessa lista"],
+  ["Museo del Prado",0,"GRÁTIS seg–sáb 18h–20h e dom 17h–19h. Fila de ~40 min e lotado. Fora disso, € 15"],
+  ["Palacio de Cibeles",0,"o prédio e a praça são grátis; o mirador do 8º andar custa € 3"],
+  ["Banco de España",0,"só a fachada — não abre para visita"],
+  ["Parque de El Retiro",0,"grátis, e o Palacio de Cristal lá dentro também"],
+  ["Puerta de Alcalá",0,"sempre — fica na saída do Retiro"],
+  ["Toledo (bate-volta)",22,"a cidade se anda de graça; o preço é o trem ida e volta. 33 min de Atocha"],
+  ["Segovia (bate-volta)",26,"AVE de 27 min; o aqueduto e o alcázar. O preço é o trem ida e volta"],
+  ["Ávila (bate-volta)",19,"a muralha inteira, 1h30 de trem. O preço é o trem ida e volta"]
+ ],
+ lisboa:[
+  ["Praça do Comércio",0,"sempre"],
+  ["Rua Augusta",0,"a rua é grátis; subir no Arco custa € 4,50"],
+  ["Praça Dom Pedro IV (Rossio)",0,"sempre"],
+  ["Elevador de Santa Justa",0,"a passarela de cima é GRÁTIS a pé pelo Largo do Carmo — mesma vista. Andar no elevador, € 6,20"],
+  ["Miradouro de Santa Luzia",0,"sempre"],
+  ["Mosteiro dos Jerónimos",0,"a IGREJA é grátis e é a parte que impressiona; o claustro custa € 18"],
+  ["Padrão dos Descobrimentos",0,"por fora, grátis; o mirante no topo, € 10"],
+  ["Torre de Belém",0,"por fora, grátis; por dentro € 15, fila longa e pouca coisa para ver"],
+  ["Cascais",6,"trem do Cais do Sodré, 40 min colados na costa. O preço é ida e volta"],
+  ["Lisboa Card",0,"fiz a conta com a sua lista: você PERDE € 16 comprando. Só viraria a favor se entrasse no claustro e na Torre"],
+  ["Sintra — Palácio da Pena",20,"horário marcado; só o parque sai € 10"],
+  ["Sintra — Quinta da Regaleira",15,"o poço iniciático; compre online"],
+  ["Sintra — Castelo dos Mouros",12,"a muralha e a vista de cima"],
+  ["Sintra — Palácio de Monserrate",12,"o mais afastado dos quatro"],
+  ["Sintra — trem e ônibus",19,"Rossio–Sintra € 5 ida e volta, mais o ônibus 434 a € 13,50"]
+ ]
+};
+
+/* ====== ESQUELETO DO ROTEIRO FECHADO (04/09/2026) ====== */
+var DAYSEED={"2026-12-10":{"c":"em trânsito","p":""},"2026-12-11":{"c":"Cáceres","p":""},"2026-12-12":{"c":"Lisboa","p":""},"2026-12-13":{"c":"Lisboa","p":""},"2026-12-14":{"c":"Lisboa","p":""},"2026-12-15":{"c":"Lisboa","p":""},"2026-12-16":{"c":"Madrid","p":""},"2026-12-17":{"c":"Madrid","p":""},"2026-12-18":{"c":"Madrid","p":""},"2026-12-19":{"c":"Metz","p":""},"2026-12-20":{"c":"Metz","p":""},"2026-12-21":{"c":"Metz","p":""},"2026-12-22":{"c":"Metz","p":""},"2026-12-23":{"c":"Metz","p":""},"2026-12-24":{"c":"Metz","p":""},"2026-12-25":{"c":"Metz","p":""},"2026-12-26":{"c":"Reims","p":""},"2026-12-27":{"c":"Reims","p":""},"2026-12-28":{"c":"Reims","p":""},"2026-12-29":{"c":"Amsterdã","p":""},"2026-12-30":{"c":"Amsterdã","p":""},"2026-12-31":{"c":"Amsterdã","p":""},"2027-01-01":{"c":"Amsterdã","p":""},"2027-01-02":{"c":"Roma","p":""},"2027-01-03":{"c":"Roma","p":""},"2027-01-04":{"c":"Roma","p":""},"2027-01-05":{"c":"Roma","p":""},"2027-01-06":{"c":"Roma","p":""},"2027-01-07":{"c":"Roma","p":""},"2027-01-08":{"c":"Roma","p":""},"2027-01-09":{"c":"Roma","p":""},"2027-01-10":{"c":"Madrid","p":""},"2027-01-11":{"c":"Madrid","p":""},"2027-01-12":{"c":"em trânsito","p":""}};
+
+/* ====== os fatos duros de cada dia. NÃO é o texto dele: não editável, não conta ====== */
+var DAYNOTE={"2026-12-10":["warn","O voo de ida","FLN 20h15 (LA4519) → GRU 21h40, conexão de 1h55, GRU 23h35 (LA8066) → Madrid. Pousa <b>13h40 do dia 11</b>."],"2026-12-11":["warn","O trem para Cáceres tem só 3 por dia","São 3h07 de Madrid. <b>Confira o horário antes de sair de Barajas</b> — perder um custa meio dia."],"2026-12-16":["warn","Dia inteiro de viagem","Lisboa → Cáceres de carro (3h30) e Cáceres → Madrid de trem (3h07). <b>Se o carro não precisar voltar a Cáceres, isto vira um voo de 1h20</b> e você ganha o dia. Pergunte ao CK."],"2026-12-17":["free","Palacio Real grátis hoje, 16h–18h","A janela é <b>seg a qui</b>, out a mar, com o passaporte brasileiro. Hoje é quinta — é a sua primeira das duas chances."],"2026-12-18":["free","Museo del Prado grátis 18h–20h","Sexta. Fila de uns 40 min e lotado, mas de graça."],"2026-12-19":["warn","Voo Madrid → Luxemburgo, e a Lu te encontra","Pouco mais de 2h. No aeroporto: <b>ônibus 16 até a estação é de graça</b>, e o trem para Metz são 45 min, € 8–10."],"2026-12-24":["alert","Todo o transporte de Luxemburgo para às 20h","CFL, tram e ônibus, <b>sem exceção</b>. Você tem que estar num trem de volta a Metz antes disso. O Winterlights abre 11h–21h, mas você não fica até o fim. <b>Compre a comida do dia 25 hoje ou dia 23.</b>"],"2026-12-25":["warn","Trens em horário de feriado","Reduzido nos dois sentidos — confira ida e volta. A cidade fecha; o Winterlights abre 11h–21h. Dorme em Metz."],"2026-12-26":["warn","Metz → Reims não tem trem direto","1h25 no melhor caso, média 2h24, uma troca, desde ~€ 31. E <b>hoje é feriado na Moselle</b> (Saint-Étienne): serviço reduzido. Confira antes."],"2026-12-27":["warn","Escurece 16h55","Paris no inverno tem pouca luz. Para Paris, <b>TER 1h35 é bem mais barato que TGV 45 min</b>."],"2026-12-28":["warn","O mercado de Natal de Reims encerra hoje","150 chalés nas Hautes Promenades. Se quiser ver, é hoje."],"2026-12-29":["alert","Reims → Amsterdã é a perna mais cara","4h38 no melhor caso, uma troca. <b>Compre com muita antecedência.</b>"],"2026-12-31":["free","Réveillon: o show oficial é grátis","Fogos de particular são <b>proibidos</b> em Amsterdã. O Electric Fireworks é no Museumplein — infantil 19h, principal 22h. Centro lotadíssimo: combinem ponto de encontro antes."],"2027-01-02":["warn","A Lu volta hoje, e você voa para Roma","Ela vai de trem para Luxemburgo: 5h39, uma troca em Bruxelas, tudo de dia, desde € 38. Você voa Amsterdã → Roma, ~2h30. Dia 2 ainda é pico de volta de festas."],"2027-01-06":["alert","Epifania — feriado italiano","Muita coisa fecha em Roma. Dia bom para o que é ao ar livre."],"2027-01-10":["warn","Voo Roma → Madrid","~2h30. Última noite da viagem: durma em cima de uma linha de metrô com acesso a Barajas — a <b>linha 8</b> vai direto ao aeroporto."],"2027-01-11":["free","Dia inteiro em Madrid, e Palacio Real de novo","O voo é só <b>23h35</b>, então o dia é todo seu. É <b>segunda</b>: a janela grátis das 16h–18h vale. Deixe a mala guardada na estação."],"2027-01-12":["warn","No ar","MAD 23h35 (LA705) → SCL 8h55, conexão de 7h45, SCL 16h40 (LA726) → FLN 19h55. <b>Não marque nada para o dia 13.</b>"]};
+
+var SEEDFOOD={pt:[["Supermercado Pingo Doce","comer bem, rápido e barato — foi você que trouxe"]]};
+var SEEDRES=[
+ ["Passaporte","R$ 257,25 no gov.br/pf, presencial obrigatório. 3 a 6 semanas ponta a ponta. É a única coisa que pode inviabilizar a viagem — e o voo já está pago."],
+ ["Seguro viagem","Obrigatório no Schengen: cobertura mínima de € 30 mil. R$ 200–450 para 32 dias."],
+ ["Comprovante de recursos financeiros","A fronteira espanhola pode pedir. Referência de 2026: ~€ 118 por dia de viagem, ou extrato/cartão que sustente a estadia."],
+ ["Cartão internacional","Conta multimoeda com euro comprado antes bate qualquer cartão de crédito no IOF."],
+ ["Chip internacional","eSIM europeu cobre os países todos. € 15–25 no mês inteiro."]
+];
+
+/* ============ MINHAS SUGESTÕES (não contam no custo até você puxar) ============ */
+var SUGG={
+ madrid:[
+  ["Museo Reina Sofía",0,"grátis seg e qua–sáb 19h–21h, dom 10h–14h30 — a Guernica está lá"],
+  ["Museo Thyssen",0,"grátis nas segundas, coleção permanente"],
+  ["Mirador do Palacio de Cibeles",3,"€ 3 pela vista do eixo que você já vai andar inteiro"],
+  ["Barrio de las Letras",0,"as ruas com versos no chão, entre Sol e o Prado"],
+  ["Matadero Madrid",0,"antigo matadouro virou centro cultural na beira do rio — de graça"]
+ ],
+ caceres:[
+  ["Cidade velha murada",0,"patrimônio da Unesco, de graça — dá pra andar tudo em 2h. Você chega à noite, e ela iluminada é o melhor momento"],
+  ["Plaza Mayor e o Arco de la Estrella",0,"a entrada da cidade velha"],
+  ["Torre de Bujaco",3,"a torre almóada, pela vista da praça"]
+ ],
+ lisboa:[
+  ["Elétrico 28",3,"€ 3,20 avulso; lotado e com batedor de carteira, mas é o passeio"],
+  ["Miradouro da Senhora do Monte",0,"o mais alto e o menos turístico dos miradouros"],
+  ["Time Out Market",0,"entrar é grátis; comer é caro"],
+  ["LX Factory",0,"fábrica virou bairro criativo, com a livraria Ler Devagar"],
+  ["Praia de Carcavelos",0,"na mesma linha de trem de Cascais, sem custo extra"]
+ ],
+ metz:[
+  ["Catedral de Saint-Étienne",0,"<b>6.500 m² de vitral, a maior superfície de vitral do mundo</b>, com painéis do Chagall. Apelido: a lanterna de Deus. Entrada gratuita"],
+  ["Mercado de Natal nas cinco praças",0,"20/11 a 30/12, entrada franca — République, Saint-Jacques, Saint-Louis, d'Armes e Comédie. Aberto depois do Natal"],
+  ["Sentier des Lanternes",0,"mais de 2.000 lanternas acesas no Square Boufflers. Confira se cobram entrada na edição de 2026"],
+  ["Roda-gigante da Place d'Armes",8,"a vista panorâmica de Metz de cima"],
+  ["Place Saint-Louis",0,"as arcadas medievais, sempre"],
+  ["Temple Neuf",0,"na ilha do Moselle, refletido na água — a foto de Metz"],
+  ["Centre Pompidou-Metz",12,"se quiser um museu grande; o telhado é a atração"]
+ ],
+ estrasburgo:[
+  ["Catedral de Notre-Dame",0,"gótica, arenito rosa, uma das grandes da Europa. A nave é grátis"],
+  ["Plataforma da catedral",8,"66 m de altura, 330 degraus, e a Alsácia inteira lá de cima"],
+  ["Petite France",0,"as casas de enxaimel na água — o cartão-postal, e é de graça"],
+  ["Christkindelsmärik",0,"mais de 300 chalés, o maior mercado de Natal da França, desde 1570. <b>Costuma encerrar dia 24</b> — vá antes"],
+  ["Terraço do Barrage Vauban",0,"o mirante grátis sobre a Petite France e os Ponts Couverts"],
+  ["Colmar (mais 30 min)",12,"a cidade de Natal mais bonita da Alsácia, se você trocar um dia de Estrasburgo por ela"]
+ ],
+ reims:[
+  ["Catedral de Notre-Dame",0,"<b>onde 25 reis da França foram coroados</b>, Carlos VII com Joana d'Arc do lado. Unesco, e a nave é grátis"],
+  ["Palais du Tau",9,"o palácio dos arcebispos ao lado da catedral. Unesco"],
+  ["Basílica Saint-Remi",0,"a terceira Unesco da cidade, e essa é grátis"],
+  ["Cave de champanhe",30,"Taittinger, Veuve Clicquot ou Pommery, em pedreiras de cré romanas a 20 m de profundidade. Visita com degustação"],
+  ["Mercado de Natal",0,"25/11 a 27/12, 150 chalés nas Hautes Promenades, ao lado da Porte de Mars romana"],
+  ["Épernay, Avenue de Champagne",12,"25 min de trem; a avenida onde ficam as grandes casas"]
+ ],
+ paris:[
+  ["Trocadéro e a Torre Eiffel por fora",0,"a melhor foto da torre é de graça, do Trocadéro"],
+  ["Notre-Dame",0,"reaberta desde dezembro de 2024; a nave é grátis, com fila"],
+  ["Sacré-Cœur e Montmartre",0,"a basílica é grátis; subir na cúpula € 7"],
+  ["Arco do Triunfo — terraço",16,"€ 16 pela vista do eixo; por baixo é grátis"],
+  ["Louvre",22,"o museu gigante que você toparia; reserve horário"],
+  ["Versalhes",21,"bate-volta de RER; os jardins no inverno são grátis"],
+  ["Terraço das Galeries Lafayette",0,"entrada gratuita: a cúpula art nouveau por dentro e um terraço com a Ópera e a Torre de frente"],
+  ["Coulée verte René-Dumont",0,"linha de trem elevada virou jardim suspenso, 4,5 km pelo 12º. É a avó do High Line e quase nenhum turista conhece"]
+ ],
+ luxemburgo:[
+  ["Chemin de la Corniche",0,"Goethe chamou de <b>o balcão mais bonito da Europa</b> — a muralha virada para o vale. De graça"],
+  ["O Grund",0,"o bairro no fundo do vale, que parece vilarejo dentro da capital"],
+  ["Elevador panorâmico do Pfaffenthal",0,"chão de vidro, sobe 71 m, e é de graça"],
+  ["Place de la Constitution",0,"o mirante sobre o vale do Pétrusse"],
+  ["Winterlights",0,"20/11/2026 a 3/1/2027, todo dia 11h–21h, e <b>aberto nos dias 24 e 25</b>"],
+  ["Casemates du Bock",10,"os túneis da fortaleza escavados na rocha. Confira o horário de inverno"],
+  ["Vianden",0,"castelo no alto do morro, no norte do país. <b>O transporte até lá é grátis</b> — você paga só o ingresso do castelo"]
+ ],
+ trier:[
+  ["Porta Nigra",6,"o portão romano do século II, o maior ao norte dos Alpes. Unesco"],
+  ["Catedral de Trier",0,"a mais antiga da Alemanha; a nave é grátis"],
+  ["Anfiteatro romano",4,"cabia 20 mil pessoas"],
+  ["Termas Imperiais",4,"as ruínas das termas de Constantino"],
+  ["Hauptmarkt",0,"a praça central, e o mercado de Natal quando roda"]
+ ],
+ amsterda:[
+  ["Canais do centro e o Jordaan",0,"a cidade a pé é o melhor de Amsterdã, e é grátis"],
+  ["Balsa para Amsterdam Noord",0,"grátis, sai da Centraal — e dá a vista da cidade pela água"],
+  ["Amsterdam Light Festival",0,"os canais iluminados de fim de novembro a meados de janeiro; a rota a pé não se paga"],
+  ["Casa de Anne Frank",16,"só online; a venda abre 6 semanas antes numa terça e esgota em horas"],
+  ["Rijksmuseum",25,"o museu grande, se você topar um"],
+  ["Utrecht (bate-volta)",16,"27 min de trem; canais de dois níveis com cafés na altura da água"],
+  ["Zaanse Schans (moinhos)",10,"entrar no vilarejo é grátis; o preço é o transporte"]
+ ],
+ roma:[
+  ["Coliseu, Fórum e Palatino",18,"ingresso combinado de 24h; reserve horário"],
+  ["Fontana di Trevi, Escadaria e Piazza Navona",0,"sempre — e ficam a pé uma da outra"],
+  ["Basílica de São Pedro",0,"a basílica é grátis com fila; subir na cúpula € 8–10"],
+  ["Panteão",7,"passou a cobrar em 2023"],
+  ["Museus do Vaticano e Capela Sistina",20,"reserve; a fila sem reserva é de horas"],
+  ["Trastevere e o Gianicolo",0,"o bairro e o mirante, de graça"],
+  ["Ostia Antica (bate-volta)",18,"40 min de metrô e trem. É a Pompeia de Roma e quase ninguém vai"],
+  ["Nápoles e Pompeia (bate-volta)",60,"1h10 de trem rápido; o preço é trem mais ingresso"],
+  ["Tivoli — Villa d'Este (bate-volta)",25,"os jardins de fontes, 1h de ônibus"],
+  ["Florença (bate-volta)",70,"1h30 de trem rápido; o preço é o trem ida e volta"]
+ ]
+};
+
+var CITYNOTE={
+ metz:["free","Metz é a base de tudo, e é barata","Hotéis a partir de <b>€ 28 a 92</b> a diária na semana do mercado — contra <b>€ 289 a 411</b> em Estrasburgo na mesma data. Daqui saem todos os bate-voltas: Luxemburgo 45 min, Estrasburgo 48 min–1h24, Trier via Luxemburgo, Nancy 40 min."],
+ luxemburgo:["alert","Dia 24 tudo para às 20h","<b>Todo o transporte público do país é suspenso a partir das 20h do dia 24 de dezembro</b> — CFL, tram e ônibus. Você tem que estar num trem de volta pra Metz antes disso. No dia 25 volta a rodar em horário de feriado, reduzido. Confirme na SNCF e na CFL quando o horário de festas sair, no começo de dezembro."],
+ estrasburgo:["warn","Vá, mas não durma aqui","Na semana do mercado a diária vai a <b>€ 289–411</b>. De Metz são 48 min a 1h24 de trem, desde € 11. E o <b>Christkindelsmärik costuma encerrar dia 24</b> — programe para os dias 20, 21 ou 22."],
+ reims:["warn","TER, não TGV, para Paris","O TGV faz em 45 min mas a tarifa que aparece é ~€ 50 o trecho — com dois bate-voltas dá uns € 200. O <b>TER leva 1h35 e custa bem menos</b>. São 3h a mais de trem ao todo, por uns R$ 600 no bolso."],
+ madrid:["warn","Toledo, Segovia e Ávila não cabem","Você tem <b>2 dias cheios</b> em dezembro (17 e 18) e o dia 11 de janeiro, que é dia de voo. Os 20 itens da sua lista ficam quase todos no mesmo eixo a pé e cabem nos dois dias — as três cidades de bate-volta, não."],
+ lisboa:["warn","Os quatro palácios de Sintra não cabem num dia","Pena mais Regaleira mais Mouros já é um dia cheio, com fila e o ônibus 434 no meio. Monserrate é o mais fácil de cortar. Em dezembro tem névoa e a Pena fica dentro da nuvem."],
+ roma:["free","Oito noites em janeiro é a parte barata","Baixa temporada absoluta — a diária aqui sai menos que em Metz. E oito noites transformam Roma em base: Ostia Antica, Tivoli, Nápoles e Pompeia, Florença."]
+};
+
+var SUGGRES=[
+ ["PB4 — grátis, e demora um mês","Certificado de Direito à Assistência Médica, do Ministério da Saúde. Dá acesso ao sistema público de saúde de Portugal e da Itália — 12 das suas 31 noites. Online no gov.br, de graça. Não substitui o seguro."],
+ ["Voo Madrid → Luxemburgo, 19/12","Você sai de Madrid, não de Lisboa — a rota é pequena e tem menos oferta. Semana pré-Natal em rota pequena: <b>comprar até meados de outubro</b>, a janela dos ~70 dias."],
+ ["Hospedagem de Amsterdã, 29/12 a 02/01","<b>Reserve estas 4 noites antes de todas as outras.</b> É a linha que mais sobe de preço da viagem inteira — Réveillon nos Países Baixos. Durma em Haarlem, Zaandam ou Leiden, fora da taxa municipal de 12,5% de Amsterdã."],
+ ["Casa de Anne Frank","A venda abre toda terça, 6 semanas antes, e esgota em horas. € 16."],
+ ["Louvre","Reserve horário. € 22."],
+ ["Trem Metz → Luxemburgo nos dias 24 e 25","Confirme o <b>último trem de volta do dia 24</b> (o lado luxemburguês para às 20h) e quantos rodam no dia 25. A SNCF publica o horário de festas no começo de dezembro."],
+ ["Bate-voltas de Metz no TER","Estrasburgo, Nancy, Colmar, Trier. Comprados com antecedência saem por uma fração — o TER não tem reserva obrigatória, mas a tarifa antecipada existe."],
+ ["Reims ⇄ Paris — compare TER e TGV","TGV 45 min a ~€ 50; TER 1h35 e bem menos. Dois bate-voltas fazem a diferença virar uns R$ 600."],
+ ["Voo Amsterdã → Roma, 02/01","~2h30, muita oferta. Dia 2 ainda é pico de volta de festas."],
+ ["Voo Roma → Madrid, 10/01","~2h30, baixa temporada, deve ser o voo mais barato dos três."],
+ ["Carro Cáceres ⇄ Lisboa","Confirme com o CK se o carro precisa voltar a Cáceres no dia 16. <b>Se não precisar, Lisboa → Madrid é voo de 1h20</b> e você ganha quase um dia inteiro em Madrid."],
+ ["Coliseu, Fórum e Palatino","Ingresso com horário; a fila sem reserva é de horas. € 18."],
+ ["Restaurante ou mercado do dia 25","Dia 25 fecha quase tudo na Europa. Resolva a comida no dia 23 ou 24."]
+];
+
+/* ====== OS TRECHOS ENTRE AS BASES (v19) ======
+   Só perna entre cidades. Bate-volta cujo trem já está no preço da atração
+   (Sintra, Cascais, Toledo, Utrecht, Ostia...) NÃO entra aqui — seria contar duas vezes.
+   NUNCA reordene: os sid são por índice. Só acrescente no fim. */
+var SEEDTR=[
+ ["Madrid \u2192 C\u00e1ceres","trem, 3h07 \u2014 s\u00f3 3 por dia. Confira o hor\u00e1rio antes de sair de Barajas"],
+ ["C\u00e1ceres \u2192 Lisboa","carro do irm\u00e3o do CK, ~3h30. Aqui entra combust\u00edvel e ped\u00e1gio, se rachar"],
+ ["Lisboa \u2192 C\u00e1ceres \u2192 Madrid","o dia 16 inteiro. <b>Se o carro n\u00e3o precisar voltar</b>, isto vira um voo Lisboa \u2192 Madrid de 1h20"],
+ ["Madrid \u2192 Luxemburgo","o voo do dia 19, onde a Lu te encontra. Rota pequena em semana pr\u00e9-Natal: compre at\u00e9 meados de outubro"],
+ ["Luxemburgo \u2192 Metz","\u00f4nibus 16 do aeroporto at\u00e9 a esta\u00e7\u00e3o \u00e9 de gra\u00e7a; o trem s\u00e3o 45 min, \u20ac 8\u201310"],
+ ["Bate-voltas de Metz no TER","Estrasburgo (48 min\u20131h24, desde \u20ac 11), Trier via Luxemburgo, Nancy ou Colmar"],
+ ["Metz \u21c4 Luxemburgo, 24 e 25","o lado luxemburgu\u00eas \u00e9 <b>gr\u00e1tis</b> \u2014 voc\u00ea paga s\u00f3 at\u00e9 a fronteira"],
+ ["Metz \u2192 Reims","sem trem direto: 1h25 no melhor caso, m\u00e9dia 2h24, uma troca, desde ~\u20ac 31"],
+ ["Reims \u21c4 Paris no TER","1h35 por trecho, e bem mais barato que o TGV. S\u00e3o dois bate-voltas"],
+ ["Reims \u2192 Amsterd\u00e3","4h38, uma troca. <b>\u00c9 a perna mais cara da viagem</b> \u2014 compre com muita anteced\u00eancia"],
+ ["Amsterd\u00e3 \u2192 Roma","o voo do dia 2, ~2h30. Dia 2 ainda \u00e9 pico de volta de festas"],
+ ["Roma \u2192 Madrid","o voo do dia 10, ~2h30. Baixa temporada \u2014 deve ser o mais barato dos tr\u00eas"]
+];
+/* v28: o tipo de cada trecho semeado, na MESMA ordem do SEEDTR.
+   Serve para dar o emoji certo aos trechos que ja estao no app dele. */
+var SEEDTRK=["trem","carro","carro","aviao","onibus","trem","trem","trem","trem","trem","aviao","aviao"];
+var STAYS=[
+ {c:"caceres",area:"Casa do irmão do CK",res:"Hospedagem resolvida e de graça. Só confirmar com o CK antes de contar com ela.",free:1},
+ {c:"lisboa",area:"Arroios · Campo de Ourique",
+  res:"<b>Arroios</b> é residencial, com metrô direto pra Baixa em 10 min e muito brasileiro. <b>Campo de Ourique</b> é bairro de família, tranquilo, com o elétrico 28 passando perto. Os dois custam metade do Chiado.",
+  warn:"Intendente e Martim Moniz estão gentrificando rápido, mas ainda são mais brutos à noite."},
+ {c:"madrid",area:"Chamberí · Argüelles · Tetuán",
+  res:"<b>Chamberí</b> é elegante e residencial, 15 min a pé do centro. <b>Argüelles</b> é zona universitária, mais barata. <b>Tetuán</b>, que você mencionou, fica logo ao norte de Chamberí: mais barato, muita comida boa, e <i>vizinho do Bernabéu</i> — encaixa com o tour do estádio.",
+  warn:"Tetuán é mais bruto e menos bonito que Chamberí. A melhor parte é Cuatro Caminos; a faixa de Estrecho na Bravo Murillo é mais movimentada à noite."},
+ {c:"metz",area:"Centro · Montigny-lès-Metz · ou perto da Gare",
+  res:"Sua casa por <b>7 noites</b>, e a base de todos os bate-voltas. Metz é cidade de província de 120 mil habitantes — hotéis a partir de <b>€ 28–92</b> na semana do mercado de Natal, contra € 289–411 em Estrasburgo. Fique perto da <b>Gare de Metz</b>, que é de onde saem Luxemburgo (45 min), Estrasburgo, Nancy e Paris. <b>Montigny-lès-Metz</b> e <b>Woippy</b> são ainda mais baratos.",
+  warn:"A área imediatamente colada na estação é sem graça à noite, mas não é perigosa. Metz é uma das cidades mais seguras da França."},
+ {c:"reims",area:"Fora do centro · perto da Gare de Reims",
+  res:"Três noites, e o que você precisa daqui é a <b>estação</b>: é de lá que sai o trem para Paris. O centro de Reims é pequeno e se anda todo a pé, então ficar 15 ou 20 min afastado não custa nada em tempo e corta bem a diária.",
+  warn:"Evite a área de Croix-Rouge e Orgeval, a oeste, que é a periferia social da cidade. O eixo estação–catedral é tranquilo."},
+ {c:"amsterda",area:"Haarlem · Amsterdam Noord",
+  res:"<b>Haarlem</b> fica a 15 min de trem, tem canais próprios, é muito segura e <b>está fora da taxa municipal de 12,5% de Amsterdã</b>. É a maior economia isolada do roteiro: ~€ 170 nas três noites. <b>Amsterdam Noord</b> é a alternativa, com balsa gratuita saindo da Centraal.",
+  warn:"Amsterdã cobra 33,5% de imposto sobre pernoite desde 2026 — 21% de IVA mais 12,5% municipal. Um quarto de € 200 sai por € 267."},
+ {c:"roma",area:"Prati · Pigneto",
+  res:"<b>Prati</b>, do lado do Vaticano: residencial, seguro, com metrô, e bem mais barato que Trastevere ou o Centro Storico. <b>Pigneto</b> é a opção jovem e barata.",
+  warn:"Não durma colado na Termini — é a região mais degradada do centro à noite."}
+];
+
+var FOOD=[
+{pais:"lu",cc:"--c-pl",n:"Luxemburgo",
+ reg:[["<b>Judd mat Gaardebounen</b> — o prato nacional","Pescoço de porco defumado com favas. É comida de inverno e é o que se come no país. € 15–22 numa brasserie."],
+      ["<b>Gromperekichelcher</b>","Bolinho de batata frito com cebola e salsinha, € 3–5 na barraca. É a comida de rua do Winterlights, e é a mais barata da cidade."],
+      ["<b>Bouneschlupp</b>","Sopa de feijão verde com batata e bacon. € 6–10, e aquece."],
+      ["<b>Glühwäin no Winterlights</b>","O vinho quente do mercado, € 4–5 com caução do copo. É a razão de o mercado ficar aberto até 21h."],
+      ["<b>Kachkéis</b>","Queijo cozido cremoso, passado no pão com mostarda. Coisa de mercado, barata."],
+      ["<b>Pâtisseries da Rue des Capucins</b>","Namur e as confeitarias antigas do centro. Caro, mas é onde a cidade toma café."]],
+ av:[["Restaurante de menu turístico na Place d'Armes","Luxemburgo é a capital com a renda mais alta da UE e o preço reflete isso. Duas ruas para dentro, o mesmo prato cai um terço."],
+     ["Comer no dia 25","Quase tudo fecha. O que sobra são as barracas do Winterlights — resolva por ali ou compre no dia 23 em Metz."]],
+ warn:["O país inteiro é caro, mas o transporte é grátis","Diária, restaurante e mercado custam mais que na França do lado. Em compensação <b>trem, tram e ônibus são gratuitos em todo o país</b>, sem exceção para turista — só primeira classe se paga."]},
+{pais:"be",cc:"--c-de",n:"Bélgica",
+ reg:[["<b>Fritas de fritkot</b> — a comida barata da Bélgica","€ 3–5 o cone numa barraca de rua, e é sério ali: fritas de duas frituras, no cone de papel, com molho. Almoço inteiro por menos do que um café em Amsterdã."],
+      ["<b>Waffle de rua</b>","O de Liège é o denso e caramelizado, o de Bruxelas é o leve e quadrado. € 2–4 na barraca; num café sentado, o triplo."],
+      ["<b>Moules-frites</b>","Mexilhão com fritas, o prato nacional. € 20–28 e vale uma vez — mas fuja da Rue des Bouchers, que é armadilha de turista com garçom te puxando pelo braço."],
+      ["<b>Cerveja trapista</b>","Chimay, Westmalle, Orval. € 4–6 no bar, e é cerveja de mosteiro de verdade. Num supermercado Delhaize sai por € 2."],
+      ["<b>Chocolate</b>","Fuja das lojas da Grand-Place. <b>Mary</b>, <b>Neuhaus</b> e as chocolaterias de bairro cobram metade pelo mesmo bombom."],
+      ["<b>Speculoos e cuberdon</b>","O biscoito de especiarias e o docinho cônico de Gent, roxo e mole por dentro. Coisa de mercado, € 1–3."]],
+ av:[["Rue des Bouchers","A rua de restaurantes ao lado da Grand-Place. Preço de turista, comida média e garçom insistente. Ande dois quarteirões para fora e o mesmo prato cai 40%."],
+     ["Chocolate na Grand-Place","Mesmas marcas, mesma caixa, o dobro do preço."]],
+ warn:["Feriados fecham a Bélgica também","<b>25 e 26 de dezembro e 1º de janeiro</b> são feriado: supermercado fechado e restaurante em horário reduzido. Mas o mercado de Natal da Grand-Place funciona até <b>3 de janeiro</b>, e ali sempre tem o que comer."]},
+{pais:"es",cc:"--c-es",n:"Espanha",
+ reg:[["<b>Menú del día</b> — a maior economia de comida da viagem","€ 12–15, só no almoço e em dia de semana. Entrada, prato principal, bebida e sobremesa. É comida de trabalhador espanhol, não de turista, e é o motivo pelo qual a Espanha cabe no seu orçamento."],
+      ["<b>Bocadillo de calamares</b>","O sanduíche de Madrid. E ele mora exatamente onde você já vai estar: na <b>Calle de la Sal</b> e nos arredores da Plaza Mayor. € 4–6."],
+      ["<b>Churros com chocolate</b>","San Ginés fica a 3 min da Puerta del Sol e abre 24h. Clássico turístico, mas legítimo."],
+      ["<b>Cocido madrileño</b>","O cozido de Madrid, servido em duas ou três voltas. Prato de inverno, e você vai em dezembro."],
+      ["<b>Torta del Casar</b>","Em Cáceres. Queijo de Extremadura tão cremoso que se come de colher, com a casca cortada como tampa."],
+      ["<b>Pa amb tomàquet, bomba, crema catalana</b>","Barcelona é catalã, não espanhola, e a comida muda. Vermut à tarde é instituição."]],
+ av:[["Mercado de San Miguel","Bonito e muito fotografado, com preço de restaurante. Entra, toma uma taça, tira a foto — e almoça em outro lugar."],
+     ["\"Paella\" na Rambla","Paella é valenciana. Na Rambla ela é congelada e cara. Se quiser paella de verdade, coma em Valência — e Valência não está no roteiro."],
+     ["La Boqueria na hora do almoço","Mesma armadilha da San Miguel, com mais gente."]]},
+
+{pais:"pt",cc:"--c-pt",n:"Portugal",
+ reg:[["<b>Prato do dia</b> em tasca de bairro — melhor custo-benefício da viagem","€ 8–10 com sopa, prato principal, bebida e café. Você já tinha achado o Pingo Doce (€ 5–7 a refeição pronta, e está certo) — mas por dois euros a mais você come comida feita na hora."],
+      ["<b>Pastel de nata</b> — e o original fica no seu caminho","Os <b>Pastéis de Belém</b> são de 1837 e ficam a 200 metros do Mosteiro dos Jerónimos. Você vai passar na porta no dia 14. Coma quente, com canela."],
+      ["<b>Bifana</b>","Sanduíche de porco em pão, € 3–4. Comida de balcão, de pé, rápida."],
+      ["<b>Bacalhau à Brás</b>","Bacalhau desfiado com batata palha e ovo. O prato de bacalhau mais fácil de gostar dos 365 que Portugal reivindica."],
+      ["<b>Caldo verde</b>","Sopa de couve com chouriço. Dezembro pede."],
+      ["<b>Ginjinha</b>","Licor de ginja num copinho, € 1,50, em pé no balcão. A Ginjinha original é ao lado do Rossio — no seu dia 12."],
+      ["<b>Peixe grelhado em Cascais</b>","No dia 15, à beira-mar. É o motivo de ir a Cascais tanto quanto a vista."]],
+ av:[["Time Out Market","Bonito, muito fotografado, e com preço de restaurante para comida de praça de alimentação. É a armadilha mais eficiente de Lisboa."],
+     ["Restaurante com foto no menu na Baixa","Regra universal, mas na Rua Augusta ela é especialmente verdadeira."]]},
+
+{pais:"fr",cc:"--c-fr",n:"França",
+ reg:[["<b>Boulangerie de manhã</b>","Croissant e pain au chocolat por € 2–4. O café da manhã mais barato e o melhor da viagem, ao mesmo tempo. Não tome café da manhã de hotel na França."],
+      ["<b>Formule midi</b>","O menu de almoço, € 15–18: entrada + prato, ou prato + sobremesa. Mesma lógica do menú del día espanhol. O jantar do mesmo restaurante custa o dobro."],
+      ["<b>Soupe à l'oignon gratinée</b>","Sopa de cebola com queijo derretido por cima. Feita para uma noite de dezembro em Paris."],
+      ["<b>Vin chaud</b>","Vinho quente com especiarias, € 3–5 nas barracas de rua. Em dezembro é praticamente obrigatório."],
+      ["<b>Crêpe de rua</b>","Salgado ou doce, € 4–7, e você come andando. Jantar de emergência perfeito."],
+      ["<b>Jantar de supermercado</b>","Monoprix ou Franprix: queijo, baguette, vinho e frutas por € 12 para dois. Não é derrota, é como parisiense faz."]],
+ av:[["Restaurante com garçom te chamando na rua","Especialmente em Montmartre e no Quartier Latin."],
+     ["Qualquer coisa com vista da Torre Eiffel","Você paga a vista, não a comida. Compre a comida em outro lugar e coma sentado no Champ de Mars."]],
+ warn:["No dia 25 quase tudo fecha","Restaurantes e mercados fecham em massa no Natal, e o metrô roda em horário de feriado. <b>Compre comida no dia 24 ou reserve restaurante com antecedência</b> — senão vocês jantam o que sobrou na mochila numa das noites mais bonitas da viagem."]},
+
+{pais:"nl",cc:"--c-nl",n:"Holanda",
+ reg:[["<b>Haring</b> — a coisa mais holandesa que existe","Arenque cru com cebola picada e pepino, na banca de rua, € 3–4. Come segurando pela cauda ou no pãozinho. Estranho na primeira mordida e depois não."],
+      ["<b>Stroopwafel fresco</b>","Não o de pacote: o feito na hora na feira, com o caramelo ainda mole. € 2–3."],
+      ["<b>Bitterballen</b>","Bolinhas de ragu frito com mostarda, acompanhando cerveja. O petisco nacional."],
+      ["<b>Patat met</b>","Batata frita com maionese, ou com <i>satésaus</i> (molho de amendoim indonésio). € 3–5."],
+      ["<b>Rijsttafel indonésio</b>","Herança colonial: a comida \"nacional\" holandesa que ninguém espera. Uma mesa de 10 a 20 pratinhos."],
+      ["<b>Cozinhar no Airbnb</b>","O Albert Heijn é o supermercado padrão. Nas 3 noites de Haarlem, cozinhar duas vezes economiza uns € 40 — e a Holanda é onde a comida mais dói."]],
+ av:[["Restaurante na Damrak e arredores da estação","Zona de pura extração turística."],
+     ["\"Coffeeshop\" quando você quer café","Coffeeshop vende maconha. Café se pede em <i>café</i> ou <i>koffiehuis</i>."]]},
+
+{pais:"de",cc:"--c-de",n:"Alemanha",
+ reg:[["<b>Döner kebab</b> — e Berlim é onde ele foi inventado","O döner de pão como o mundo conhece nasceu em Berlim, feito por imigrantes turcos nos anos 70. € 5–7 e é refeição completa. Provavelmente o melhor custo-benefício de toda a viagem."],
+      ["<b>Currywurst</b>","Salsicha fatiada com ketchup curry e batata frita. O <i>Konnopke's Imbiss</i>, embaixo do metrô elevado em Prenzlauer Berg, é instituição desde 1930."],
+      ["<b>Schnitzel e Eisbein</b>","Comida alemã de inverno, porção generosa, preço honesto."],
+      ["<b>Berliner Weisse</b>","Cerveja ácida servida com xarope de framboesa ou de aspérula. Verde ou vermelha, e bem estranha."],
+      ["<b>Aldi, Lidl, Netto</b>","Os supermercados mais baratos da Europa Ocidental estão na Alemanha. Café da manhã e lanche resolvidos por centavos."]],
+ av:[["Nada em volta da Alexanderplatz","Área de passagem, comida de passagem."]],
+ warn:["Você chega dia 29 — os mercados de Natal já fecharam","A maioria encerra no dia 23 ou 24. Glühwein e Bratwurst de barraca de Natal ficam para outra viagem. Alguns mercados de inverno seguem até o começo de janeiro — vale checar quando estiver perto."]},
+
+{pais:"pl",cc:"--c-pl",n:"Polônia",
+ reg:[["<b>Bar mleczny</b> — a refeição mais barata da viagem inteira","O \"bar de leite\" é uma cantina subsidiada que sobrou do período socialista e continua funcionando. Refeição completa por 20–30 zł (<b>~€ 5</b>). Não é turístico, é onde poloneses almoçam, e é a coisa mais interessante de comer na Polônia."],
+      ["<b>Pierogi</b>","Os <i>ruskie</i> (batata e queijo) são o padrão. Cozidos ou fritos na manteiga com cebola."],
+      ["<b>Żurek</b>","Sopa de centeio fermentado, servida dentro de um pão. Azeda, densa, e perfeita a −4 °C."],
+      ["<b>Zapiekanka</b>","Meia baguete gratinada com cogumelo e queijo, € 2–3. O ponto clássico é o <i>Plac Nowy</i>, em Kazimierz — no seu bairro."],
+      ["<b>Obwarzanek</b>","O pretzel trançado de rua de Cracóvia, ~1 zł. Café da manhã de 25 centavos."],
+      ["<b>Kotlet schabowy</b>","O schnitzel polonês, com batata e repolho. Comida de domingo."]],
+ av:[["Restaurante na Rynek Główny com menu em seis idiomas","A praça é linda e você deve passar horas nela — mas coma uma rua para dentro."]],
+ warn:["No dia de Auschwitz, leve comida","Vocês vão ficar 10 horas fora, saindo às 6h30. Não há nada decente para comer por lá, e não é um lugar onde você quer estar procurando restaurante."]},
+
+{pais:"it",cc:"--c-it",n:"Itália",
+ reg:[["<b>Café em pé no balcão custa um terço do preço</b>","€ 1,20 em pé, € 4 sentado na mesma cafeteria. Não é golpe, é lei: mesa tem serviço. Os italianos tomam café em pé, em 90 segundos, e vão embora."],
+      ["<b>Os quatro clássicos romanos</b>","Cacio e pepe, carbonara, amatriciana e gricia. <b>Carbonara não tem creme de leite</b> — é ovo, queijo, guanciale e pimenta. Se o menu disser <i>cream</i>, você está no lugar errado."],
+      ["<b>Pizza al taglio</b>","Pizza por peso, cortada na tesoura, comida em pé. € 3–5 e é o almoço mais eficiente de Roma."],
+      ["<b>Supplì</b>","Bolinho de arroz frito com muçarela derretida no meio. O primo romano do arancini."],
+      ["<b>Carciofi alla giudia</b>","Alcachofra frita inteira, do Ghetto judeu de Roma. Prato de 500 anos, e janeiro é temporada de alcachofra."],
+      ["<b>Maritozzo</b>","Pão doce aberto e recheado de chantilly. Café da manhã romano."],
+      ["<b>Trastevere e Testaccio</b>","Onde os romanos comem de verdade. Testaccio é o bairro do mercado e das trattorias de família."]],
+ av:[["Qualquer lugar a 200 m do Coliseu ou da Fontana di Trevi","Regra simples e quase infalível."],
+     ["Menu com foto, ou garçom te chamando na porta","Restaurante romano bom não precisa te convencer na rua."],
+     ["Gelato de cor berrante","Pistache de verdade é fosco e acinzentado, não verde-neon. Cor viva significa corante e gordura vegetal."]],
+ warn:["O <i>coperto</i> não é golpe","€ 2–3 por pessoa de couvert é normal, legal, e vem no menu. Reclamar disso é de turista."]}
+];
+
+
+/* ============ ESTADO ============ */
+var LS="eurotrip2026-v2";
+var DEF={days:{},mine:{},adopted:{},foods:{},res:[],resdone:{},stays:{},extra:[],tr:[],cx:null,rate:6,seeded:0,seed2:0,seedv:0,dseed:{},killed:{},_ts:0};
+var S=null;
+try{var e=JSON.parse(document.getElementById("state").textContent);if(e&&typeof e==="object")S=e;}catch(x){}
+if(!S)S={};
+for(var dk in DEF)if(!S.hasOwnProperty(dk))S[dk]=(typeof DEF[dk]==="object"&&DEF[dk]!==null)?(DEF[dk].length===0&&DEF[dk].push?[]:{}):DEF[dk];
+S.days=S.days||{};S.mine=S.mine||{};S.adopted=S.adopted||{};S.foods=S.foods||{};
+S.res=S.res||[];S.resdone=S.resdone||{};S.stays=S.stays||{};S.extra=S.extra||[];
+S.rate=S.rate||6;S.tr=S.tr||[];
+/* caixa: quanto cada um já guardou. Leo pensa em R$, a Lu ganha em € na Europa. */
+S.cx=S.cx||{};
+S.cx.meta=S.cx.meta||{};S.cx.ini=S.cx.ini||{};S.cx.ap=S.cx.ap||{};
+S.cx.cur=S.cx.cur||{leo:"brl",lu:"eur"};S._ts=S._ts||0;
+try{var l=localStorage.getItem(LS);if(l){var lo=JSON.parse(l);if(lo&&(lo._ts||0)>(S._ts||0))S=lo;}}catch(x){}
+S.days=S.days||{};S.mine=S.mine||{};S.adopted=S.adopted||{};S.foods=S.foods||{};
+S.res=S.res||[];S.resdone=S.resdone||{};S.stays=S.stays||{};S.extra=S.extra||[];
+S.rate=S.rate||6;S.dseed=S.dseed||null;S.killed=S.killed||{};
+
+var _uid=0;
+function uid(p){_uid++;return p+Date.now().toString(36)+_uid.toString(36);}
+
+/* Cada item semeado carrega um `sid` estável. Na carga, o que ainda não existe é
+   acrescentado — então pesquisa nova aparece sozinha. O que você apagou fica em
+   S.killed e nunca volta. NUNCA reordene SEED ou SUGG: os sid são por índice. */
+function mergeSeeds(){
+  var have={},c,i;
+  for(c in S.mine){var a=S.mine[c]||[];for(i=0;i<a.length;i++)if(a[i].sid)have[a[i].sid]=1;}
+  function add(city,sid,n,pr,w,st){
+    if(have[sid]||S.killed[sid])return;
+    S.mine[city]=S.mine[city]||[];
+    S.mine[city].push({id:uid("m"),sid:sid,n:n,pr:pr,w:w,st:st});
+  }
+  for(c in SEED)for(i=0;i<SEED[c].length;i++){var it=SEED[c][i];
+    add(c,"m:"+c+":"+i,it[0],it[1],it[2],"bac");}
+  for(c in SUGG)for(i=0;i<SUGG[c].length;i++){var sg=SUGG[c][i];
+    add(c,"s:"+c+":"+i,sg[0],sg[1],sg[2],"sug");}
+  /* trechos: mesma lógica de sid, lista própria, valor em branco até ele lançar */
+  var thave={};
+  for(i=0;i<S.tr.length;i++)if(S.tr[i].sid)thave[S.tr[i].sid]=1;
+  for(i=0;i<SEEDTR.length;i++){var sd="t:"+i;
+    if(thave[sd]||S.killed[sd])continue;
+    S.tr.push({id:uid("t"),sid:sd,n:SEEDTR[i][0],v:"",m:"eur",w:SEEDTR[i][1],
+      k:SEEDTRK[i]||"trem",day:"",ok:false});}
+  /* v28: trecho que ja estava no app dele nasceu sem tipo. Dou o tipo certo
+     pelo sid (que e o indice do SEEDTR) sem tocar em valor, moeda nem nome. */
+  for(i=0;i<S.tr.length;i++){var tl=S.tr[i];
+    if(!tl.k){var ix=tl.sid?parseInt(String(tl.sid).split(":")[1],10):-1;
+      tl.k=(ix>=0&&SEEDTRK[ix])?SEEDTRK[ix]:"trem";}
+    if(tl.day===undefined)tl.day="";
+    if(tl.ok===undefined)tl.ok=false;}
+}
+mergeSeeds();
+if(!S.seeded){
+  for(var fc in SEEDFOOD){S.foods[fc]=S.foods[fc]||[];
+    for(var fi=0;fi<SEEDFOOD[fc].length;fi++)S.foods[fc].push({id:uid("f"),n:SEEDFOOD[fc][fi][0],w:SEEDFOOD[fc][fi][1]});}
+  for(var ri=0;ri<SEEDRES.length;ri++)S.res.push({id:uid("r"),n:SEEDRES[ri][0],w:SEEDRES[ri][1]});
+  S.seeded=1;
+}
+/* SEEDV: versão do esqueleto proposto. Ao subir a versão, só são reescritos os dias
+   que ainda estão como eu escrevi (comparados com S.dseed) ou que estão vazios —
+   o que você editou à mão nunca é sobrescrito. */
+var SEEDV=8;
+if((S.seedv||0)<SEEDV){
+  var hadSeed=!!S.dseed;S.dseed=S.dseed||{};
+  for(var dsi in DAYSEED){
+    var ex=S.days[dsi]||{},vazio=!((ex.c&&String(ex.c).trim())||(ex.p&&String(ex.p).trim()));
+    var intocado=hadSeed?(S.dseed[dsi]===ex.p):true;
+    if(vazio||intocado)S.days[dsi]={c:DAYSEED[dsi].c,p:DAYSEED[dsi].p};
+    S.dseed[dsi]=DAYSEED[dsi].p;
+  }
+  S.seedv=SEEDV;S.seed2=1;
+}
+
+var API=null,dirty=false,busy=false,tab="painel",selCO="es",selDay=null,filt="",selWho="geral",selPick=null,selFPick=null,selTPick=null;
+try{tab=localStorage.getItem(LS+"-tab")||"painel";}catch(x){}
+if(tab==="dias")tab="roteiro";  /* v22: a aba Dias virou parte do Roteiro */
+try{selCO=localStorage.getItem(LS+"-co")||"es";}catch(x){}
+try{selWho=localStorage.getItem(LS+"-who")||"geral";}catch(x){}
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function snap(){return {days:S.days,mine:S.mine,adopted:S.adopted,foods:S.foods,res:S.res,resdone:S.resdone,stays:S.stays,extra:S.extra,tr:S.tr,cx:S.cx,rate:S.rate,seeded:S.seeded,seed2:S.seed2,seedv:S.seedv,dseed:S.dseed,killed:S.killed,_ts:S._ts};}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(snap()));}catch(x){}}
+function touch(){S._ts=Date.now();saveLocal();dirty=true;renderSave();}
+
+function buildDoc(){
+  var css=document.getElementById("css").textContent;
+  var js=document.getElementById("app-js").textContent;
+  var st=JSON.stringify(snap()).replace(/</g,"\\u003c");
+  var CT="<\/script>";
+  return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n'+
+    '<meta name="viewport" content="width=device-width,initial-scale=1">\n'+
+    '<title>Eurotrip 2026<\/title>\n'+
+    '<link rel="preconnect" href="https://fonts.googleapis.com">\n'+
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'+
+    '<link rel="stylesheet" href="'+FONTS+'">\n'+
+    '<style id="css">'+css+'<\/style>\n<\/head>\n<body>\n'+
+    '<script id="state" type="application/json">'+st+CT+'\n'+
+    '<div id="app"><\/div>\n'+
+    '<script id="app-js">'+js+CT+'\n<\/body>\n<\/html>';
+}
+
+var msg="";
+function renderSave(){
+  var el=document.getElementById("savebox");if(!el)return;
+  var cls=API?(dirty?"dirty":"cloud"):"";
+  var txt=msg||(API?(dirty?"alterações não salvas":"salvo na nuvem"):"salvo só neste navegador");
+  el.innerHTML='<span class="savedot '+cls+'"></span><span class="savetxt">'+esc(txt)+'</span>'+
+    (API?'<button class="savebtn" id="dosave"'+(dirty&&!busy?"":" disabled")+'>'+(busy?"salvando":"salvar")+'</button>':"");
+  var b=document.getElementById("dosave");if(b)b.onclick=doSave;
+}
+function doSave(){
+  if(!API||busy||!dirty)return;
+  busy=true;msg="";renderSave();
+  API.publish(buildDoc()).then(function(){},function(err){
+    busy=false;var c=err&&err.code;
+    if(c==="conflict")msg="outra versão foi publicada — recarregando";
+    else if(c==="not_writer"||c==="not_granted"||c==="not_declared"||c==="capability_disabled"||c==="capability_removed"||c==="consent_required"){API=null;msg="";}
+    else if(c==="rate_limited")msg="muitas gravações — espere um instante";
+    else if(c==="too_large")msg="página grande demais para salvar";
+    else msg="não deu para salvar na nuvem — está salvo neste navegador";
+    renderSave();
+  });
+}
+
+/* ============ DATAS ============ */
+var MN=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+var WD=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+var ISOS=[];
+(function(){
+  var d=new Date(2026,11,10),end=new Date(2027,0,12);
+  while(d<=end){ISOS.push(d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2));d.setDate(d.getDate()+1);}
+})();
+function dObj(iso){var p=iso.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function shortDt(iso){var d=dObj(iso);return d.getDate()+" "+(d.getMonth()===11?"dez":"jan");}
+function longDt(iso){var d=dObj(iso);return d.getDate()+" de "+MN[d.getMonth()];}
+function wdOf(iso){return WD[dObj(iso).getDay()];}
+function daysTo(iso){var t=new Date();t.setHours(0,0,0,0);return Math.round((dObj(iso)-t)/86400000);}
+function dayOf(iso){return S.days[iso]||{};}
+function hasDay(iso){var d=dayOf(iso);return !!((d.c&&d.c.trim())||(d.p&&d.p.trim()));}
+/* v25: a base sozinha NÃO é plano. Plano é texto dele ou atração marcada. */
+function hasPlan(iso){var d=dayOf(iso);
+  return !!((d.p&&d.p.trim())||itemsOfDay(iso).length);}
+function filledDays(){var n=0;for(var i=0;i<ISOS.length;i++)if(hasPlan(ISOS[i]))n++;return n;}
+
+/* blocos consecutivos com a mesma base */
+function blocks(){
+  var out=[],cur=null;
+  for(var i=0;i<ISOS.length;i++){
+    var iso=ISOS[i],b=(dayOf(iso).c||"").trim();
+    if(!b){cur=null;continue;}
+    if(cur&&cur.base.toLowerCase()===b.toLowerCase()){cur.to=iso;cur.n++;}
+    else{cur={base:b,from:iso,to:iso,n:1};out.push(cur);}
+  }
+  return out;
+}
+
+/* ============ SOMAS ============ */
+function num(v){var n=parseFloat(String(v==null?"":v).replace(",","."));return isNaN(n)?0:n;}
+var ST={esc:"escolhida",bac:"backlog",sug:"sugerida"};
+var STORD={esc:0,bac:1,sug:2};
+function stOf(it){return ST[it.st]?it.st:"bac";}
+function mineOf(city){return S.mine[city]||[];}
+function mineSort(city){
+  return mineOf(city).slice().sort(function(a,b){return STORD[stOf(a)]-STORD[stOf(b)];});
+}
+function attrTotal(city,st){var a=mineOf(city),s=0;
+  for(var i=0;i<a.length;i++)if(!st||stOf(a[i])===st)s+=num(a[i].pr);return s;}
+function attrTotalCO(k,st){var c=coOf(k),s=0;
+  for(var i=0;i<c.cities.length;i++)s+=attrTotal(c.cities[i],st);return s;}
+function attrTotalAll(st){var s=0;for(var c in S.mine)s+=attrTotal(c,st);return s;}
+function attrCount(st){var n=0;for(var c in S.mine){var a=S.mine[c]||[];
+  for(var i=0;i<a.length;i++)if(!st||stOf(a[i])===st)n++;}return n;}
+function attrCountCity(city,st){var a=mineOf(city),n=0;
+  for(var i=0;i<a.length;i++)if(!st||stOf(a[i])===st)n++;return n;}
+function coOf(k){for(var i=0;i<CO.length;i++)if(CO[i].k===k)return CO[i];return CO[0];}
+function stayOf(c){return S.stays[c]||{};}
+function stayTotal(c){var st=stayOf(c),t=num(st.total);if(t)return t;return num(st.diaria)*num(st.nt);}
+function stayTotalAll(){var s=0;for(var i=0;i<STAYS.length;i++)s+=stayTotal(STAYS[i].c);return s;}
+function stayCount(){var n=0;for(var i=0;i<STAYS.length;i++){var st=stayOf(STAYS[i].c);if(st.end&&String(st.end).trim())n++;}return n;}
+function extraEur(){var s=0;for(var i=0;i<S.extra.length;i++)if(S.extra[i].m!=="brl")s+=num(S.extra[i].v);return s;}
+function extraBrl(){var s=0;for(var i=0;i<S.extra.length;i++)if(S.extra[i].m==="brl")s+=num(S.extra[i].v);return s;}
+function trEur(){var s=0;for(var i=0;i<S.tr.length;i++)if(S.tr[i].m!=="brl")s+=num(S.tr[i].v);return s;}
+function trBrl(){var s=0;for(var i=0;i<S.tr.length;i++)if(S.tr[i].m==="brl")s+=num(S.tr[i].v);return s;}
+function trCount(){var n=0;for(var i=0;i<S.tr.length;i++)if(num(S.tr[i].v)>0)n++;return n;}
+function findTr(id){for(var i=0;i<S.tr.length;i++)if(S.tr[i].id===id)return S.tr[i];return null;}
+var VOO=5079.77;
+/* já saiu do bolso: o voo mais toda burocracia marcada */
+/* v28: comprou o trecho -> o dinheiro sai de "previsto" e entra em "ja pago" */
+function pagoBrl(){return VOO+resBrl("pago")+trBrlM("pago");}
+function totalBrl(){return VOO+(attrTotalAll("esc")+stayTotalAll()+extraEur()+trEur())*num(S.rate)+extraBrl()+trBrl()+resBrl("");}
+
+/* ---- as bases do roteiro, derivadas do calendário ---- */
+var BASEOUT={
+ "c\u00e1ceres":"a cidade velha murada, e s\u00f3",
+ "lisboa":"Sintra e Cascais",
+ "madrid":"Toledo, Segovia ou \u00c1vila, se couber",
+ "metz":"Luxemburgo, Estrasburgo, Trier, Nancy ou Colmar",
+ "reims":"Paris, e \u00c9pernay",
+ "amsterd\u00e3":"Utrecht, Zaanse Schans, Haarlem",
+ "roma":"Ostia Antica, Tivoli, N\u00e1poles e Pompeia, Floren\u00e7a"
+};
+/* noites = dias na base; o \u00faltimo bloco perde uma noite porque ele viaja
+   no \u00faltimo dia (voo 23h35 do dia 11) */
+function baseList(){
+  var b=blocks(),out=[],i;
+  for(i=0;i<b.length;i++){
+    if(/tr[\u00e2a]nsito|no ar|voando/i.test(b[i].base))continue;
+    out.push({base:b[i].base,d:b[i].n,nt:b[i].n});
+  }
+  if(out.length>1)out[out.length-1].nt=Math.max(0,out[out.length-1].d-1);
+  return out;
+}
+/* ============ CAIXA ============ */
+var WHO={leo:"Leo",lu:"Lu"};
+var MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+/* os meses que ainda dá para guardar: do mês de hoje até dezembro de 2026 */
+function saveMonths(){
+  var t=new Date(),y=t.getFullYear(),m=t.getMonth(),out=[];
+  if(y>2026)return ["2026-12"];
+  if(y<2026)m=0;
+  for(;m<=11;m++)out.push("2026-"+("0"+(m+1)).slice(-2));
+  return out;
+}
+function mesLabel(ym){var p=ym.split("-");return MES[parseInt(p[1],10)-1]+" "+p[0].slice(2);}
+function cxCur(w){return S.cx.cur[w]==="eur"?"eur":"brl";}
+function cxMoney(v,w){return cxCur(w)==="eur"?eur(v):brl(v);}
+function cxBrl(v,w){return cxCur(w)==="eur"?v*num(S.rate):v;}
+function apRaw(ym,w){var o=S.cx.ap[ym];return o?(o[w]||""):"";}
+function apVal(ym,w){return num(apRaw(ym,w));}
+function cxIni(w){return num(S.cx.ini[w]);}
+function cxMeta(w){return num(S.cx.meta[w]);}
+function cxAportes(w){var ms=saveMonths(),s=0;for(var i=0;i<ms.length;i++)s+=apVal(ms[i],w);return s;}
+function cxTotal(w){return cxIni(w)+cxAportes(w);}
+function cxFalta(w){return Math.max(0,cxMeta(w)-cxTotal(w));}
+function cxTotalBrl(){return cxBrl(cxTotal("leo"),"leo")+cxBrl(cxTotal("lu"),"lu");}
+function cxMetaBrl(){return cxBrl(cxMeta("leo"),"leo")+cxBrl(cxMeta("lu"),"lu");}
+function cxFaltaBrl(){return Math.max(0,cxMetaBrl()-cxTotalBrl());}
+function cxPct(){var m=cxMetaBrl();return m>0?Math.min(100,cxTotalBrl()/m*100):0;}
+/* quantos meses ainda estão vazios — é por eles que a falta se divide */
+function mesesVazios(w){var ms=saveMonths(),n=0;
+  for(var i=0;i<ms.length;i++){
+    if(w){if(!apVal(ms[i],w))n++;}
+    else if(!apVal(ms[i],"leo")&&!apVal(ms[i],"lu"))n++;}
+  return n||1;}
+function plMes(n){return n===1?"no mês que sobra":"nos "+n+" meses que sobram";}
+function plMesV(n){return n===1?"pelo único mês ainda vazio":"pelos "+n+" meses ainda vazios";}
+function cxMes(w){return (w?cxFalta(w):cxFaltaBrl())/mesesVazios(w);}
+/* minha estimativa, para o botão de preencher a meta */
+var ESTIM_EUR=2795;
+
+/* ============ COMIDAS: prato / restaurante / café (v27) ============
+   Prato é lista de desejo — fica só na aba Comidas.
+   Restaurante e café podem cair num dia do roteiro, como as atrações. */
+var FK={pr:"prato",rest:"restaurante",cafe:"caf\u00e9"};
+/* v28: o emoji de cada coisa, para ele bater o olho e saber o que e.
+   prato = panela, restaurante = prato de comida, cafe = cafe. */
+var FKE={pr:"\ud83c\udf72",rest:"\ud83c\udf7d\ufe0f",cafe:"\u2615"};
+var FKPL={pr:"pratos",rest:"restaurantes",cafe:"caf\u00e9s"};
+var FKORD={pr:0,rest:1,cafe:2};
+function fkOf(it){return FK[it.k]?it.k:"pr";}
+function foodsOf(co){return S.foods[co]||[];}
+function foodsK(co,k){var a=foodsOf(co),o=[],i;
+  for(i=0;i<a.length;i++)if(fkOf(a[i])===k)o.push(a[i]);return o;}
+function foodCount(co,k){return k?foodsK(co,k).length:foodsOf(co).length;}
+function findFood(co,id){var a=foodsOf(co);
+  for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
+/* o que pode ir para um dia: restaurante e café, nunca prato */
+function foodPickable(it){return fkOf(it)!=="pr";}
+function foodsOfDay(iso){
+  var out=[],c,i;
+  for(c in S.foods){var a=S.foods[c]||[];
+    for(i=0;i<a.length;i++)if(a[i].day===iso)out.push({co:c,it:a[i]});}
+  out.sort(function(x,y){return FKORD[fkOf(x.it)]-FKORD[fkOf(y.it)];});
+  return out;
+}
+function foodPlaced(){var n=0,c,i;
+  for(c in S.foods){var a=S.foods[c]||[];
+    for(i=0;i<a.length;i++)if(a[i].day)n++;}
+  return n;}
+/* mesma faxina do pruneDays, para comida */
+function pruneFoodDays(){var c,i,ok={};
+  for(i=0;i<ISOS.length;i++)ok[ISOS[i]]=1;
+  for(c in S.foods){var a=S.foods[c]||[];
+    for(i=0;i<a.length;i++)if(a[i].day&&!ok[a[i].day])a[i].day="";}}
+
+/* ---- atração ↔ dia (v24) ---- */
+function norm(v){return String(v||"").toLowerCase()
+  .replace(/[\u00e1\u00e0\u00e2\u00e3\u00e4]/g,"a").replace(/[\u00e9\u00e8\u00ea\u00eb]/g,"e")
+  .replace(/[\u00ed\u00ec\u00ee\u00ef]/g,"i").replace(/[\u00f3\u00f2\u00f4\u00f5\u00f6]/g,"o")
+  .replace(/[\u00fa\u00f9\u00fb\u00fc]/g,"u").replace(/\u00e7/g,"c")
+  .replace(/[^a-z0-9]/g,"");}
+/* a base do dia é texto livre: "Lisboa", "Amsterdã", "em trânsito"... */
+function cityOfBase(b){
+  var n=norm(b),k;
+  if(!n)return"";
+  if(CT[n])return n;
+  for(k in CT)if(norm(CT[k].n)===n)return k;
+  for(k in CT){var c=norm(CT[k].n);if(c.length>3&&(n.indexOf(c)>=0||c.indexOf(n)>=0))return k;}
+  return"";
+}
+function dayOfIt(it){return it.day||"";}
+function itemsOfDay(iso){
+  var out=[],c,i;
+  for(c in S.mine){var a=S.mine[c]||[];
+    for(i=0;i<a.length;i++)if(a[i].day===iso)out.push({city:c,it:a[i]});}
+  out.sort(function(x,y){return STORD[stOf(x.it)]-STORD[stOf(y.it)];});
+  return out;
+}
+function dayAttrTotal(iso){var a=itemsOfDay(iso),s=0;
+  for(var i=0;i<a.length;i++)s+=num(a[i].it.pr);return s;}
+function placedCount(){var n=0,c,i;
+  for(c in S.mine){var a=S.mine[c]||[];
+    for(i=0;i<a.length;i++)if(a[i].day)n++;}
+  return n;}
+/* limpa o dia de atrações que apontam para um dia que não existe mais */
+function pruneDays(){var c,i,ok={};
+  for(i=0;i<ISOS.length;i++)ok[ISOS[i]]=1;
+  for(c in S.mine){var a=S.mine[c]||[];
+    for(i=0;i<a.length;i++)if(a[i].day&&!ok[a[i].day])a[i].day="";}}
+
+function nightsAll(){var a=baseList(),s=0;for(var i=0;i<a.length;i++)s+=a[i].nt;return s;}
+/* dias em terra (dentro de alguma base) e dias só de voo */
+function groundDays(){var a=baseList(),s=0;for(var i=0;i<a.length;i++)s+=a[i].d;return s;}
+function flyDays(){return Math.max(0,ISOS.length-groundDays());}
+function brl(v){return "R$ "+(Math.round(v)).toLocaleString("pt-BR");}
+function eur(v){return "€ "+(Math.round(v*100)/100).toLocaleString("pt-BR");}
+function resDone(){var n=0;for(var i=0;i<S.res.length;i++)if(S.resdone[S.res[i].id])n++;return n;}
+/* v26: cada reserva tem valor. Marcada = já paga, e entra no "total já pago". */
+function resSum(mode){
+  var e=0,b=0,i;
+  for(i=0;i<S.res.length;i++){
+    var r=S.res[i],d=!!S.resdone[r.id];
+    if(mode==="pago"&&!d)continue;
+    if(mode==="falta"&&d)continue;
+    /* o padrão é R$, igual ao que o seletor mostra */
+    if(r.m==="eur")e+=num(r.v);else b+=num(r.v);
+  }
+  return {eur:e,brl:b};
+}
+function resBrl(mode){var x=resSum(mode);return x.eur*num(S.rate)+x.brl;}
+function resCount(mode){var n=0,i;
+  for(i=0;i<S.res.length;i++){var r=S.res[i],d=!!S.resdone[r.id];
+    if(mode==="pago"&&!d)continue;
+    if(mode==="falta"&&d)continue;
+    if(num(r.v)>0)n++;}
+  return n;}
+
+/* ============ ATRACAO: passeio ou tour (v28) ============
+   Ele pediu emoji para saber o que e cada coisa no dia:
+   passeio pela rua/centro = boneco a pe, tour por um lugar = templo. */
+var AK={pass:"passeio",tour:"tour"};
+var AKE={pass:"🚶",tour:"🏛️"};
+var AKORD={pass:0,tour:1};
+function akOf(it){return AK[it.k]?it.k:"pass";}
+function akCount(city,k){var a=mineOf(city),n=0;
+  for(var i=0;i<a.length;i++)if(akOf(a[i])===k)n++;return n;}
+
+/* ============ TRANSPORTE (v28) ============
+   Os trechos sairam de Custos e ganharam aba propria: tipo, dia e "comprado".
+   Comprado = ja pago, e entra no "total ja pago", igual as reservas. */
+var TK={trem:"trem",aviao:"avião",onibus:"ônibus",carro:"carro"};
+var TKPL={trem:"trens",aviao:"aviões",onibus:"ônibus",carro:"carros"};
+var TKE={trem:"🚆",aviao:"✈️",onibus:"🚌",carro:"🚗"};
+var TKORD={trem:0,aviao:1,onibus:2,carro:3};
+function tkOf(it){return TK[it.k]?it.k:"trem";}
+function trK(k){var o=[],i;for(i=0;i<S.tr.length;i++)if(tkOf(S.tr[i])===k)o.push(S.tr[i]);return o;}
+function trDone(){var n=0;for(var i=0;i<S.tr.length;i++)if(S.tr[i].ok)n++;return n;}
+/* mesma mecanica do resSum: "" tudo, "pago" so o comprado, "falta" o resto */
+function trSum(mode){
+  var e=0,b=0,i;
+  for(i=0;i<S.tr.length;i++){
+    var t=S.tr[i],d=!!t.ok;
+    if(mode==="pago"&&!d)continue;
+    if(mode==="falta"&&d)continue;
+    if(t.m==="brl")b+=num(t.v);else e+=num(t.v);
+  }
+  return {eur:e,brl:b};
+}
+function trBrlM(mode){var x=trSum(mode);return x.eur*num(S.rate)+x.brl;}
+function trOfDay(iso){
+  var out=[],i;
+  for(i=0;i<S.tr.length;i++)if(S.tr[i].day===iso)out.push(S.tr[i]);
+  out.sort(function(x,y){return TKORD[tkOf(x)]-TKORD[tkOf(y)];});
+  return out;
+}
+function trPlaced(){var n=0,i;for(i=0;i<S.tr.length;i++)if(S.tr[i].day)n++;return n;}
+function pruneTrDays(){var i,ok={};
+  for(i=0;i<ISOS.length;i++)ok[ISOS[i]]=1;
+  for(i=0;i<S.tr.length;i++)if(S.tr[i].day&&!ok[S.tr[i].day])S.tr[i].day="";}
+/* o € do dia inteiro: atracao + trecho de transporte */
+function dayTrTotal(iso){var a=trOfDay(iso),s=0,i;
+  for(i=0;i<a.length;i++)if(a[i].m!=="brl")s+=num(a[i].v);return s;}
+function dayTrBrl(iso){var a=trOfDay(iso),s=0,i;
+  for(i=0;i<a.length;i++)if(a[i].m==="brl")s+=num(a[i].v);return s;}
+
+pruneDays();
+pruneFoodDays();
+pruneTrDays();
+
+/* ============ PEDAÇOS REUTILIZÁVEIS ============ */
+function stSel(city,it){
+  var s=stOf(it),o="";
+  for(var k in ST)o+='<option value="'+k+'"'+(s===k?" selected":"")+'>'+ST[k]+'</option>';
+  return '<select class="sv" data-st data-city="'+city+'" data-id="'+it.id+'" aria-label="situação">'+o+'</select>';
+}
+/* v28: passeio (rua/centro) ou tour (visitar um lugar). O emoji vai para o dia. */
+function akSel(city,it){
+  var k=akOf(it),o="";
+  for(var x in AK)o+='<option value="'+x+'"'+(k===x?" selected":"")+'>'+AKE[x]+' '+AK[x]+'</option>';
+  return '<select class="sv kv" data-ak data-city="'+city+'" data-id="'+it.id+'" aria-label="tipo">'+o+'</select>';
+}
+function mineRows(city,filt){
+  var a=mineSort(city),h="",n=0;
+  for(var i=0;i<a.length;i++){
+    var it=a[i],s=stOf(it);
+    if(filt&&s!==filt)continue;
+    n++;
+    h+='<div class="mrow at5 st-'+s+'" data-row="'+it.id+'">'+
+       '<input type="text" class="nv" data-mi="n" data-city="'+city+'" data-id="'+it.id+'" value="'+esc(it.n)+'" aria-label="nome">'+
+       stSel(city,it)+akSel(city,it)+
+       '<input type="text" inputmode="decimal" class="pv" data-mi="pr" data-city="'+city+'" data-id="'+it.id+'" value="'+esc(it.pr||"")+'" placeholder="€ 0" aria-label="preço em euros">'+
+       '<button class="xb" data-mx="'+it.id+'" data-city="'+city+'" title="tirar da lista" aria-label="tirar da lista">×</button>'+
+       ((it.day||it.w)?'<div class="wh">'+
+          (it.day?'<span class="dtag">'+AKE[akOf(it)]+' '+shortDt(it.day)+'</span> ':'')+(it.w||'')+'</div>':'')+
+       '</div>';
+  }
+  if(!n)return '<div class="empty">'+(filt?"Nada "+(filt==="esc"?"escolhido":filt==="bac"?"no backlog":"sugerido")+" aqui.":"Nada aqui ainda. Escreve abaixo.")+'</div>';
+  return '<div class="mt">'+h+'</div>';
+}
+function addRow(city){
+  return '<div class="addrow"><input type="text" data-nadd="'+city+'" placeholder="o que você quer fazer em '+esc(CT[city].n)+'">'+
+    '<input type="text" inputmode="decimal" class="pv" data-padd="'+city+'" placeholder="€">'+
+    '<button data-madd="'+city+'">pôr no backlog</button></div>';
+}
+function noteOf(city){
+  var n=CITYNOTE[city];if(!n)return"";
+  return '<div class="n '+n[0]+'"><b>'+n[1]+'</b>'+n[2]+'</div>';
+}
+
+/* ============ PAINEL ============ */
+function rotTable(){
+  var a=baseList();
+  if(!a.length)return '<div class="empty">O calend\u00e1rio est\u00e1 em branco \u2014 escreva a base de cada dia na aba <b>Roteiro</b> e a tabela se monta sozinha.</div>';
+  var tot=0,h='<div class="tw"><table class="rot"><thead><tr><th>Lugar</th><th class="num">Noites</th>'+
+    '<th>O que sai daqui de bate-volta</th></tr></thead><tbody>';
+  for(var i=0;i<a.length;i++){
+    var k=a[i].base.toLowerCase(),last=(i===a.length-1);
+    var o=(last&&a[i].nt<a[i].d)?"\u00faltimo dia \u2014 o voo de volta \u00e9 23h35":(BASEOUT[k]||"\u2014");
+    tot+=a[i].nt;
+    h+='<tr><td class="pl2">'+esc(a[i].base)+'</td><td class="num">'+a[i].nt+'</td>'+
+       '<td class="sb">'+o+'</td></tr>';
+  }
+  h+='</tbody><tfoot><tr><td>'+a.length+' bases</td><td class="num">'+tot+'</td>'+
+     '<td class="sb">'+groundDays()+' dias em terra + '+flyDays()+' de voo = '+ISOS.length+' dias de viagem</td>'+
+     '</tr></tfoot></table></div>';
+  return h;
+}
+function viewPainel(){
+  var dep=daysTo("2026-12-10"),bl=baseList(),nt=nightsAll(),te=trEur(),tbr=trBrl();
+  var h='<div class="panelhead"><h2>Detalhes gerais</h2>'+
+    '<p><b>Roteiro fechado em 04/09.</b> Oito bases, e os bate-voltas saem de dentro delas. '+
+    'Tudo continua editável dia por dia na aba Roteiro. O custo é só o que você lançar.</p></div>';
+  h+='<div class="kpi">'+
+    '<div><b>'+dep+'</b><span>dias até embarcar</span><small>10 dez, 20h15 de Florianópolis — voo pago</small></div>'+
+    '<div><b>'+ISOS.length+'</b><span>dias de viagem</span><small>'+
+      (bl.length?nt+' noites na Europa · '+bl.length+' bases · '+flyDays()+' '+(flyDays()===1?'dia':'dias')+' só de voo'
+                :ISOS.length+' dias no calendário, ainda em branco')+
+      '</small></div>'+
+    '<div><b>'+attrCount("esc")+'</b><span>atrações escolhidas</span><small>'+attrCount("bac")+' no backlog · '+attrCount("sug")+' sugeridas por mim</small></div>'+
+    '<div><b>'+stayCount()+'/'+STAYS.length+'</b><span>hospedagens fechadas</span><small>diária cheia, sem divisão</small></div>'+
+    '</div>';
+  h+='<div class="bigsum b5">'+
+    '<div><b>'+brl(pagoBrl())+'</b><span>total já pago</span><i>o voo'+(resBrl("pago")?' + '+brl(resBrl("pago"))+' de burocracia':' internacional')+'</i></div>'+
+    '<div><b>'+eur(stayTotalAll())+'</b><span>hospedagem</span><i>'+stayCount()+' de '+STAYS.length+' bases lançadas</i></div>'+
+    '<div><b>'+eur(attrTotalAll("esc"))+'</b><span>atrações</span><i>'+attrCount("esc")+' escolhidas</i></div>'+
+    '<div><b>'+eur(te)+'</b><span>transportes</span><i>'+trDone()+' de '+S.tr.length+' comprados'+(tbr?' · mais '+brl(tbr):'')+'</i></div>'+
+    '<div><b>'+brl(totalBrl())+'</b><span>total real até agora</span><i>câmbio R$ '+num(S.rate).toLocaleString("pt-BR")+'</i></div>'+
+    '</div>';
+
+  h+='<div class="card"><div class="h"><h3>O roteiro, em uma tabela</h3>'+
+     '<div class="m">'+ISOS.length+' dias de viagem · '+nt+' noites · '+bl.length+' bases · sem contar bate-volta</div></div><div class="b">'+
+     rotTable()+
+     '<p class="mono foot" style="margin-bottom:0">A tabela sai do calendário: se você mudar a base de um dia na aba <b>Roteiro</b>, ela se refaz aqui.</p>'+
+     '</div></div>';
+
+  /* ---- o que ainda está aberto: tirado do que ele de fato marcou ---- */
+  var pend=[],i;
+  for(i=0;i<S.res.length;i++)if(!S.resdone[S.res[i].id]){
+    var rv=num(S.res[i].v);
+    pend.push(["res",S.res[i].n,(rv?'<b>'+(S.res[i].m==="eur"?eur(rv):brl(rv))+'</b> previstos. ':'')+(S.res[i].w||"")]);}
+  if(cxMetaBrl()>0){
+    var fl=cxFaltaBrl();
+    pend.push(["din","Dinheiro acumulado",
+      fl>0?'<b>'+brl(cxTotalBrl())+' de '+brl(cxMetaBrl())+'</b> — faltam <b>'+brl(fl)+'</b>, ou '+brl(cxMes(null))+' por mês '+plMes(mesesVazios(null))+'. Detalhe na aba Caixa.'
+          :'<b>meta batida</b>: '+brl(cxTotalBrl())+' guardados. Veja a aba Caixa.']);
+  }else{
+    pend.push(["din","Dinheiro acumulado",
+      'Você tem <b>'+brl(cxTotalBrl())+'</b> lançado e <b>nenhuma meta definida</b>. Abra a aba <b>Caixa</b>, ponha a meta e o quanto já está guardado — ela divide o que falta pelos meses que sobram.']);
+  }
+  var stf=STAYS.length-stayCount();
+  if(stf>0)pend.push(["stay",stf+" de "+STAYS.length+" hospedagens sem reserva",
+    "A de <b>Amsterdã, 29/12 a 02/01</b>, é a que mais sobe de preço — Réveillon nos Países Baixos. Reserve essa antes de todas."]);
+  var trf=S.tr.length-trDone();
+  if(trf>0)pend.push(["tr",trf+" de "+S.tr.length+" trechos ainda não comprados",
+    "O <b>voo Madrid → Luxemburgo do dia 19</b> é o mais urgente: rota pequena em semana pré-Natal, compre até meados de outubro. Marque a caixinha na aba <b>Transporte</b> quando comprar cada um."]);
+
+  h+='<div class="card" style="--cc:var(--rust)"><div class="h"><h3>O que ainda está aberto</h3>'+
+     '<div class="m">'+pend.length+' '+(pend.length===1?"pendência":"pendências")+' · sai do que você marcou nas outras abas</div>'+
+     '</div><div class="b">';
+  if(!pend.length)h+='<div class="n free"><b>nada pendente</b>Reservas resolvidas, hospedagens fechadas, trechos comprados e a meta batida. Boa viagem.</div>';
+  else{h+='<div class="bk">';
+    for(i=0;i<pend.length;i++){
+      var kk=pend[i][0],cl=(kk==="res"?"now":kk==="din"?"hard":"");
+      var lbl=(kk==="res"?"burocracia":kk==="din"?"dinheiro":kk==="stay"?"hospedagem":"transporte");
+      h+='<div class="bkr pnd '+cl+'"><div class="w">'+lbl+'</div>'+
+         '<div><h4>'+esc(pend[i][1])+'</h4>'+(pend[i][2]?'<p>'+pend[i][2]+'</p>':'')+'</div></div>';
+    }
+    h+='</div>';
+    h+='<p class="mono foot" style="margin-bottom:0">Some daqui marcando a caixinha na aba <b>Reservas</b>, '+
+       'salvando a hospedagem em <b>Hospedagem</b>, ou marcando o trecho como comprado em <b>Transporte</b>.</p>';}
+  h+='</div></div>';
+
+  /* ---- as decisões de roteiro, que são outra coisa ---- */
+  h+='<div class="card" style="--cc:var(--ochre)"><div class="h"><h3>Decisões de roteiro</h3>'+
+     '<div class="m">isto não trava nada — dá para decidir em cima da hora</div></div><div class="b">'+
+     '<ul class="pl">'+
+     '<li><b>O carro de Cáceres.</b> Se o irmão do CK não precisar dele de volta no dia 16, Lisboa → Madrid vira voo de 1h20 e você ganha quase um dia inteiro em Madrid — que hoje só tem 2 dias cheios.</li>'+
+     '<li><b>Toledo, Segovia e Ávila</b> não cabem nos 2 dias de Madrid. Ou você resolve o dia 16, ou corta as três.</li>'+
+     '<li><b>O dia 21 em Metz.</b> Deixei como segundo dia na Alsácia. Colmar ou Nancy provavelmente rendem mais que repetir Estrasburgo.</li>'+
+     '<li><b>O dia 28 em Reims.</b> Segundo bate-volta a Paris, ou o dia de Reims com a cave de champanhe. Não cabem os dois.</li>'+
+     '<li><b>Roma tem 8 noites</b> e a cidade são 4 dias. Os outros são bate-volta: Ostia Antica, Tivoli, Nápoles e Pompeia, Florença. Escolha dois.</li>'+
+     '</ul></div></div>';
+  return h;
+}
+
+/* ============ DIAS ============ */
+function monthHtml(y,m,label){
+  var first=new Date(y,m,1),dim=new Date(y,m+1,0).getDate();
+  var lead=(first.getDay()+6)%7;
+  var h='<div class="mo"><h4>'+label+'</h4><div class="grid7">';
+  var wds=["seg","ter","qua","qui","sex","sáb","dom"];
+  for(var w=0;w<7;w++)h+='<div class="wd">'+wds[w]+'</div>';
+  for(var i=0;i<lead;i++)h+='<div class="cd off"></div>';
+  for(var d=1;d<=dim;d++){
+    var iso=y+"-"+("0"+(m+1)).slice(-2)+"-"+("0"+d).slice(-2);
+    var on=ISOS.indexOf(iso)>=0;
+    if(!on){h+='<div class="cd off">'+d+'</div>';continue;}
+    var cls="cd trip"+(selDay===iso?" sel":"");
+    h+='<div class="'+cls+'" data-iso="'+iso+'" role="button" tabindex="0">'+d+
+       (hasPlan(iso)?'<span class="pip"></span>':'')+(DAYNOTE[iso]?'<span class="nt nt-'+DAYNOTE[iso][0]+'"></span>':'')+'</div>';
+  }
+  return h+'</div></div>';
+}
+function dayEditor(iso){
+  var d=dayOf(iso);
+  return '<div class="card" style="--cc:var(--pine)"><div class="h">'+
+    '<h3>'+longDt(iso)+'</h3><div class="m">'+wdOf(iso)+' · dia '+(ISOS.indexOf(iso)+1)+' de '+ISOS.length+'</div></div><div class="b">'+
+    (DAYNOTE[iso]?'<div class="n '+DAYNOTE[iso][0]+'" style="max-width:none;margin:0 0 4px"><b>'+DAYNOTE[iso][1]+'</b>'+DAYNOTE[iso][2]+'</div>':'')+
+    '<div class="form" data-day="'+iso+'">'+
+      '<div class="fld"><label>Onde eu durmo / qual é a base</label>'+
+      '<input type="text" data-dc="'+iso+'" value="'+esc(d.c||"")+'" placeholder="ex. Madrid"></div>'+
+      '<div class="fld"><label>O que fazer neste dia — suas palavras</label>'+
+      '<textarea data-dp="'+iso+'" placeholder="escreva livre, ou só marque as atrações abaixo e deixe isto em branco">'+esc(d.p||"")+'</textarea></div>'+
+    '</div>'+
+    '<div class="addrow one"><button data-dclr="'+iso+'">apagar o meu texto</button></div>'+
+    '</div></div>'+dayTrCard(iso)+dayPickCard(iso)+dayFoodCard(iso);
+}
+
+/* ---- como eu me movo neste dia: trem, voo, ônibus, carro (v28) ---- */
+function dayTrRows(iso){
+  var a=trOfDay(iso),h="",i;
+  if(!a.length)return '<div class="empty">Nenhum trecho neste dia. Se você pega trem ou voo, marque abaixo.</div>';
+  h='<div class="at">';
+  for(i=0;i<a.length;i++){
+    var t=a[i],k=tkOf(t),v=num(t.v);
+    h+='<div class="atr pkd'+(v?"":" free")+'">'+
+      '<div class="nm">'+TKE[k]+' '+esc(t.n)+'</div>'+
+      '<div class="vl">'+(v?(t.m==="brl"?brl(v):eur(v)):"a lançar")+'</div>'+
+      '<button class="xb" data-untk="'+t.id+'" title="tirar deste dia" aria-label="tirar deste dia">×</button>'+
+      '<div class="wh"><span class="stg tkc-'+k+'">'+TK[k]+'</span> · '+
+        (t.ok?'<b>comprado</b>':'ainda não comprado')+'</div>'+
+      '</div>';
+  }
+  return h+'</div>';
+}
+function trPickRows(k,iso){
+  var a=trK(k),h="",n=0,other=0,i;
+  for(i=0;i<a.length;i++){
+    var t=a[i];
+    if(t.day===iso)continue;
+    if(t.day){other++;continue;}
+    n++;
+    var v=num(t.v);
+    h+='<div class="sgr"><div class="nm">'+TKE[k]+' '+esc(t.n)+
+      (t.ok?' <span class="stg tkc-'+k+'">comprado</span>':'')+'</div>'+
+      '<div class="vl">'+(v?(t.m==="brl"?brl(v):eur(v)):"—")+'</div>'+
+      '<button class="plus" data-tpk="'+t.id+'" data-iso="'+iso+'" title="pôr neste dia" aria-label="pôr neste dia">+</button>'+
+      (t.w?'<div class="wh">'+t.w+'</div>':'')+
+      '</div>';
+  }
+  if(!n)h='<div class="empty">'+(other?'Todo '+TK[k]+' da lista já está em algum dia.'
+    :'Nenhum '+TK[k]+' na lista ainda — a aba <b>Transporte</b> é onde isso entra.')+'</div>';
+  else if(other)h+='<p class="mono foot" style="margin:12px 0 0">'+other+(other>1?' já estão':' já está')+' em outro dia.</p>';
+  return h;
+}
+function dayTrCard(iso){
+  var pk=TK[selTPick]?selTPick:"trem";
+  var mine=trOfDay(iso),te=dayTrTotal(iso),tb=dayTrBrl(iso),x,i;
+  var mt=(te||tb)?(te?eur(te):'')+((te&&tb)?' + ':'')+(tb?brl(tb):''):'nada lançado';
+  var h='<div class="card" style="--cc:var(--c-fr)"><div class="h"><h3>Como eu me movo neste dia</h3>'+
+    '<div class="m">'+mine.length+(mine.length===1?" trecho marcado":" trechos marcados")+' · '+mt+'</div></div><div class="b">';
+  h+=dayTrRows(iso);
+  h+='<div class="sechead">pôr neste dia</div>';
+  h+='<div class="subtabs">';
+  for(x in TK){var fn=0,fa=trK(x);
+    for(i=0;i<fa.length;i++)if(!fa[i].day)fn++;
+    h+='<button class="chip" data-tpick="'+x+'" aria-pressed="'+(pk===x)+'" style="--cc:var(--c-fr)">'+
+       TKE[x]+' '+TKPL[x]+'<span class="cn">'+fn+'</span></button>';}
+  h+='</div>';
+  h+='<div id="tpickbox">'+trPickRows(pk,iso)+'</div>';
+  h+='</div></div>';
+  return h;
+}
+
+/* ---- onde comer neste dia: restaurante e café, nunca prato ---- */
+function dayFoodRows(iso){
+  var a=foodsOfDay(iso),h="",i;
+  if(!a.length)return '<div class="empty">Nada marcado. Escolha abaixo, ou anote antes na aba <b>Comidas</b>.</div>';
+  h='<div class="at">';
+  for(i=0;i<a.length;i++){
+    var it=a[i].it;
+    h+='<div class="atr pkd">'+
+      '<div class="nm">'+FKE[fkOf(it)]+' '+esc(it.n)+'</div>'+
+      '<div class="vl"><span class="stg fkc-'+fkOf(it)+'">'+FKE[fkOf(it)]+' '+FK[fkOf(it)]+'</span></div>'+
+      '<button class="xb" data-unfpk="'+it.id+'" data-co="'+a[i].co+'" title="tirar deste dia" aria-label="tirar deste dia">×</button>'+
+      (it.w?'<div class="wh">'+it.w+'</div>':'')+
+      '</div>';
+  }
+  return h+'</div>';
+}
+function foodPickRows(co,iso){
+  var a=foodsOf(co),h="",n=0,other=0,i;
+  for(i=0;i<a.length;i++){
+    var it=a[i];
+    if(!foodPickable(it))continue;
+    if(it.day===iso)continue;
+    if(it.day){other++;continue;}
+    n++;
+    h+='<div class="sgr"><div class="nm">'+FKE[fkOf(it)]+' '+esc(it.n)+
+      ' <span class="stg fkc-'+fkOf(it)+'">'+FK[fkOf(it)]+'</span></div>'+
+      '<div class="vl"></div>'+
+      '<button class="plus" data-fpk="'+it.id+'" data-co="'+co+'" data-iso="'+iso+'" title="pôr neste dia" aria-label="pôr neste dia">+</button>'+
+      (it.w?'<div class="wh">'+it.w+'</div>':'')+
+      '</div>';
+  }
+  if(!n)h='<div class="empty">'+(other?'Todo restaurante e café de '+esc(coOf(co).n)+' já está em algum dia.'
+    :'Você ainda não anotou restaurante nem café de '+esc(coOf(co).n)+'. A aba <b>Comidas</b> é onde isso entra — <b>prato típico não aparece aqui</b>, só lugar.')+'</div>';
+  else if(other)h+='<p class="mono foot" style="margin:12px 0 0">'+other+(other>1?' já estão':' já está')+' em outro dia.</p>';
+  return h;
+}
+function dayFoodCard(iso){
+  var bk=cityOfBase(dayOf(iso).c||"");
+  var dco=bk&&CT[bk]?CT[bk].co:"";
+  var pk=(selFPick&&coOf(selFPick).k===selFPick)?selFPick:(dco||selCO);
+  var mine=foodsOfDay(iso),i;
+  var h='<div class="card" style="--cc:var(--c-nl)"><div class="h"><h3>Onde comer neste dia</h3>'+
+    '<div class="m">'+mine.length+(mine.length===1?" lugar marcado":" lugares marcados")+
+    ' · prato típico fica só na aba Comidas</div></div><div class="b">';
+  h+=dayFoodRows(iso);
+  h+='<div class="sechead">pôr neste dia</div>';
+  h+='<div class="subtabs">';
+  for(i=0;i<CO.length;i++){var c=CO[i],fn=0,fa=foodsOf(c.k);
+    for(var j=0;j<fa.length;j++)if(foodPickable(fa[j])&&!fa[j].day)fn++;
+    h+='<button class="chip" data-fpick="'+c.k+'" aria-pressed="'+(pk===c.k)+'" style="--cc:var('+c.cc+')">'+
+       c.n+'<span class="cn">'+fn+'</span></button>';}
+  h+='</div>';
+  h+='<div id="fpickbox">'+foodPickRows(pk,iso)+'</div>';
+  h+='</div></div>';
+  return h;
+}
+
+/* ---- as atrações que caem neste dia ---- */
+function dayAttrRows(iso){
+  var a=itemsOfDay(iso),h="",i;
+  if(!a.length)return '<div class="empty">Nada marcado para este dia ainda. Escolha abaixo.</div>';
+  h='<div class="at">';
+  for(i=0;i<a.length;i++){
+    var it=a[i].it,pr=num(it.pr);
+    h+='<div class="atr pkd'+(pr?"":" free")+'">'+
+       '<div class="nm">'+AKE[akOf(it)]+' '+esc(it.n)+'</div>'+
+       '<div class="vl">'+(pr?eur(pr):"grátis")+'</div>'+
+       '<button class="xb" data-unpk="'+it.id+'" data-city="'+a[i].city+'" title="tirar deste dia" aria-label="tirar deste dia">×</button>'+
+       '<div class="wh">'+esc(CT[a[i].city]?CT[a[i].city].n:a[i].city)+
+         ' · <span class="stg st-'+stOf(it)+'">'+ST[stOf(it)]+'</span></div>'+
+       '</div>';
+  }
+  return h+'</div>';
+}
+/* ---- as cidades que dá para puxar: a base do dia primeiro, depois o resto ---- */
+function pickCities(baseKey){
+  var out=[],i,j,seen={};
+  if(baseKey){out.push(baseKey);seen[baseKey]=1;}
+  if(baseKey&&CT[baseKey]){var co=coOf(CT[baseKey].co);
+    for(i=0;i<co.cities.length;i++)if(!seen[co.cities[i]]){out.push(co.cities[i]);seen[co.cities[i]]=1;}}
+  for(i=0;i<CO.length;i++)for(j=0;j<CO[i].cities.length;j++)
+    if(!seen[CO[i].cities[j]]){out.push(CO[i].cities[j]);seen[CO[i].cities[j]]=1;}
+  return out;
+}
+function freeCount(city,iso){
+  var a=mineOf(city),n=0;
+  for(var i=0;i<a.length;i++)if(!a[i].day)n++;
+  return n;
+}
+function pickRows(city,iso){
+  var a=mineSort(city),h="",n=0,other=0,i;
+  for(i=0;i<a.length;i++){
+    var it=a[i];
+    if(it.day===iso)continue;
+    if(it.day){other++;continue;}
+    n++;
+    var pr=num(it.pr);
+    h+='<div class="sgr"><div class="nm">'+AKE[akOf(it)]+' '+esc(it.n)+
+       ' <span class="stg st-'+stOf(it)+'">'+ST[stOf(it)]+'</span></div>'+
+       '<div class="vl">'+(pr?eur(pr):"grátis")+'</div>'+
+       '<button class="plus" data-pk="'+it.id+'" data-city="'+city+'" data-iso="'+iso+'" title="pôr neste dia" aria-label="pôr neste dia">+</button>'+
+       (it.w?'<div class="wh">'+it.w+'</div>':'')+
+       '</div>';
+  }
+  if(!n)h='<div class="empty">'+(other?'Tudo de '+esc(CT[city].n)+' já está em algum dia.':'Nada na lista de '+esc(CT[city].n)+' ainda — a aba Atrações é onde isso entra.')+'</div>';
+  else if(other)h+='<p class="mono foot" style="margin:12px 0 0">'+other+(other>1?' itens desta cidade já estão':' item desta cidade já está')+' em outro dia.</p>';
+  return h;
+}
+function dayPickCard(iso){
+  var base=dayOf(iso).c||"",bk=cityOfBase(base);
+  var pk=(selPick&&CT[selPick])?selPick:bk;
+  var mine=itemsOfDay(iso),tot=dayAttrTotal(iso);
+  var h='<div class="card" style="--cc:var(--ochre)"><div class="h"><h3>Atrações deste dia</h3>'+
+    '<div class="m">'+mine.length+(mine.length===1?" marcada":" marcadas")+
+    (tot?' · '+eur(tot)+' · '+brl(tot*num(S.rate)):' · nada a pagar')+'</div></div><div class="b">';
+  h+=dayAttrRows(iso);
+  if(!bk&&!pk){
+    h+='<div class="n warn" style="max-width:none;margin-top:18px"><b>escreva a base primeiro</b>'+
+       'Ponha no campo de cima em que cidade você dorme neste dia — <b>Lisboa</b>, <b>Metz</b>, <b>Roma</b>… — '+
+       'e eu abro aqui a lista de atrações dela. Ou escolha a cidade na mão abaixo.</div>';
+  }
+  h+='<div class="sechead">pôr neste dia</div>';
+  var cs=pickCities(bk),i;
+  h+='<div class="subtabs">';
+  for(i=0;i<cs.length;i++){
+    var c=cs[i],on=(c===pk),fc=freeCount(c,iso);
+    h+='<button class="chip" data-pick="'+c+'" aria-pressed="'+on+'" style="--cc:var(--'+ccOf(c).slice(2)+')">'+
+       esc(CT[c].n)+'<span class="cn">'+fc+'</span></button>';
+  }
+  h+='</div>';
+  h+='<div id="pickbox">'+(pk?pickRows(pk,iso):'')+'</div>';
+  h+='</div></div>';
+  return h;
+}
+/* ============ ROTEIRO (calendário + blocos, a antiga aba Dias entrou aqui) ============ */
+function dayRow(iso,click){
+  var d=dayOf(iso),has=hasPlan(iso);
+  return '<div class="day'+(has?"":" day--move")+(click?" day--pick":"")+'"'+
+    (click?' data-iso="'+iso+'" role="button" tabindex="0"':'')+'>'+
+    '<div class="dt"><b>'+shortDt(iso)+'</b><i>'+wdOf(iso)+'</i></div><div>'+
+    (d.c&&d.c.trim()?'':'<h4>— sem base</h4>')+
+    (d.p&&d.p.trim()?'<p>'+esc(d.p)+'</p>':'<p style="color:var(--muted)">clique para escrever</p>')+
+    dayTags(iso)+
+    (DAYNOTE[iso]?'<div class="ntags"><span class="ntg nt-'+DAYNOTE[iso][0]+'">'+DAYNOTE[iso][1]+'</span></div>':'')+
+    '</div></div>';
+}
+/* o que está marcado para o dia, em linha. O emoji diz o que é cada coisa:
+   trem/voo, passeio a pé, tour, restaurante, café. */
+function dayTags(iso){
+  var a=itemsOfDay(iso),f=foodsOfDay(iso),tr=trOfDay(iso),h="",i;
+  if(!a.length&&!f.length&&!tr.length)return"";
+  h='<div class="dtags">';
+  for(i=0;i<tr.length;i++){var t=tr[i],k=tkOf(t),v=num(t.v);
+    h+='<span class="dtg tk-'+k+(t.ok?" pgo":"")+'">'+TKE[k]+' '+esc(t.n)+
+       (v?' <b>'+(t.m==="brl"?brl(v):eur(v))+'</b>':'')+'</span>';}
+  for(i=0;i<a.length;i++)h+='<span class="dtg st-'+stOf(a[i].it)+'">'+AKE[akOf(a[i].it)]+' '+esc(a[i].it.n)+
+    (num(a[i].it.pr)?' <b>'+eur(num(a[i].it.pr))+'</b>':'')+'</span>';
+  for(i=0;i<f.length;i++)h+='<span class="dtg fk-'+fkOf(f[i].it)+'">'+FKE[fkOf(f[i].it)]+' '+esc(f[i].it.n)+'</span>';
+  var tot=dayAttrTotal(iso)+dayTrTotal(iso);
+  if(tot)h+='<span class="dtg tot">'+eur(tot)+' no dia</span>';
+  return h+'</div>';
+}
+function viewRoteiro(){
+  var bl=blocks(),fd=filledDays(),idx=selDay?ISOS.indexOf(selDay):-1,i,j;
+  var h='<div class="panelhead"><h2>Roteiro</h2>'+
+    '<p><b>Os dias estão em branco de propósito</b> — as bases estão postas, o que fazer é você que escreve. '+
+    'Clique numa data: dá para escrever livre, marcar as atrações da cidade, o trem ou voo do dia e onde comer. '+
+    'Onde tem um fato duro (o corte das 20h do dia 24, as janelas grátis do Palacio Real) eu deixei um aviso.</p></div>';
+  h+='<div class="cal">'+monthHtml(2026,11,"dezembro 2026")+monthHtml(2027,0,"janeiro 2027")+'</div>';
+  h+='<div class="calleg"><span><i></i> dia com plano</span><span><i class="nt"></i> tem aviso meu</span>'+
+     '<span>'+fd+' de '+ISOS.length+' planejados</span>'+
+     '<span>'+nightsAll()+' noites em '+baseList().length+' bases</span>'+
+     '<span>'+flyDays()+' dias só de voo</span>'+
+     '<span>'+placedCount()+' de '+attrCount()+' atrações com dia</span>'+
+     (foodPlaced()?'<span>'+foodPlaced()+' lugar'+(foodPlaced()>1?'es':'')+' de comer marcado'+(foodPlaced()>1?'s':'')+'</span>':'')+
+     (trPlaced()?'<span>'+trPlaced()+' trecho'+(trPlaced()>1?'s':'')+' de transporte com dia</span>':'')+
+     '</div>';
+  h+='<div class="emoleg">'+
+     '<span>'+TKE.trem+' trem</span><span>'+TKE.aviao+' voo</span>'+
+     '<span>'+TKE.onibus+' ônibus</span><span>'+TKE.carro+' carro</span>'+
+     '<span>'+AKE.pass+' passeio pela rua</span><span>'+AKE.tour+' tour num lugar</span>'+
+     '<span>'+FKE.rest+' restaurante</span><span>'+FKE.cafe+' café</span>'+
+     '</div>';
+
+  h+='<div class="chips" style="margin-top:20px">';
+  if(idx>0)h+='<button class="chip" data-nav="'+ISOS[idx-1]+'">← '+shortDt(ISOS[idx-1])+'</button>';
+  h+='<button class="chip" data-nav="all"'+(selDay?"":' aria-pressed="true"')+'>ver o roteiro inteiro</button>';
+  if(idx>=0&&idx<ISOS.length-1)h+='<button class="chip" data-nav="'+ISOS[idx+1]+'">'+shortDt(ISOS[idx+1])+' →</button>';
+  h+='</div>';
+  if(selDay)return h+dayEditor(selDay);
+
+  /* dias que não caíram em nenhum bloco (sem base escrita) */
+  var inBlock={};
+  for(i=0;i<bl.length;i++)
+    for(j=ISOS.indexOf(bl[i].from);j<=ISOS.indexOf(bl[i].to);j++)inBlock[ISOS[j]]=1;
+  var loose=[];
+  for(i=0;i<ISOS.length;i++)if(!inBlock[ISOS[i]])loose.push(ISOS[i]);
+
+  if(!bl.length&&!loose.length)return h+'<div class="empty">Nada no calendário.</div>';
+
+  var tn=0;
+  for(i=0;i<bl.length;i++){
+    var bk=bl[i];tn+=bk.n;
+    h+='<div class="card"><div class="h"><h3>'+esc(bk.base)+'</h3>'+
+      '<div class="m">'+shortDt(bk.from)+' → '+shortDt(bk.to)+' · '+bk.n+(bk.n>1?" dias":" dia")+
+      ' · clique num dia para editar</div></div><div class="b">';
+    for(j=ISOS.indexOf(bk.from);j<=ISOS.indexOf(bk.to);j++)h+=dayRow(ISOS[j],1);
+    h+='</div></div>';
+  }
+  if(loose.length){
+    h+='<div class="card" style="--cc:var(--ochre)"><div class="h"><h3>Dias sem base</h3>'+
+      '<div class="m">'+loose.length+' de '+ISOS.length+' · escreva onde você dorme e eles entram num bloco</div>'+
+      '</div><div class="b">';
+    for(i=0;i<loose.length;i++)h+=dayRow(loose[i],1);
+    h+='</div></div>';
+  }
+  h+='<div class="atsum">'+bl.length+(bl.length===1?" bloco":" blocos")+' · <b>'+tn+' dias</b> com base de '+ISOS.length+
+     (loose.length?' · '+loose.length+' ainda sem base':'')+'</div>';
+  return h;
+}
+
+/* ============ ATRAÇÕES ============ */
+function viewAtracoes(){
+  var h='<div class="panelhead"><h2>Atrações</h2>'+
+    '<p>Tudo que você tem vontade de fazer, num lugar só. Eu jogo aqui como <b>sugerida</b>; '+
+    'você manda pro <b>backlog</b> o que interessa e marca como <b>escolhida</b> o que cabe nos dias. '+
+    '<b>Só as escolhidas entram no custo.</b></p></div>';
+
+  h+='<div class="subtabs">';
+  for(var i=0;i<CO.length;i++){var c=CO[i],e=attrTotalCO(c.k,"esc");
+    h+='<button class="chip" data-co="'+c.k+'" aria-pressed="'+(selCO===c.k)+'" style="--cc:var('+c.cc+')">'+
+       c.n+'<span class="cn">'+(e?eur(e):"—")+'</span></button>';}
+  h+='</div>';
+
+  var co=coOf(selCO);
+  var nE=0,nB=0,nS=0;
+  for(var q=0;q<co.cities.length;q++){var cc=co.cities[q];
+    nE+=attrCountCity(cc,"esc");nB+=attrCountCity(cc,"bac");nS+=attrCountCity(cc,"sug");}
+  h+='<div class="filt">';
+  var fs=[["","tudo",nE+nB+nS],["esc","escolhidas",nE],["bac","backlog",nB],["sug","sugeridas",nS]];
+  for(var f=0;f<fs.length;f++)
+    h+='<button class="fchip f-'+(fs[f][0]||"all")+'" data-filt="'+fs[f][0]+'" aria-pressed="'+(filt===fs[f][0])+'">'+
+       fs[f][1]+'<span class="cn">'+fs[f][2]+'</span></button>';
+  h+='</div>';
+
+  for(var j=0;j<co.cities.length;j++){
+    var city=co.cities[j],te=attrTotal(city,"esc"),tb=attrTotal(city,"bac");
+    h+='<div class="card" style="--cc:var('+co.cc+')"><div class="h"><h3>'+CT[city].n+'</h3>'+
+      '<div class="m">'+attrCountCity(city,"esc")+' escolhidas · '+attrCountCity(city,"bac")+' no backlog · '+
+      attrCountCity(city,"sug")+' sugeridas</div></div><div class="b">';
+    h+=noteOf(city)+mineRows(city,filt)+addRow(city);
+    if(te||tb)h+='<div class="atsum">escolhidas: <b>'+eur(te)+'</b>'+
+      (tb?' · backlog inteiro somaria mais '+eur(tb):'')+'</div>';
+    h+='</div></div>';
+  }
+
+  var E=attrTotalAll("esc"),B=attrTotalAll("bac");
+  h+='<div class="bigsum"><div><b>'+eur(attrTotalCO(selCO,"esc"))+'</b><span>'+esc(co.n)+', escolhidas</span></div>'+
+     '<div><b>'+eur(E)+'</b><span>escolhidas na viagem</span></div>'+
+     '<div><b>'+brl(E*num(S.rate))+'</b><span>em reais</span></div>'+
+     '<div><b>'+eur(B)+'</b><span>o backlog inteiro somaria</span></div></div>';
+  h+='<p class="mono foot">Os preços são de 2026 e servem de ordem de grandeza — confirme no site oficial ao reservar. Tudo é editável: mexa no número que eu chutei.</p>';
+  return h;
+}
+
+/* ============ COMIDAS ============ */
+function fkSel(co,it){
+  var k=fkOf(it),o="";
+  for(var x in FK)o+='<option value="'+x+'"'+(k===x?" selected":"")+'>'+FKE[x]+' '+FK[x]+'</option>';
+  return '<select class="sv" data-fk data-co="'+co+'" data-id="'+it.id+'" aria-label="tipo">'+o+'</select>';
+}
+function foodRows(co,k){
+  var a=foodsK(co,k),h="",i;
+  if(!a.length)return '<div class="empty">'+(
+    k==="pr"?"Nada aqui ainda. As minhas sugestões estão embaixo — puxe com o <b>+</b> ou escreva o seu."
+   :k==="rest"?"Nenhum restaurante anotado. Quando achar um que você quer ir, ponha aqui — <b>ele vira opção nos dias do Roteiro</b>."
+   :"Nenhum café anotado. Mesmo caso: <b>café entra nos dias do Roteiro</b>.")+'</div>';
+  h='<div class="mt">';
+  for(i=0;i<a.length;i++){var it=a[i];
+    h+='<div class="mrow fk-'+k+'">'+
+      '<input type="text" class="nv" data-fi="n" data-co="'+co+'" data-id="'+it.id+'" value="'+esc(it.n)+'" aria-label="nome">'+
+      fkSel(co,it)+
+      '<button class="xb" data-fx="'+it.id+'" data-co="'+co+'" aria-label="tirar">×</button>'+
+      ((it.day||it.w)?'<div class="wh">'+
+        (it.day?'<span class="dtag">'+shortDt(it.day)+'</span> ':'')+(it.w||'')+'</div>':'')+
+      '</div>';}
+  return h+'</div>';
+}
+function foodAdd(co,k){
+  var ph=(k==="pr"?"ex. bacalhau à Brás":k==="rest"?"ex. Ramiro, na Almirante Reis":"ex. Pastéis de Belém");
+  return '<div class="addrow two"><input type="text" data-fadd-n="'+co+'|'+k+'" placeholder="'+ph+'">'+
+    '<button data-fadd="'+co+'|'+k+'">pôr em '+FKPL[k]+'</button></div>';
+}
+function viewComidas(){
+  var h='<div class="panelhead"><h2>Comidas</h2>'+
+    '<p>Três listas por país. <b>Pratos</b> é lista de desejo — coisa típica que você quer provar '+
+    'em algum momento, sem dia marcado. <b>Restaurantes</b> e <b>cafés</b> são lugares, e esses '+
+    'aparecem no Roteiro para você encaixar num dia.</p></div>';
+  h+='<div class="subtabs">';
+  for(var i=0;i<CO.length;i++){var c=CO[i],n=foodCount(c.k);
+    h+='<button class="chip" data-co="'+c.k+'" aria-pressed="'+(selCO===c.k)+'" style="--cc:var('+c.cc+')">'+
+       c.n+'<span class="cn">'+(n||"—")+'</span></button>';}
+  h+='</div>';
+
+  var co=coOf(selCO);
+  var ks=[["pr","Pratos típicos","o que provar, sem dia marcado",FKE.pr],
+          ["rest","Restaurantes","entram nos dias do Roteiro",FKE.rest],
+          ["cafe","Cafés e padarias","entram nos dias do Roteiro",FKE.cafe]];
+  for(var g=0;g<ks.length;g++){
+    var k=ks[g][0],n=foodCount(selCO,k);
+    h+='<div class="card" style="--cc:var('+(k==="pr"?co.cc:k==="rest"?"--c-nl":"--ochre")+')">'+
+      '<div class="h"><h3>'+ks[g][3]+' '+ks[g][1]+'</h3>'+
+      '<div class="m">'+co.n+' · '+n+' '+(n===1?FK[k]:FKPL[k])+' · '+ks[g][2]+'</div></div><div class="b">';
+    h+=foodRows(selCO,k)+foodAdd(selCO,k);
+    h+='</div></div>';
+  }
+
+  var f=null;for(var q=0;q<FOOD.length;q++)if(FOOD[q].pais===selCO)f=FOOD[q];
+  if(f){
+    h+='<div class="card"><div class="h"><h3>Minhas sugestões de '+esc(co.n)+'</h3>'+
+       '<div class="m">pratos típicos · o + põe na sua lista de pratos</div></div><div class="b">';
+    h+='<div class="sg" style="margin-top:0;border-top:0;padding-top:0"><div class="sgh">vale provar</div>';
+    for(var r=0;r<f.reg.length;r++){var sid="F"+selCO+"|"+r,tk=!!S.adopted[sid];
+      h+='<div class="sgr'+(tk?" taken":"")+'"><div class="nm">'+f.reg[r][0]+'</div>'+
+        (tk?'<div class="vl">na sua lista</div>':'<button class="plus" data-fsg="'+sid+'">+</button>')+
+        '<div class="wh">'+f.reg[r][1]+'</div></div>';}
+    h+='</div>';
+    if(f.av&&f.av.length){
+      h+='<div class="sg"><div class="sgh">o que eu acho que não vale</div>';
+      for(var av=0;av<f.av.length;av++)
+        h+='<div class="sgr"><div class="nm">'+f.av[av][0]+'</div><div class="vl">—</div><div class="wh">'+f.av[av][1]+'</div></div>';
+      h+='</div>';
+    }
+    if(f.warn)h+='<div class="n warn" style="max-width:none">'+'<b>'+f.warn[0]+'</b>'+f.warn[1]+'</div>';
+    h+='</div></div>';
+  }
+  return h;
+}
+
+/* ============ TRANSPORTE (v28) ============ */
+function tkSel(it){
+  var k=tkOf(it),o="",x;
+  for(x in TK)o+='<option value="'+x+'"'+(k===x?" selected":"")+'>'+TKE[x]+' '+TK[x]+'</option>';
+  return '<select class="sv kv" data-tk data-id="'+it.id+'" aria-label="tipo">'+o+'</select>';
+}
+function trRows(){
+  var h="",i;
+  if(!S.tr.length)return '<div class="empty">Nenhum trecho na lista. Escreva abaixo.</div>';
+  h='<div class="mt">';
+  for(i=0;i<S.tr.length;i++){
+    var t=S.tr[i],k=tkOf(t);
+    h+='<div class="mrow tr5 tk-'+k+(t.ok?' pgo':'')+'" data-trow="'+t.id+'">'+
+      '<input type="text" class="nv" data-ti="n" data-id="'+t.id+'" value="'+esc(t.n)+'" aria-label="trecho">'+
+      tkSel(t)+
+      '<input type="text" inputmode="decimal" class="pv" data-ti="v" data-id="'+t.id+'" value="'+esc(t.v||"")+'" placeholder="a lançar" aria-label="valor">'+
+      '<select data-ti="m" data-id="'+t.id+'" aria-label="moeda"><option value="eur"'+(t.m!=="brl"?" selected":"")+'>€</option><option value="brl"'+(t.m==="brl"?" selected":"")+'>R$</option></select>'+
+      '<input type="checkbox" class="ck" data-tok="'+t.id+'"'+(t.ok?" checked":"")+' title="já comprei este trecho" aria-label="comprado">'+
+      '<button class="xb" data-tx="'+t.id+'" title="tirar o trecho" aria-label="tirar">×</button>'+
+      '<div class="wh"><span class="stg tkc-'+k+'">'+TK[k]+'</span>'+
+        (t.ok?' <span class="dtag">comprado</span>':' <span class="dtag off">a comprar</span>')+
+        (t.day?' <span class="dtag">'+shortDt(t.day)+'</span>':'')+
+        (t.w?' '+t.w:'')+'</div>'+
+      '</div>';
+  }
+  return h+'</div>';
+}
+function viewTransporte(){
+  var pg=trBrlM("pago"),ft=trBrlM("falta"),x;
+  var h='<div class="panelhead"><h2>Transporte</h2>'+
+    '<p>Os trens e os voos internos, cada um com o seu tipo. '+
+    '<b>Marque comprado quando pagar</b> — o valor sai de "previsto" e entra no total já pago. '+
+    'E todo trecho pode ir para um dia do Roteiro, do mesmo jeito que as atrações e os restaurantes.</p></div>';
+  h+='<div class="bigsum"><div><b>'+trDone()+'/'+S.tr.length+'</b><span>já comprados</span></div>'+
+     '<div><b>'+brl(pg)+'</b><span>já pago</span></div>'+
+     '<div><b>'+brl(ft)+'</b><span>previsto, ainda não pago</span></div>'+
+     '<div><b>'+trPlaced()+'/'+S.tr.length+'</b><span>com dia marcado</span></div></div>';
+  h+='<div class="filt">';
+  for(x in TK){var n=trK(x).length;
+    h+='<span class="fchip" aria-pressed="false">'+TKE[x]+' '+TKPL[x]+'<span class="cn">'+n+'</span></span>';}
+  h+='</div>';
+  h+='<div class="card" style="--cc:var(--c-fr)"><div class="h"><h3>Trechos da viagem</h3>'+
+     '<div class="m">'+S.tr.length+' trechos · '+trCount()+' com valor lançado · na ordem do roteiro</div></div><div class="b">'+
+     '<p>Os trechos entre as bases já estão aqui. Mude o tipo se eu errei, lance o valor, e marque a caixinha quando comprar.</p>';
+  h+=trRows();
+  h+='<div class="addrow four"><input type="text" data-tadd-n="1" placeholder="ex. metrô até Barajas">'+
+     '<select data-tadd-k="1">';
+  for(x in TK)h+='<option value="'+x+'">'+TKE[x]+' '+TK[x]+'</option>';
+  h+='</select>'+
+     '<input type="text" inputmode="decimal" class="pv" data-tadd-v="1" placeholder="valor">'+
+     '<select data-tadd-m="1"><option value="eur">€</option><option value="brl">R$</option></select>'+
+     '<button data-tadd="1">adicionar trecho</button></div>';
+  h+='<div class="n warn"><b>não conte duas vezes</b>Bate-volta cujo trem já está no preço da atração — <b>Sintra, Cascais, Toledo, Segovia, Ávila, Utrecht, Ostia, Nápoles, Florença</b> — fica só na aba Atrações. Aqui é perna entre bases.</div>'+
+     '</div></div>';
+  h+='<div class="card"><div class="h"><h3>Onde isto aparece</h3>'+
+     '<div class="m">o sistema todo conversa</div></div><div class="b">'+
+     '<p>Um trecho marcado num dia aparece como etiqueta naquele dia no <b>Roteiro</b>, junto das atrações e dos lugares de comer. '+
+     'O valor entra na linha <b>Transportes</b> da aba Custos sempre; a caixinha de comprado é o que decide se ele conta como '+
+     '<b>já pago</b> ou como <b>previsto</b> no Painel.</p>'+
+     '<p class="mono">'+trPlaced()+' de '+S.tr.length+' trechos com dia · '+trDone()+' comprados · '+brl(pg+ft)+' no total</p>'+
+     '</div></div>';
+  return h;
+}
+
+/* ============ HOSPEDAGEM ============ */
+function viewStay(){
+  var tt=stayTotalAll();
+  var h='<div class="panelhead"><h2>Hospedagem</h2>'+
+    '<p>Os bairros que valem em cada base candidata — baratos, seguros e em cima de transporte. '+
+    'A diária é a <b>diária cheia do anúncio</b>, sem dividir: a divisão a gente resolve quando souber quem vai em qual trecho.</p></div>';
+  h+='<div class="bigsum">'+
+    '<div><b>'+stayCount()+'/'+STAYS.length+'</b><span>com endereço salvo</span></div>'+
+    '<div><b>'+eur(tt)+'</b><span>diárias cheias somadas</span></div>'+
+    '<div><b>'+brl(tt*num(S.rate))+'</b><span>em reais</span></div>'+
+    '</div>';
+  for(var i=0;i<STAYS.length;i++){
+    var sp=STAYS[i],city=sp.c,st=stayOf(city),tot=stayTotal(city);
+    var di=num(st.diaria),nt=num(st.nt),to=num(st.total);
+    h+='<div class="card" style="--cc:var('+ccOf(city)+')"><div class="h"><h3>'+CT[city].n+'</h3>'+
+      '<div class="m">'+esc(sp.area)+(nt?" · "+nt+(nt>1?" noites":" noite"):"")+'</div></div><div class="b">';
+    h+='<p>'+sp.res+'</p>';
+    if(sp.warn)h+='<div class="n warn"><b>Atenção</b>'+sp.warn+'</div>';
+    if(st.end&&String(st.end).trim()){
+      h+='<div class="saved"><span class="k">fechado</span><div class="v">'+esc(st.end)+'</div>';
+      if(st.ci||st.co)h+='<div class="x mono">'+esc(st.ci||"?")+' → '+esc(st.co||"?")+'</div>';
+      if(st.notas)h+='<div class="x">'+esc(st.notas)+'</div>';
+      if(st.link)h+='<div class="x"><a href="'+esc(st.link)+'" target="_blank" rel="noopener">'+esc(st.link)+'</a></div>';
+      h+='</div>';
+    }
+    h+='<div class="form" data-city="'+city+'">'+
+      '<div class="fld"><label>Endereço</label><input type="text" data-f="end" value="'+esc(st.end||"")+'" placeholder="rua, número, bairro"></div>'+
+      '<div class="frow"><div class="fld"><label>Check-in</label><input type="text" data-f="ci" value="'+esc(st.ci||"")+'" placeholder="dia · hora"></div>'+
+      '<div class="fld"><label>Check-out</label><input type="text" data-f="co" value="'+esc(st.co||"")+'" placeholder="dia · hora"></div></div>'+
+      '<div class="frow3">'+
+        '<div class="fld"><label>Diária cheia €</label><input type="text" inputmode="decimal" data-f="diaria" value="'+esc(st.diaria||"")+'" placeholder="ex. 68"></div>'+
+        '<div class="fld"><label>Noites</label><input type="text" inputmode="numeric" data-f="nt" value="'+esc(st.nt||"")+'" placeholder="ex. 4"></div>'+
+        '<div class="fld"><label>Total € (se souber)</label><input type="text" inputmode="decimal" data-f="total" value="'+esc(st.total||"")+'" placeholder="ignora a diária"></div>'+
+      '</div>'+
+      '<div class="calcline" data-calc="'+city+'">'+(tot?((to?"total lançado":"diária × noites")+": "+eur(tot)+" · "+brl(tot*num(S.rate))):"")+'</div>'+
+      '<div class="fld"><label>Link da reserva</label><input type="text" data-f="link" value="'+esc(st.link||"")+'" placeholder="https://"></div>'+
+      '<div class="fld"><label>Anotações</label><textarea data-f="notas" placeholder="código do portão, wifi, contato do anfitrião, como chegar do aeroporto…">'+esc(st.notas||"")+'</textarea></div>'+
+      '</div></div></div>';
+  }
+  h+='<p class="mono foot">Paris saiu daqui: virou bate-volta de Amsterdã, você não dorme lá. Em Amsterdã, a base é <b>Haarlem</b> — 15 min de trem e fora da taxa municipal de 12,5%.</p>';
+  return h;
+}
+
+/* ============ RESERVAS ============ */
+function viewReservas(){
+  var dn=resDone(),pg=resBrl("pago"),ft=resBrl("falta"),i;
+  var h='<div class="panelhead"><h2>Reservas e burocracia</h2>'+
+    '<p>Marque a caixinha quando resolver — e ponha o valor que você pagou. '+
+    '<b>O que está marcado entra no "total já pago"</b> do painel e da aba Custos; o que ainda '+
+    'não está entra como previsto.</p></div>';
+
+  h+='<div class="bigsum b5">'+
+    '<div><b>'+dn+'/'+S.res.length+'</b><span>resolvidas</span><i>'+resCount("")+' com valor lançado</i></div>'+
+    '<div><b>'+brl(pg)+'</b><span>já pago</span><i>'+resCount("pago")+(resCount("pago")===1?' item marcado':' itens marcados')+'</i></div>'+
+    '<div><b>'+brl(ft)+'</b><span>previsto, ainda não pago</span><i>'+resCount("falta")+' com valor</i></div>'+
+    '<div><b>'+brl(pg+ft)+'</b><span>burocracia inteira</span><i>entra no custo real</i></div>'+
+    '</div>';
+
+  h+='<div class="bk">';
+  if(!S.res.length)h+='<div class="bkr"><div></div><div></div><div><p style="color:var(--muted)">Nada aqui ainda.</p></div></div>';
+  for(i=0;i<S.res.length;i++){var r=S.res[i],d=!!S.resdone[r.id];
+    h+='<div class="bkr rr'+(d?" done":"")+'">'+
+      '<input type="checkbox" data-rd="'+r.id+'"'+(d?" checked":"")+' aria-label="resolvido">'+
+      '<div class="rw"><input type="text" class="nv" data-ri="n" data-id="'+r.id+'" value="'+esc(r.n)+'" aria-label="item"></div>'+
+      '<input type="text" inputmode="decimal" class="pv rv" data-ri="v" data-id="'+r.id+'" value="'+esc(r.v||"")+'" placeholder="valor" aria-label="quanto você pagou">'+
+      '<select class="rm" data-ri="m" data-id="'+r.id+'" aria-label="moeda">'+
+        '<option value="brl"'+(r.m!=="eur"?" selected":"")+'>R$</option>'+
+        '<option value="eur"'+(r.m==="eur"?" selected":"")+'>€</option></select>'+
+      '<button class="xb" data-rx="'+r.id+'" aria-label="tirar">×</button>'+
+      '<div class="rb">'+(r.w?'<p>'+r.w+'</p>':'')+'</div>'+
+      '</div>';}
+  h+='</div>';
+  h+='<p class="mono foot">A moeda começa em R$ porque passaporte, seguro e cartão são pagos '+
+     'aqui. Chip e coisas compradas lá, troque para €.</p>';
+
+  h+='<div class="card" style="--cc:var(--ochre)"><div class="h"><h3>Acrescentar um item</h3>'+
+     '<div class="m">o que é, e o que você precisa lembrar sobre isso</div></div><div class="b">'+
+     '<div class="form">'+
+       '<div class="fld"><label>O que é</label>'+
+       '<input type="text" data-radd-n="1" placeholder="ex. vacina de febre amarela"></div>'+
+       '<div class="fld"><label>Detalhe — prazo, preço, onde se faz</label>'+
+       '<textarea data-radd-w="1" placeholder="ex. tem que ser 10 dias antes de embarcar; de graça no posto, mas leve o cartão do SUS"></textarea></div>'+
+       '<div class="frow"><div class="fld"><label>Valor, se já souber</label>'+
+       '<input type="text" inputmode="decimal" data-radd-v="1" placeholder="0"></div>'+
+       '<div class="fld"><label>Moeda</label>'+
+       '<select data-radd-m="1"><option value="brl">R$ reais</option><option value="eur">€ euros</option></select></div></div>'+
+     '</div>'+
+     '<div class="addrow one"><button data-radd="1">acrescentar à lista</button></div>'+
+     '</div></div>';
+
+  h+='<div class="sg"><div class="sgh">sugestões minhas</div>';
+  for(var j=0;j<SUGGRES.length;j++){var sid="R|"+j,tk=!!S.adopted[sid];
+    h+='<div class="sgr'+(tk?" taken":"")+'"><div class="nm">'+SUGGRES[j][0]+'</div>'+
+      (tk?'<div class="vl">na sua lista</div>':'<button class="plus" data-rsg="'+sid+'">+</button>')+
+      '<div class="wh">'+SUGGRES[j][1]+'</div></div>';}
+  h+='</div>';
+  return h;
+}
+
+/* ============ CAIXA ============ */
+function cxSub(){
+  var h='<div class="subtabs">';
+  var ks=[["geral","Geral"],["leo","Leo"],["lu","Lu"]];
+  for(var i=0;i<ks.length;i++){
+    var k=ks[i][0],on=selWho===k,v=k==="geral"?brl(cxTotalBrl()):cxMoney(cxTotal(k),k);
+    h+='<button class="chip" data-who="'+k+'" aria-pressed="'+on+'">'+ks[i][1]+
+       '<span class="cn">'+v+'</span></button>';
+  }
+  return h+'</div>';
+}
+function cxBarBox(){return '<div id="cxbar">'+cxBar()+'</div>';}
+function cxBar(){
+  var m=cxMetaBrl();if(m<=0)return"";
+  var l=cxBrl(cxTotal("leo"),"leo"),u=cxBrl(cxTotal("lu"),"lu"),f=cxFaltaBrl(),t=l+u+f;
+  function w(v){return (v/t*100).toFixed(2)+"%";}
+  var h='<div class="bar">';
+  if(l>0)h+='<div style="width:'+w(l)+';background:var(--pine)">Leo</div>';
+  if(u>0)h+='<div style="width:'+w(u)+';background:var(--c-it)">Lu</div>';
+  if(f>0)h+='<div style="width:'+w(f)+';background:var(--surface-2);color:var(--muted)">falta</div>';
+  h+='</div><div class="key">'+
+    '<span><i style="background:var(--pine)"></i>Leo '+brl(l)+'</span>'+
+    '<span><i style="background:var(--c-it)"></i>Lu '+brl(u)+'</span>'+
+    '<span><i style="background:var(--surface-2)"></i>falta '+brl(f)+'</span>'+
+    '<span>'+Math.round(cxPct())+'% da meta</span></div>';
+  return h;
+}
+function cxFields(w){
+  return '<div class="frow3">'+
+   '<div class="fld"><label>já guardado hoje</label>'+
+    '<input type="text" inputmode="decimal" data-cxi="ini" data-who="'+w+'" value="'+esc(S.cx.ini[w]||"")+'" placeholder="0"></div>'+
+   '<div class="fld"><label>meta de '+WHO[w]+'</label>'+
+    '<input type="text" inputmode="decimal" data-cxi="meta" data-who="'+w+'" value="'+esc(S.cx.meta[w]||"")+'" placeholder="0"></div>'+
+   '<div class="fld"><label>moeda</label>'+
+    '<select data-cxi="cur" data-who="'+w+'">'+
+    '<option value="brl"'+(cxCur(w)==="brl"?" selected":"")+'>R$ reais</option>'+
+    '<option value="eur"'+(cxCur(w)==="eur"?" selected":"")+'>€ euros</option></select></div>'+
+   '</div>';
+}
+function cxTable(w){
+  var ms=saveMonths(),ac=0,h='<div class="tw"><table class="rot cxt"><thead><tr><th>Mês</th>';
+  if(w){h+='<th class="num">'+WHO[w]+'</th><th class="num">acumulado</th>';}
+  else{h+='<th class="num">Leo</th><th class="num">Lu</th><th class="num hidem">no mês</th><th class="num">acumulado</th>';}
+  h+='</tr></thead><tbody>';
+  if(w)ac=cxIni(w); else ac=cxBrl(cxIni("leo"),"leo")+cxBrl(cxIni("lu"),"lu");
+  h+='<tr data-cxrow="ini"'+(ac?"":" hidden")+'><td class="sb">saldo de hoje</td>'+
+     (w?'<td class="num">—</td><td class="num" data-cxac="ini">'+(ac?cxMoney(ac,w):"—")+'</td>'
+       :'<td class="num">—</td><td class="num">—</td><td class="num hidem">—</td><td class="num" data-cxac="ini">'+(ac?brl(ac):"—")+'</td>')+'</tr>';
+  for(var i=0;i<ms.length;i++){
+    var ym=ms[i];
+    h+='<tr><td class="pl2">'+mesLabel(ym)+'</td>';
+    if(w){
+      ac+=apVal(ym,w);
+      h+='<td class="num"><input type="text" inputmode="decimal" class="cxv" data-cxa="'+ym+'" data-who="'+w+'" value="'+esc(apRaw(ym,w))+'" placeholder="—" aria-label="aporte de '+WHO[w]+' em '+mesLabel(ym)+'"></td>'+
+         '<td class="num" data-cxac="'+ym+'">'+(ac?cxMoney(ac,w):"—")+'</td>';
+    }else{
+      var mb=cxBrl(apVal(ym,"leo"),"leo")+cxBrl(apVal(ym,"lu"),"lu");
+      ac+=mb;
+      h+='<td class="num"><input type="text" inputmode="decimal" class="cxv" data-cxa="'+ym+'" data-who="leo" value="'+esc(apRaw(ym,"leo"))+'" placeholder="—" aria-label="aporte do Leo em '+mesLabel(ym)+'"></td>'+
+         '<td class="num"><input type="text" inputmode="decimal" class="cxv" data-cxa="'+ym+'" data-who="lu" value="'+esc(apRaw(ym,"lu"))+'" placeholder="—" aria-label="aporte da Lu em '+mesLabel(ym)+'"></td>'+
+         '<td class="num hidem" data-cxm="'+ym+'">'+(mb?brl(mb):"—")+'</td>'+
+         '<td class="num" data-cxac="'+ym+'">'+(ac?brl(ac):"—")+'</td>';
+    }
+    h+='</tr>';
+  }
+  h+='</tbody><tfoot><tr><td>total</td>';
+  if(w)h+='<td class="num" data-cxt="ap">'+cxMoney(cxAportes(w),w)+'</td>'+
+          '<td class="num" data-cxt="tot">'+cxMoney(cxTotal(w),w)+'</td>';
+  else h+='<td class="num" data-cxt="leo">'+cxMoney(cxAportes("leo"),"leo")+'</td>'+
+          '<td class="num" data-cxt="lu">'+cxMoney(cxAportes("lu"),"lu")+'</td>'+
+          '<td class="num hidem">—</td><td class="num" data-cxt="tot">'+brl(cxTotalBrl())+'</td>';
+  h+='</tr></tfoot></table></div>';
+  return h;
+}
+function viewCaixa(){
+  var dep=daysTo("2026-12-10"),ms=saveMonths(),w=(selWho==="geral"?null:selWho);
+  var h='<div class="panelhead"><h2>Caixa</h2>'+
+    '<p>Quanto vocês dois já têm guardado, e quanto falta por mês para chegar em dezembro com tudo. '+
+    'São <b>'+dep+' dias</b> e <b>'+ms.length+' '+(ms.length>1?'meses':'mês')+'</b> de aporte — '+mesLabel(ms[0])+' a dez 26.</p></div>';
+  h+=cxSub();
+
+  if(!w){
+    h+='<div class="bigsum b5">'+
+      '<div><b>'+brl(cxTotalBrl())+'</b><span>já acumulado</span><i>Leo + Lu, convertido a R$ '+num(S.rate).toLocaleString("pt-BR")+'</i></div>'+
+      '<div><b>'+brl(cxMetaBrl())+'</b><span>meta dos dois</span><i>'+(cxMetaBrl()?Math.round(cxPct())+'% alcançado':'sem meta ainda')+'</i></div>'+
+      '<div><b>'+brl(cxFaltaBrl())+'</b><span>ainda falta</span><i>'+(cxMetaBrl()?'para bater a meta':'defina a meta abaixo')+'</i></div>'+
+      '<div><b>'+brl(cxMes(null))+'</b><span>por mês, os dois</span><i>dividido '+plMesV(mesesVazios(null))+'</i></div>'+
+      '<div><b>'+brl(totalBrl())+'</b><span>custo real lançado</span><i>a conta da aba Custos</i></div>'+
+      '</div>';
+    h+=cxBarBox();
+    h+='<div class="card"><div class="h"><h3>Mês a mês</h3>'+
+       '<div class="m">o acumulado é convertido a R$ pelo câmbio da aba Custos</div></div><div class="b">'+
+       cxTable(null)+
+       '<p class="mono foot" style="margin-bottom:0">Cada um lança na sua própria moeda: '+
+       'Leo em '+(cxCur("leo")==="eur"?"€":"R$")+', Lu em '+(cxCur("lu")==="eur"?"€":"R$")+'. '+
+       'Dá para mudar nas abas Leo e Lu.</p></div></div>';
+    h+='<div class="card" style="--cc:var(--ochre)"><div class="h"><h3>Onde as metas se ancoram</h3>'+
+       '<div class="m">minha estimativa · não entra em nenhuma soma</div></div><div class="b">'+
+       '<p>Pelo seu perfil — hospedagem afastada e dividida, trem sempre o mais barato, "um ou outro" passeio — '+
+       'a <b>sua parte</b> da viagem fecha em <b>€ '+ESTIM_EUR.toLocaleString("pt-BR")+', uns '+brl(ESTIM_EUR*num(S.rate))+'</b>, '+
+       'já fora o voo internacional que está pago.</p>'+
+       '<p>O que você já lançou de verdade nas outras abas soma <b>'+brl(totalBrl()-VOO)+'</b> além do voo. '+
+       'A meta de cada um é decisão de vocês — os botões abaixo só preenchem o campo.</p>'+
+       '<div class="addrow fit"><button data-cxfill="leo">pôr '+brl(ESTIM_EUR*num(S.rate))+' na meta do Leo</button>'+
+       '<button data-cxfill="lu">pôr a mesma na meta da Lu</button></div>'+
+       '</div></div>';
+  }else{
+    var cur=cxCur(w)==="eur"?"€":"R$";
+    h+='<div class="bigsum b5">'+
+      '<div><b>'+cxMoney(cxTotal(w),w)+'</b><span>'+WHO[w]+' já tem</span><i>saldo de hoje + aportes</i></div>'+
+      '<div><b>'+cxMoney(cxMeta(w),w)+'</b><span>meta</span><i>'+(cxMeta(w)?Math.round(Math.min(100,cxTotal(w)/cxMeta(w)*100))+'% alcançado':'sem meta ainda')+'</i></div>'+
+      '<div><b>'+cxMoney(cxFalta(w),w)+'</b><span>ainda falta</span><i>'+(cxMeta(w)?'em '+cur:'defina a meta')+'</i></div>'+
+      '<div><b>'+cxMoney(cxMes(w),w)+'</b><span>por mês</span><i>'+plMesV(mesesVazios(w))+'</i></div>'+
+      '<div><b>'+cxMoney(cxAportes(w),w)+'</b><span>aportado até agora</span><i>sem contar o saldo de hoje</i></div>'+
+      '</div>';
+    h+='<div class="card"><div class="h"><h3>'+WHO[w]+'</h3>'+
+       '<div class="m">tudo em '+cur+'</div></div><div class="b">'+
+       cxFields(w)+cxTable(w)+'</div></div>';
+    if(w==="lu")h+='<div class="n free" style="max-width:none"><b>a Lu ganha em euro</b>'+
+      'Como au pair no Luxemburgo o salário dela já é em €, então ela guarda em € e não perde nada no câmbio. '+
+      'O geral converte a R$ pelo câmbio da aba Custos só para somar com você.</div>';
+  }
+  return h;
+}
+
+/* ============ CUSTOS ============ */
+function viewCustos(){
+  var ho=stayTotalAll(),at=attrTotalAll("esc"),xe=extraEur(),xb=extraBrl(),te=trEur(),tbr=trBrl(),rt=num(S.rate),tb=totalBrl();
+  var rs=resSum(""),rsb=resBrl("");
+  var h='<div class="panelhead"><h2>Custos</h2>'+
+    '<p>Só o que você lançou. Nada aqui é chute meu: hospedagem vem da aba Hospedagem, atrações vêm da sua lista de Atrações, e o resto são linhas suas.</p></div>';
+  h+='<div class="bigsum"><div><b>'+brl(tb)+'</b><span>total real até agora</span></div>'+
+     '<div><b>'+eur(ho+at+xe+te+rs.eur)+'</b><span>em euros</span></div>'+
+     '<div><b>'+brl(pagoBrl())+'</b><span>total já pago</span></div>'+
+     '<div><b>'+brl(tb-VOO)+'</b><span>ainda por gastar</span></div></div>';
+  h+='<div class="tw"><table><thead><tr><th>Linha</th><th class="num">€</th><th class="num">R$</th><th>de onde vem</th></tr></thead><tbody>'+
+    '<tr><td class="pl2">Voo internacional</td><td class="num">—</td><td class="num">'+brl(VOO)+'</td><td class="sb">já pago, GRU–MAD ida e volta</td></tr>'+
+    '<tr><td class="pl2">Hospedagem</td><td class="num">'+eur(ho)+'</td><td class="num">'+brl(ho*rt)+'</td><td class="sb">diárias cheias que você lançou</td></tr>'+
+    '<tr><td class="pl2">Atrações</td><td class="num">'+eur(at)+'</td><td class="num">'+brl(at*rt)+'</td><td class="sb">'+attrCount("esc")+' escolhidas · backlog somaria mais '+eur(attrTotalAll("bac"))+'</td></tr>'+
+    '<tr><td class="pl2">Transportes</td><td class="num">'+eur(te)+'</td><td class="num">'+brl(te*rt+tbr)+'</td><td class="sb">'+trCount()+' de '+S.tr.length+' trechos com valor · '+trDone()+' comprados, '+brl(trBrlM("pago"))+' já pago</td></tr>'+
+    '<tr><td class="pl2">Burocracia</td><td class="num">'+(rs.eur?eur(rs.eur):"—")+'</td><td class="num">'+brl(rsb)+'</td><td class="sb">passaporte, seguro, chip… · '+brl(resBrl("pago"))+' já pago</td></tr>';
+  if(xe)h+='<tr><td class="pl2">Outras linhas em €</td><td class="num">'+eur(xe)+'</td><td class="num">'+brl(xe*rt)+'</td><td class="sb">suas linhas abaixo</td></tr>';
+  if(xb)h+='<tr><td class="pl2">Outras linhas em R$</td><td class="num">—</td><td class="num">'+brl(xb)+'</td><td class="sb">suas linhas abaixo</td></tr>';
+  h+='</tbody><tfoot><tr><td>Total</td><td class="num">'+eur(ho+at+xe+te+rs.eur)+'</td><td class="num">'+brl(tb)+'</td><td></td></tr></tfoot></table></div>';
+
+  /* ---- transportes: a edicao mudou para a aba Transporte (v28) ---- */
+  h+='<div class="card" style="--cc:var(--c-fr)"><div class="h"><h3>Transportes entre as bases</h3>'+
+     '<div class="m">'+S.tr.length+' trechos · '+trCount()+' com valor · '+trDone()+' comprados</div></div><div class="b">'+
+     '<p>Os trechos moram na aba <b>Transporte</b> agora, com tipo, dia e a caixinha de comprado. '+
+     'Aqui fica só a soma: <b>'+brl(te*rt+tbr)+'</b>, dos quais <b>'+brl(trBrlM("pago"))+'</b> já pago e '+
+     '<b>'+brl(trBrlM("falta"))+'</b> ainda previsto.</p>'+
+     '<div class="n warn"><b>não conte duas vezes</b>Bate-volta cujo trem já está no preço da atração — <b>Sintra, Cascais, Toledo, Segovia, Ávila, Utrecht, Ostia, Nápoles, Florença</b> — fica só na aba Atrações. A aba Transporte é perna entre bases.</div>'+
+     '</div></div>';
+
+  h+='<div class="card" style="--cc:var(--ochre)"><div class="h"><h3>Suas outras linhas</h3>'+
+     '<div class="m">comida, transporte urbano, chip, seguro, presentes — o que você quiser contar</div></div><div class="b">';
+  if(!S.extra.length)h+='<div class="empty">Nenhuma linha ainda.</div>';
+  else{h+='<div class="mt">';
+    for(var i=0;i<S.extra.length;i++){var x=S.extra[i];
+      h+='<div class="mrow x3">'+
+        '<input type="text" class="nv" data-xi="n" data-id="'+x.id+'" value="'+esc(x.n)+'" aria-label="nome">'+
+        '<input type="text" inputmode="decimal" class="pv" data-xi="v" data-id="'+x.id+'" value="'+esc(x.v||"")+'" aria-label="valor">'+
+        '<select data-xi="m" data-id="'+x.id+'" aria-label="moeda"><option value="eur"'+(x.m!=="brl"?" selected":"")+'>€</option><option value="brl"'+(x.m==="brl"?" selected":"")+'>R$</option></select>'+
+        '<button class="xb" data-xx="'+x.id+'" aria-label="tirar">×</button></div>';}
+    h+='</div>';}
+  h+='<div class="addrow three"><input type="text" data-xadd-n="1" placeholder="ex. comida em Madrid">'+
+     '<input type="text" inputmode="decimal" class="pv" data-xadd-v="1" placeholder="valor">'+
+     '<select data-xadd-m="1"><option value="eur">€</option><option value="brl">R$</option></select>'+
+     '<button data-xadd="1">adicionar</button></div>';
+  h+='<div class="fld" style="margin-top:18px;max-width:220px"><label>Câmbio: R$ por euro</label>'+
+     '<input type="text" inputmode="decimal" data-rate="1" value="'+esc(S.rate)+'"></div>';
+  h+='</div></div>';
+
+  h+='<div class="card"><div class="h"><h3>Minha estimativa, para referência</h3>'+
+     '<div class="m">04/09 · não entra em nenhuma soma acima</div></div><div class="b">'+
+     '<p>Com o <b>seu perfil</b> — hospedagem sempre em bairro afastado e dividida, trem sempre o mais barato, e "um ou outro" passeio — a conta fecha em <b>€ 2.795, uns R$ 16.770</b>. '+
+     'Contra os R$ 19.920 que sobram depois do voo internacional, <b>sobram uns R$ 3.150</b>.</p>'+
+     '<p class="mono">hospedagem € 1.062 · transporte € 640 · comida € 788 · passeios € 180 · seguro, chip e presentes € 125</p>'+
+     '<div class="n warn"><b>onde está o risco</b>Amsterdã são <b>€ 272</b> da sua parte em 4 noites — quase o mesmo que Roma em 8. É a única linha que estoura sozinha, e sobe todo mês. Reserve primeiro.</div>'+
+     '<div class="n free"><b>as economias que mais pesam</b>Dormir em <b>Metz</b> e não em Estrasburgo (€ 28–92 contra € 289–411 na semana do mercado). O <b>TER no lugar do TGV</b> nos dois bate-voltas de Paris, uns R$ 600. As <b>janelas grátis</b>: Palacio Real 16h–18h com passaporte, Prado 18h–20h, e o <b>transporte inteiro de Luxemburgo</b>. E <b>menú del día no almoço</b> — a diferença entre € 25 e € 40 por dia, uns R$ 2.400 em 31 dias.</div>'+
+     '</div></div>';
+  return h;
+}
+
+/* ============ SHELL ============ */
+var TABS=[["painel","Painel"],["roteiro","Roteiro"],["atracoes","Atrações"],
+          ["comidas","Comidas"],["transporte","Transporte"],["stay","Hospedagem"],
+          ["reservas","Reservas"],["caixa","Caixa"],["custos","Custos"]];
+var app=document.getElementById("app");
+
+function shell(){
+  var h='<header class="top"><div class="topin"><div class="brand">'+
+    '<h1>Eurotrip 2026</h1><span class="sub">10 dez 2026 — 12 jan 2027</span>'+
+    '<span class="save" id="savebox"></span></div><nav class="tabs" role="tablist">';
+  for(var i=0;i<TABS.length;i++)
+    h+='<button role="tab" data-tab="'+TABS[i][0]+'" aria-selected="'+(tab===TABS[i][0])+'">'+TABS[i][1]+'</button>';
+  h+='</nav></div></header><main id="main"></main>'+
+    '<footer><span>o plano é seu — eu guardo, pesquiso e faço as contas</span><span class="mono">v28</span></footer>';
+  app.innerHTML=h;
+}
+
+function findMine(city,id){var a=mineOf(city);for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
+function refreshCalc(city){
+  var el=document.querySelector('[data-calc="'+city+'"]');if(!el)return;
+  var st=stayOf(city),tot=stayTotal(city),to=num(st.total);
+  el.textContent=tot?((to?"total lançado":"diária × noites")+": "+eur(tot)+" · "+brl(tot*num(S.rate))):"";
+}
+
+function render(){
+  shell();
+  var m=document.getElementById("main");
+  if(tab==="painel")m.innerHTML=viewPainel();
+  else if(tab==="roteiro")m.innerHTML=viewRoteiro();
+  else if(tab==="atracoes")m.innerHTML=viewAtracoes();
+  else if(tab==="comidas")m.innerHTML=viewComidas();
+  else if(tab==="transporte")m.innerHTML=viewTransporte();
+  else if(tab==="stay")m.innerHTML=viewStay();
+  else if(tab==="reservas")m.innerHTML=viewReservas();
+  else if(tab==="caixa")m.innerHTML=viewCaixa();
+  else m.innerHTML=viewCustos();
+
+  /* 9 abas nao cabem num celular: traz a ativa para a vista, sem rolar a pagina */
+  try{var sel=app.querySelector('.tabs button[aria-selected="true"]');
+    if(sel&&sel.scrollIntoView)sel.scrollIntoView({inline:"center",block:"nearest"});}catch(x){}
+  var tb=app.querySelectorAll(".tabs button");
+  for(var j=0;j<tb.length;j++)tb[j].onclick=function(){
+    tab=this.getAttribute("data-tab");
+    try{localStorage.setItem(LS+"-tab",tab);}catch(x){}
+    render();window.scrollTo(0,0);
+  };
+
+  /* país (sub-abas) */
+  each(m,".subtabs [data-co]",function(el){
+    el.onclick=function(){selCO=this.getAttribute("data-co");
+      try{localStorage.setItem(LS+"-co",selCO);}catch(x){}
+      render();window.scrollTo(0,0);};
+  });
+
+  /* calendário e lista de dias */
+  each(m,"[data-iso]",function(el){
+    if(el.hasAttribute("data-pk")||el.hasAttribute("data-fpk")||el.hasAttribute("data-tpk"))return;
+    var go=function(){selDay=el.getAttribute("data-iso");selPick=null;selFPick=null;selTPick=null;render();window.scrollTo(0,0);};
+    el.onclick=go;
+    el.onkeydown=function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();go();}};
+  });
+  each(m,"[data-nav]",function(el){el.onclick=function(){
+    var v=this.getAttribute("data-nav");selDay=(v==="all"?null:v);selPick=null;selFPick=null;selTPick=null;render();window.scrollTo(0,0);};});
+  /* atração ↔ dia */
+  each(m,"[data-pick]",function(el){el.onclick=function(){
+    selPick=this.getAttribute("data-pick");render();};});
+  each(m,"[data-pk]",function(el){el.onclick=function(){
+    var it=findMine(this.getAttribute("data-city"),this.getAttribute("data-pk"));if(!it)return;
+    it.day=this.getAttribute("data-iso");
+    if(stOf(it)!=="esc")it.st="esc";   /* pôr num dia é escolher */
+    touch();render();};});
+  each(m,"[data-unpk]",function(el){el.onclick=function(){
+    var it=findMine(this.getAttribute("data-city"),this.getAttribute("data-unpk"));if(!it)return;
+    it.day="";touch();render();};});
+
+  /* editor do dia */
+  each(m,"[data-dc]",function(el){el.oninput=function(){
+    var iso=this.getAttribute("data-dc");S.days[iso]=S.days[iso]||{};S.days[iso].c=this.value;touch();};});
+  each(m,"[data-dp]",function(el){el.oninput=function(){
+    var iso=this.getAttribute("data-dp");S.days[iso]=S.days[iso]||{};S.days[iso].p=this.value;touch();};});
+  /* apaga só o texto dele. A base é o roteiro fechado e fica. */
+  each(m,"[data-dclr]",function(el){el.onclick=function(){
+    var iso=this.getAttribute("data-dclr");
+    if(S.days[iso])S.days[iso].p="";
+    touch();render();};});
+
+  /* atrações — itens dele */
+  each(m,"[data-mi]",function(el){el.oninput=function(){
+    var it=findMine(this.getAttribute("data-city"),this.getAttribute("data-id"));if(!it)return;
+    it[this.getAttribute("data-mi")]=this.value;touch();
+    if(this.getAttribute("data-mi")==="pr")refreshSums();};});
+  each(m,"[data-mx]",function(el){el.onclick=function(){
+    var city=this.getAttribute("data-city"),id=this.getAttribute("data-mx"),a=mineOf(city);
+    for(var i=0;i<a.length;i++)if(a[i].id===id){
+      if(a[i].sid)S.killed[a[i].sid]=1;
+      a.splice(i,1);break;}
+    touch();render();};});
+  each(m,"[data-madd]",function(el){el.onclick=function(){
+    var city=this.getAttribute("data-madd");
+    var ni=m.querySelector('[data-nadd="'+city+'"]'),pi=m.querySelector('[data-padd="'+city+'"]');
+    var nm=ni?ni.value.trim():"";if(!nm)return;
+    S.mine[city]=S.mine[city]||[];
+    S.mine[city].push({id:uid("m"),n:nm,pr:pi?pi.value.trim():"",w:"",st:"bac"});
+    touch();render();};});
+  each(m,"[data-st]",function(el){el.onchange=function(){
+    var it=findMine(this.getAttribute("data-city"),this.getAttribute("data-id"));
+    if(!it)return;it.st=this.value;touch();render();};});
+  /* v28: passeio ou tour */
+  each(m,"[data-ak]",function(el){el.onchange=function(){
+    var it=findMine(this.getAttribute("data-city"),this.getAttribute("data-id"));
+    if(!it)return;it.k=this.value;touch();render();};});
+  each(m,"[data-filt]",function(el){el.onclick=function(){
+    filt=this.getAttribute("data-filt");render();};});
+
+  /* comidas */
+  each(m,"[data-fi]",function(el){el.oninput=function(){
+    var a=S.foods[this.getAttribute("data-co")]||[],id=this.getAttribute("data-id");
+    for(var i=0;i<a.length;i++)if(a[i].id===id){a[i][this.getAttribute("data-fi")]=this.value;break;}
+    touch();};});
+  each(m,"[data-fx]",function(el){el.onclick=function(){
+    var k=this.getAttribute("data-co"),id=this.getAttribute("data-fx"),a=S.foods[k]||[];
+    for(var i=0;i<a.length;i++)if(a[i].id===id){a.splice(i,1);break;}
+    touch();render();};});
+  each(m,"[data-fadd]",function(el){el.onclick=function(){
+    var tag=this.getAttribute("data-fadd"),p=tag.split("|"),co=p[0],k=p[1]||"pr";
+    var ni=m.querySelector('[data-fadd-n="'+tag+'"]');
+    var nm=ni?ni.value.trim():"";if(!nm)return;
+    S.foods[co]=S.foods[co]||[];
+    S.foods[co].push({id:uid("f"),n:nm,w:"",k:k,day:""});
+    touch();render();};});
+  /* tipo do item de comida: prato / restaurante / café */
+  each(m,"[data-fk]",function(el){el.onchange=function(){
+    var it=findFood(this.getAttribute("data-co"),this.getAttribute("data-id"));if(!it)return;
+    it.k=this.value;
+    if(it.k==="pr")it.day="";   /* prato não tem dia */
+    touch();render();};});
+  /* comida ↔ dia */
+  each(m,"[data-fpick]",function(el){el.onclick=function(){
+    selFPick=this.getAttribute("data-fpick");render();};});
+  each(m,"[data-fpk]",function(el){el.onclick=function(){
+    var it=findFood(this.getAttribute("data-co"),this.getAttribute("data-fpk"));if(!it)return;
+    it.day=this.getAttribute("data-iso");touch();render();};});
+  each(m,"[data-unfpk]",function(el){el.onclick=function(){
+    var it=findFood(this.getAttribute("data-co"),this.getAttribute("data-unfpk"));if(!it)return;
+    it.day="";touch();render();};});
+  each(m,"[data-fsg]",function(el){el.onclick=function(){
+    var sid=this.getAttribute("data-fsg"),k=sid.slice(1).split("|")[0],ix=+sid.split("|")[1];
+    var f=null;for(var i=0;i<FOOD.length;i++)if(FOOD[i].pais===k)f=FOOD[i];
+    if(!f||!f.reg[ix])return;
+    S.foods[k]=S.foods[k]||[];
+    S.foods[k].push({id:uid("f"),n:strip(f.reg[ix][0]),w:f.reg[ix][1],k:"pr",day:""});
+    S.adopted[sid]=1;touch();render();};});
+
+  /* reservas */
+  each(m,"[data-rd]",function(el){el.onchange=function(){
+    S.resdone[this.getAttribute("data-rd")]=this.checked;touch();
+    /* marcar move o valor de "previsto" para "já pago": tem que recalcular */
+    render();};});
+  each(m,"[data-ri]",function(el){
+    var f=el.getAttribute("data-ri"),id=el.getAttribute("data-id");
+    var fn=function(){
+      for(var i=0;i<S.res.length;i++)if(S.res[i].id===id){S.res[i][f]=el.value;break;}
+      touch();if(f==="v")refreshSums();};
+    if(el.tagName==="SELECT")el.onchange=function(){fn();render();};else el.oninput=fn;});
+  each(m,"[data-rx]",function(el){el.onclick=function(){
+    var id=this.getAttribute("data-rx");
+    for(var i=0;i<S.res.length;i++)if(S.res[i].id===id){S.res.splice(i,1);break;}
+    delete S.resdone[id];touch();render();};});
+  each(m,"[data-radd]",function(el){el.onclick=function(){
+    var ni=m.querySelector('[data-radd-n]'),wi=m.querySelector('[data-radd-w]'),
+        vi=m.querySelector('[data-radd-v]'),mi=m.querySelector('[data-radd-m]');
+    var nm=ni?ni.value.trim():"";if(!nm)return;
+    S.res.push({id:uid("r"),n:nm,w:wi?strip(wi.value.trim()):"",
+      v:vi?vi.value.trim():"",m:mi?mi.value:"brl"});
+    touch();render();};});
+  each(m,"[data-rsg]",function(el){el.onclick=function(){
+    var sid=this.getAttribute("data-rsg"),ix=+sid.split("|")[1];if(!SUGGRES[ix])return;
+    S.res.push({id:uid("r"),n:SUGGRES[ix][0],w:SUGGRES[ix][1]});
+    S.adopted[sid]=1;touch();render();};});
+
+  /* custos livres */
+  each(m,"[data-xi]",function(el){
+    var fn=function(){
+      var id=el.getAttribute("data-id");
+      for(var i=0;i<S.extra.length;i++)if(S.extra[i].id===id){S.extra[i][el.getAttribute("data-xi")]=el.value;break;}
+      touch();refreshSums();};
+    if(el.tagName==="SELECT")el.onchange=function(){fn();render();};else el.oninput=fn;});
+  each(m,"[data-xx]",function(el){el.onclick=function(){
+    var id=this.getAttribute("data-xx");
+    for(var i=0;i<S.extra.length;i++)if(S.extra[i].id===id){S.extra.splice(i,1);break;}
+    touch();render();};});
+  each(m,"[data-xadd]",function(el){el.onclick=function(){
+    var ni=m.querySelector("[data-xadd-n]"),vi=m.querySelector("[data-xadd-v]"),mi=m.querySelector("[data-xadd-m]");
+    var nm=ni?ni.value.trim():"";if(!nm)return;
+    S.extra.push({id:uid("x"),n:nm,v:vi?vi.value.trim():"",m:mi?mi.value:"eur"});
+    touch();render();};});
+  /* transportes entre bases */
+  each(m,"[data-ti]",function(el){
+    var fn=function(){
+      var it=findTr(el.getAttribute("data-id"));if(!it)return;
+      it[el.getAttribute("data-ti")]=el.value;touch();refreshSums();};
+    if(el.tagName==="SELECT")el.onchange=function(){fn();render();};else el.oninput=fn;});
+  each(m,"[data-tx]",function(el){el.onclick=function(){
+    var id=this.getAttribute("data-tx");
+    for(var i=0;i<S.tr.length;i++)if(S.tr[i].id===id){
+      if(S.tr[i].sid)S.killed[S.tr[i].sid]=1;
+      S.tr.splice(i,1);break;}
+    touch();render();};});
+  each(m,"[data-tadd]",function(el){el.onclick=function(){
+    var ni=m.querySelector("[data-tadd-n]"),vi=m.querySelector("[data-tadd-v]"),
+        mi=m.querySelector("[data-tadd-m]"),ki=m.querySelector("[data-tadd-k]");
+    var nm=ni?ni.value.trim():"";if(!nm)return;
+    S.tr.push({id:uid("t"),n:nm,v:vi?vi.value.trim():"",m:mi?mi.value:"eur",
+      k:(ki&&TK[ki.value])?ki.value:"trem",day:"",ok:false});
+    touch();render();};});
+  /* v28: tipo do trecho (trem, voo, onibus, carro) */
+  each(m,"[data-tk]",function(el){el.onchange=function(){
+    var it=findTr(this.getAttribute("data-id"));if(!it)return;
+    it.k=this.value;touch();render();};});
+  /* comprou = sai de previsto e entra no total ja pago, entao re-renderiza */
+  each(m,"[data-tok]",function(el){el.onchange=function(){
+    var it=findTr(this.getAttribute("data-tok"));if(!it)return;
+    it.ok=this.checked;touch();render();};});
+  /* transporte <-> dia */
+  each(m,"[data-tpick]",function(el){el.onclick=function(){
+    selTPick=this.getAttribute("data-tpick");render();};});
+  each(m,"[data-tpk]",function(el){el.onclick=function(){
+    var it=findTr(this.getAttribute("data-tpk"));if(!it)return;
+    it.day=this.getAttribute("data-iso");touch();render();};});
+  each(m,"[data-untk]",function(el){el.onclick=function(){
+    var it=findTr(this.getAttribute("data-untk"));if(!it)return;
+    it.day="";touch();render();};});
+  /* caixa */
+  each(m,"[data-who]",function(el){if(el.hasAttribute("data-cxi")||el.hasAttribute("data-cxa"))return;
+    el.onclick=function(){selWho=this.getAttribute("data-who");
+      try{localStorage.setItem(LS+"-who",selWho);}catch(x){}render();};});
+  each(m,"[data-cxi]",function(el){
+    var f=el.getAttribute("data-cxi"),w=el.getAttribute("data-who");
+    var fn=function(){
+      if(f==="cur")S.cx.cur[w]=el.value; else S.cx[f][w]=el.value;
+      touch();};
+    if(el.tagName==="SELECT")el.onchange=function(){fn();render();};
+    else el.oninput=function(){fn();refreshSums();refreshCx();};});
+  each(m,"[data-cxa]",function(el){el.oninput=function(){
+    var ym=this.getAttribute("data-cxa"),w=this.getAttribute("data-who");
+    S.cx.ap[ym]=S.cx.ap[ym]||{};S.cx.ap[ym][w]=this.value;touch();refreshSums();refreshCx();};});
+  each(m,"[data-cxfill]",function(el){el.onclick=function(){
+    var w=this.getAttribute("data-cxfill");
+    S.cx.meta[w]=String(Math.round(cxCur(w)==="eur"?ESTIM_EUR:ESTIM_EUR*num(S.rate)));
+    touch();render();};});
+  each(m,"[data-rate]",function(el){el.oninput=function(){
+    var v=num(this.value);if(v>0){S.rate=this.value;touch();refreshSums();}};});
+
+  /* hospedagem */
+  each(m,".form[data-city] [data-f]",function(el){el.oninput=function(){
+    var city=this.closest(".form").getAttribute("data-city"),f=this.getAttribute("data-f");
+    S.stays[city]=S.stays[city]||{};S.stays[city][f]=this.value;touch();
+    if(f==="diaria"||f==="total"||f==="nt"){refreshCalc(city);refreshSums();}};});
+
+  renderSave();
+}
+
+function each(root,sel,fn){var a=root.querySelectorAll(sel);for(var i=0;i<a.length;i++)fn(a[i]);}
+function strip(s){var d=document.createElement("div");d.innerHTML=s;return d.textContent||"";}
+
+/* a coluna "acumulado" da Caixa, atualizada no lugar */
+function refreshCx(){
+  if(tab!=="caixa")return;
+  var w=(selWho==="geral"?null:selWho),ms=saveMonths(),i;
+  function put(sel,txt){var e=document.querySelector(sel);if(e)e.textContent=txt;}
+  var ac=w?cxIni(w):(cxBrl(cxIni("leo"),"leo")+cxBrl(cxIni("lu"),"lu"));
+  var fmt=w?function(v){return cxMoney(v,w);}:brl;
+  put('[data-cxac="ini"]',ac?fmt(ac):"\u2014");
+  var row=document.querySelector('[data-cxrow="ini"]');if(row)row.hidden=!ac;
+  for(i=0;i<ms.length;i++){
+    var ym=ms[i];
+    if(w)ac+=apVal(ym,w);
+    else{var mb=cxBrl(apVal(ym,"leo"),"leo")+cxBrl(apVal(ym,"lu"),"lu");
+      ac+=mb;put('[data-cxm="'+ym+'"]',mb?brl(mb):"\u2014");}
+    put('[data-cxac="'+ym+'"]',ac?fmt(ac):"\u2014");
+  }
+  if(w){put('[data-cxt="ap"]',cxMoney(cxAportes(w),w));put('[data-cxt="tot"]',cxMoney(cxTotal(w),w));}
+  else{put('[data-cxt="leo"]',cxMoney(cxAportes("leo"),"leo"));
+    put('[data-cxt="lu"]',cxMoney(cxAportes("lu"),"lu"));
+    put('[data-cxt="tot"]',brl(cxTotalBrl()));
+    var bb=document.getElementById("cxbar");if(bb)bb.innerHTML=cxBar();}
+}
+
+/* atualiza os números grandes sem re-render (não perde o foco do input) */
+function refreshSums(){
+  var bs=document.querySelector(".bigsum");if(!bs)return;
+  var ho=stayTotalAll(),at=attrTotalAll("esc"),rt=num(S.rate),d=bs.children;
+  function set(i,big,lab){if(d[i])d[i].innerHTML="<b>"+big+"</b><span>"+lab+"</span>";}
+  if(tab==="atracoes"){set(0,eur(attrTotalCO(selCO,"esc")),esc(coOf(selCO).n)+", escolhidas");
+    set(1,eur(at),"escolhidas na viagem");set(2,brl(at*rt),"em reais");
+    set(3,eur(attrTotalAll("bac")),"o backlog inteiro somaria");}
+  else if(tab==="stay"){set(0,stayCount()+"/"+STAYS.length,"com endereço salvo");
+    set(1,eur(ho),"diárias cheias somadas");set(2,brl(ho*rt),"em reais");}
+  else if(tab==="reservas"){var pg=resBrl("pago"),ft=resBrl("falta");
+    set(0,resDone()+"/"+S.res.length,"resolvidas");set(1,brl(pg),"já pago");
+    set(2,brl(ft),"previsto, ainda não pago");set(3,brl(pg+ft),"burocracia inteira");}
+  else if(tab==="transporte"){var tp=trBrlM("pago"),tf=trBrlM("falta");
+    set(0,trDone()+"/"+S.tr.length,"já comprados");set(1,brl(tp),"já pago");
+    set(2,brl(tf),"previsto, ainda não pago");set(3,trPlaced()+"/"+S.tr.length,"com dia marcado");}
+  else if(tab==="caixa"){
+    if(selWho==="geral"){set(0,brl(cxTotalBrl()),"já acumulado");set(1,brl(cxMetaBrl()),"meta dos dois");
+      set(2,brl(cxFaltaBrl()),"ainda falta");set(3,brl(cxMes(null)),"por mês, os dois");}
+    else{var w=selWho;set(0,cxMoney(cxTotal(w),w),WHO[w]+" já tem");set(1,cxMoney(cxMeta(w),w),"meta");
+      set(2,cxMoney(cxFalta(w),w),"ainda falta");set(3,cxMoney(cxMes(w),w),"por mês");
+      set(4,cxMoney(cxAportes(w),w),"aportado até agora");}}
+  else if(tab==="custos"){var tb=totalBrl();set(0,brl(tb),"total real até agora");
+    set(1,eur(ho+at+extraEur()+trEur()),"em euros");set(2,brl(pagoBrl()),"total já pago");
+    set(3,brl(tb-pagoBrl()),"ainda por gastar");}
+}
+
+render();
+
+if(window.claude&&window.claude.use){
+  window.claude.use("artifact").then(function(a){
+    if(a&&typeof a.publish==="function"){API=a;renderSave();}
+  },function(){});
+}
+})();
+</script>

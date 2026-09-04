@@ -1,0 +1,37 @@
+{
+  "metz": [
+    "free",
+    "Metz é a base de tudo, e é barata",
+    "Hotéis a partir de <b>€ 28 a 92</b> a diária na semana do mercado — contra <b>€ 289 a 411</b> em Estrasburgo na mesma data. Daqui saem todos os bate-voltas: Luxemburgo 45 min, Estrasburgo 48 min–1h24, Trier via Luxemburgo, Nancy 40 min."
+  ],
+  "luxemburgo": [
+    "alert",
+    "Dia 24 tudo para às 20h",
+    "<b>Todo o transporte público do país é suspenso a partir das 20h do dia 24 de dezembro</b> — CFL, tram e ônibus. Você tem que estar num trem de volta pra Metz antes disso. No dia 25 volta a rodar em horário de feriado, reduzido. Confirme na SNCF e na CFL quando o horário de festas sair, no começo de dezembro."
+  ],
+  "estrasburgo": [
+    "warn",
+    "Vá, mas não durma aqui",
+    "Na semana do mercado a diária vai a <b>€ 289–411</b>. De Metz são 48 min a 1h24 de trem, desde € 11. E o <b>Christkindelsmärik costuma encerrar dia 24</b> — programe para os dias 20, 21 ou 22."
+  ],
+  "reims": [
+    "warn",
+    "TER, não TGV, para Paris",
+    "O TGV faz em 45 min mas a tarifa que aparece é ~€ 50 o trecho — com dois bate-voltas dá uns € 200. O <b>TER leva 1h35 e custa bem menos</b>. São 3h a mais de trem ao todo, por uns R$ 600 no bolso."
+  ],
+  "madrid": [
+    "warn",
+    "Toledo, Segovia e Ávila não cabem",
+    "Você tem <b>2 dias cheios</b> em dezembro (17 e 18) e o dia 11 de janeiro, que é dia de voo. Os 20 itens da sua lista ficam quase todos no mesmo eixo a pé e cabem nos dois dias — as três cidades de bate-volta, não."
+  ],
+  "lisboa": [
+    "warn",
+    "Os quatro palácios de Sintra não cabem num dia",
+    "Pena mais Regaleira mais Mouros já é um dia cheio, com fila e o ônibus 434 no meio. Monserrate é o mais fácil de cortar. Em dezembro tem névoa e a Pena fica dentro da nuvem."
+  ],
+  "roma": [
+    "free",
+    "Oito noites em janeiro é a parte barata",
+    "Baixa temporada absoluta — a diária aqui sai menos que em Metz. E oito noites transformam Roma em base: Ostia Antica, Tivoli, Nápoles e Pompeia, Florença."
+  ]
+}
