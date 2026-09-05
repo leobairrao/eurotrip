@@ -117,6 +117,28 @@ export interface Stay {
   link: string;
   notes: string;
 }
+/**
+ * Uma cidade que ELE criou (05/09/2026).
+ *
+ * As 11 de sempre continuam sendo conteudo fixo, no arquivo. Aqui so
+ * moram as que ele acrescentar — e a tabela nasce vazia, entao enquanto
+ * ele nao criar nada todo numero da tela e o mesmo, byte a byte.
+ *
+ * Sem `seed_id`: nada semeia cidade. E sem chave estrangeira ligando
+ * `attraction.city` aqui, de proposito — e isso que faz a tabela ausente
+ * degradar para "o app de hoje" em vez de recusar escrita em atracao.
+ */
+export interface CityRow {
+  id: string;
+  /** A chave, como o resto do app escreve cidade: 'sevilha'. */
+  k: string;
+  /** O nome na tela: 'Sevilha'. */
+  n: string;
+  /** Um dos 7 paises. Ele escolheu nao poder criar pais novo. */
+  co: string;
+  position: number;
+}
+
 export interface Extra {
   id: string;
   name: string;
@@ -188,6 +210,8 @@ export interface Snapshot {
   stays: Record<string, Stay>;
   /** As opcoes de hospedagem de todas as cidades. Filtre com C.staysOf. */
   stayOptions: StayOption[];
+  /** So as cidades que ELE criou. As 11 fixas estao em CT. Junte com C.cidadesDe. */
+  cities: CityRow[];
   extras: Extra[];
   settings: Settings;
   killed: string[];

@@ -7,13 +7,14 @@
 // sempre em linha propria ("somaria mais"), nunca somado ao real.
 // ============================================================
 import { AK, AKE, CO, CT, coOf } from '@/content';
+import { useState } from 'react';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, eur, parseNum, shortDt } from '@/lib/fmt';
+import { brl, eur, norm, parseNum, shortDt } from '@/lib/fmt';
 import type { Attraction } from '@/lib/types';
 
 /**
@@ -39,7 +40,7 @@ export default function Atracoes() {
 
   let nR = 0;
   let nF = 0;
-  for (const cc of co.cities) {
+  for (const cc of C.cidadesDe(s, selCO)) {
     nR += C.attrCountCity(s, cc, 'roteiro');
     nF += C.attrCountCity(s, cc, 'fora');
   }
@@ -82,9 +83,13 @@ export default function Atracoes() {
         ))}
       </div>
 
-      {co.cities.map((city) => (
+      {C.cidadesDe(s, selCO).map((city) => (
         <Cidade key={city} city={city} cc={co.cc} />
       ))}
+
+      {/* Cadastrar cidade nova NESTE pais (05/09). Ele pediu assim: "se eu
+          clicar na espanha, devo conseguir cadastrar uma nova cidade". */}
+      <AcrescentarCidade co={selCO} />
 
       <div className="bigsum">
         <div>
@@ -113,18 +118,131 @@ export default function Atracoes() {
   );
 }
 
+/**
+ * Cadastrar uma cidade nova NESTE pais (05/09/2026).
+ *
+ * O Leo pediu: "se eu clicar na espanha, devo conseguir cadastrar uma nova
+ * cidade (nas atracoes)". Ela ganha cartao aqui e em Dicas, e entra no
+ * Roteiro para ser posta num dia. Em Hospedagem NAO — decisao dele: "vou
+ * dormir so naquelas cidades que definimos".
+ *
+ * A CHAVE sai do nome por `norm()`: "Sevilha" vira `sevilha`, que e como o
+ * resto do app ja escreve cidade. E a tela RECUSA chave repetida, alem da
+ * trava no banco — sao as duas guardas, e as duas sao necessarias: a chave
+ * repetida faria a soma de dinheiro do pais contar aquela cidade DUAS
+ * VEZES (a conta e uma varredura da lista de cidades), e um insert que o
+ * banco rejeita some sem uma palavra, porque insert nao tem fila de
+ * repeticao.
+ */
+function AcrescentarCidade({ co }: { co: string }) {
+  const { s, insert } = useApp();
+  const nome = useLocal();
+  const [aviso, setAviso] = useState('');
+  const [indo, setIndo] = useState(false);
+
+  const por = async () => {
+    const n = nome.get();
+    if (!n) { setAviso('escreva o nome da cidade'); return; }
+    const k = norm(n);
+    if (!k) { setAviso('esse nome não vira uma chave válida — tente outro'); return; }
+
+    const jaExiste = CT[k] ?? s.cities.find((c) => c.k === k);
+    if (jaExiste) {
+      const ondeCo = C.paisDaCidade(s, k);
+      const onde = CO.find((x) => x.k === ondeCo)?.n ?? '';
+      setAviso(`${C.nomeCidade(s, k)} já existe${onde ? ` (em ${onde})` : ''}.`);
+      return;
+    }
+
+    setAviso('');
+    setIndo(true);
+    const r = await insert('city', {
+      k, n, co,
+      position: s.cities.filter((c) => c.co === co).length,
+    });
+    setIndo(false);
+    // So limpa depois de o banco confirmar (secao 8, promessa 3).
+    if (!r.ok) { setAviso('não consegui criar. O nome está aqui — tente de novo.'); return; }
+    nome.limpar();
+  };
+
+  return (
+    <div className="card novacidade" style={{ ['--cc' as string]: 'var(--ochre)' }}>
+      <div className="h">
+        <h3>Cidade nova em {CO.find((c) => c.k === co)?.n}</h3>
+        <div className="m">
+          ela ganha cartão aqui e em Dicas, e entra no Roteiro para você pôr num dia
+        </div>
+      </div>
+      <div className="b">
+        <div className="addrow two">
+          <input
+            ref={(el) => { nome.ref.current = el; }}
+            type="text"
+            placeholder="ex. Sevilha"
+            aria-label="nome da cidade nova"
+          />
+          <button type="button" onClick={() => void por()} disabled={indo}>
+            {indo ? 'criando…' : 'criar cidade'}
+          </button>
+        </div>
+        {aviso ? <p className="mono foot avisofalha">{aviso}</p> : null}
+      </div>
+    </div>
+  );
+}
+
 /** Um cartao por cidade: o aviso da cidade em cima, a lista, o formulario, o resumo. */
 function Cidade({ city, cc }: { city: string; cc: string }) {
-  const { s } = useApp();
+  const { s, remove } = useApp();
   const te = C.attrEur(s, city, 'roteiro');
   const tb = C.attrEur(s, city, 'fora');
+  // So as que ELE criou tem x. As 11 fixas sao a estrutura da viagem.
+  const dele = C.cidadeDele(s, city);
+  const quantas = C.attrsOf(s, city).length;
+
+  /**
+   * O x da cidade RECUSA enquanto houver atracao nela.
+   *
+   * Nao ha chave estrangeira ligando `attraction.city` a tabela `city`, de
+   * proposito. Entao apagar a cidade com atracoes dentro deixaria elas
+   * orfas: sumiriam de TODAS as telas — todo laco parte da lista de
+   * cidades — e continuariam somando no total, porque `attrEurAll` varre a
+   * tabela inteira. Dinheiro invisivel mexendo no numero do Painel.
+   *
+   * E leva junto os avisos dos dois spots dela, que senao ficam no banco
+   * sem tela que os alcance.
+   */
+  const apagarCidade = async () => {
+    if (!dele) return;
+    if (quantas) return;
+    for (const av of [...C.avisosDe(s, `atracoes:${city}`), ...C.avisosDe(s, `dicas:${city}`)])
+      await remove('aviso', av.id, av.seed_id);
+    await remove('city', dele.id);
+  };
 
   return (
     <div className="card" style={{ ['--cc' as string]: `var(${cc})` }}>
       <div className="h">
-        <h3>{CT[city].n}</h3>
+        <h3>{C.nomeCidade(s, city)}</h3>
         <div className="m">
           {C.attrCountCity(s, city, 'roteiro')} no roteiro · {C.attrCountCity(s, city, 'fora')} no backlog · {C.attrCountCity(s, city, 'pesquisa')} sugeridas por mim
+          {dele ? (
+            <>
+              {' · '}
+              <button
+                type="button"
+                className="apagarcidade"
+                title={quantas
+                  ? `tire as ${quantas} atrações daqui primeiro`
+                  : `apagar ${dele.n}`}
+                disabled={!!quantas}
+                onClick={() => void apagarCidade()}
+              >
+                {quantas ? `${quantas} aqui dentro` : 'apagar esta cidade'}
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
       <div className="b">
@@ -229,7 +347,7 @@ function Lista({ city }: { city: string }) {
  * sem uma linha de mudanca no CSS original.
  */
 function Linha({ it }: { it: Attraction }) {
-  const { patch, now, remove } = useApp();
+  const { s, patch, now, remove } = useApp();
   const dentro = C.noRoteiro(it);
 
   return (
@@ -307,8 +425,8 @@ function Linha({ it }: { it: Attraction }) {
         >
           {CO.map((c) => (
             <optgroup key={c.k} label={c.n}>
-              {c.cities.map((ck) => (
-                <option key={ck} value={ck}>{CT[ck]?.n ?? ck}</option>
+              {C.cidadesDe(s, c.k).map((ck) => (
+                <option key={ck} value={ck}>{C.nomeCidade(s, ck)}</option>
               ))}
             </optgroup>
           ))}

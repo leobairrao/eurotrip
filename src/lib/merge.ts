@@ -14,6 +14,7 @@ export const PK: Record<string, string> = {
   booking: 'id',
   stay: 'city',
   stay_option: 'id',
+  city: 'id',
   extra: 'id',
   settings: 'id',
   savings: 'who',
@@ -23,11 +24,11 @@ export const PK: Record<string, string> = {
 
 export type Tabela =
   | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'stay_option'
-  | 'extra' | 'settings' | 'savings' | 'contribution' | 'killed_seed'
+  | 'city' | 'extra' | 'settings' | 'savings' | 'contribution' | 'killed_seed'
   | 'adopted' | 'aviso';
 
 type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'stayOptions'
-  | 'extras' | 'contributions' | 'avisos';
+  | 'cities' | 'extras' | 'contributions' | 'avisos';
 export const LISTA: Record<string, Lista> = {
   attraction: 'attractions',
   food: 'foods',
@@ -37,6 +38,7 @@ export const LISTA: Record<string, Lista> = {
   // faz spread sobre `undefined` no primeiro INSERT remoto e a tela toda
   // cai. A chave TEM que existir no Snapshot tambem (load.ts `vazio()`).
   stay_option: 'stayOptions',
+  city: 'cities',
   extra: 'extras',
   // Desde que o aporte virou uma linha com id proprio, a Caixa nao tem
   // mais caso especial nenhum aqui: e uma lista igual as outras.

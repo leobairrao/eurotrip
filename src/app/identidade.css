@@ -537,3 +537,33 @@ button:active, .chip:active, .fchip:active, .fita-item:active { transform: scale
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; transform: none !important; }
 }
+
+/* ------------------------------------------------------------
+   14. CIDADE NOVA (05/09) — o cartao de cadastro e o x da cidade.
+   O cartao fica tracejado de proposito: e um lugar de CRIAR, nao
+   um cartao de conteudo como os outros.
+   ------------------------------------------------------------ */
+.card.novacidade {
+  background: transparent;
+  border: 1.5px dashed var(--hairline-2);
+  box-shadow: none;
+}
+.card.novacidade > .h h3 { font-size: 16px; }
+.addrow.two { display: grid; grid-template-columns: 1fr auto; gap: var(--e2); }
+
+/* o x da cidade vive no cabecalho, e RECUSA enquanto houver atracao */
+.apagarcidade {
+  font-family: var(--social);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--rust);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+.apagarcidade:disabled {
+  color: var(--muted);
+  text-decoration: none;
+  cursor: default;
+}
+.apagarcidade:hover:not(:disabled) { color: var(--ink); }

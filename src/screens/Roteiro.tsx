@@ -513,11 +513,11 @@ function CartaoAtracoes({ iso }: { iso: string }) {
   const { s, now, nowMany } = useApp();
   const { selPick, setSelPick } = useUi();
 
-  const bk = C.cityOfBase(s.days[iso]?.base ?? '');
+  const bk = C.cityOfBase(s, s.days[iso]?.base ?? '');
   const pk = selPick && cidadeDe(selPick) ? selPick : bk;
   const mine = C.attrsOfDay(s, iso);
   const tot = C.dayAttrTotal(s, iso);
-  const cs = C.pickCities(bk);
+  const cs = C.pickCities(s, bk);
 
   const livres: Attraction[] = [];
   let other = 0;
@@ -650,7 +650,7 @@ function CartaoComidas({ iso }: { iso: string }) {
   const { s, now } = useApp();
   const { selCO, selFPick, setSelFPick } = useUi();
 
-  const bk = C.cityOfBase(s.days[iso]?.base ?? '');
+  const bk = C.cityOfBase(s, s.days[iso]?.base ?? '');
   const dco = bk && cidadeDe(bk) ? CT[bk].co : '';
   const pk = selFPick && coOf(selFPick).k === selFPick ? selFPick : (dco || selCO);
   const mine = C.foodsOfDay(s, iso);

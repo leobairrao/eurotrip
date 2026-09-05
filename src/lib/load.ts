@@ -7,7 +7,7 @@ import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
 import type {
   AppUser, Attraction, Aviso, Booking, Contribution, Extra, Food, Leg,
-  Savings, Settings, Snapshot, Stay, StayOption, Tone, Who,
+  CityRow, Savings, Settings, Snapshot, Stay, StayOption, Tone, Who,
 } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -33,6 +33,7 @@ const vazio = (): Snapshot => ({
   // faz spread sobre ela no primeiro INSERT remoto, e sobre `undefined`
   // isso e TypeError — a tela inteira cai.
   stayOptions: [],
+  cities: [],
   extras: [],
   settings: { id: 1, eur_rate: 6, flight_paid_brl: VOO },
   killed: [],
@@ -59,7 +60,7 @@ function hojeIso(): string {
 
 export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<Snapshot> {
   const [
-    day, attraction, food, leg, booking, stay, stayOption, extra, settings,
+    day, attraction, food, leg, booking, stay, stayOption, city, extra, settings,
     killed, adopted, savings, contribution, aviso,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
@@ -72,6 +73,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('booking').select('*').order('position'),
     db.from('stay').select('*'),
     db.from('stay_option').select('*').order('position'),
+    db.from('city').select('*').order('position'),
     db.from('extra').select('*').order('created_at'),
     db.from('settings').select('*').eq('id', 1).maybeSingle(),
     db.from('killed_seed').select('seed_id'),
@@ -92,6 +94,9 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
   s.extras = (extra.data ?? []).map(normExtra);
   for (const st of stay.data ?? []) s.stays[st.city] = normStay(st);
   s.stayOptions = (stayOption.data ?? []).map(normStayOption);
+  // A tabela pode nao existir ainda: o erro nao derruba a pagina, e o app
+  // volta a ser exatamente o de hoje — as 11 cidades fixas, e so.
+  s.cities = (city.data ?? []).map(normCity);
   if (settings.data) s.settings = { ...settings.data, eur_rate: Number(settings.data.eur_rate) };
   s.killed = (killed.data ?? []).map((r: { seed_id: string }) => r.seed_id);
   s.adopted = (adopted.data ?? []).map((r: { seed_id: string }) => r.seed_id);
@@ -116,6 +121,10 @@ const normAttr = (r: Record<string, unknown>): Attraction => ({
   day_iso: r.day_iso ? String(r.day_iso) : null,
   paid: !!r.paid,
   seed_id: r.seed_id ? String(r.seed_id) : null,
+});
+const normCity = (r: Record<string, unknown>): CityRow => ({
+  id: String(r.id), k: String(r.k), n: String(r.n), co: String(r.co),
+  position: Number(r.position ?? 0),
 });
 const normStayOption = (r: Record<string, unknown>): StayOption => ({
   id: String(r.id), city: String(r.city), name: String(r.name),

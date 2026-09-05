@@ -45,15 +45,15 @@ export default function Dicas() {
         sel={selCO}
         onSel={setSelCO}
         valor={(k: string) => {
-          const n = coOf(k).cities.reduce((a, city) => a + C.avisosDe(s, `dicas:${city}`).length, 0);
+          const n = C.cidadesDe(s, k).reduce((a, city) => a + C.avisosDe(s, `dicas:${city}`).length, 0);
           return String(n || '');
         }}
       />
 
-      {co.cities.map((city) => (
+      {C.cidadesDe(s, selCO).map((city) => (
         <div key={city} className="card" style={{ ['--cc' as string]: `var(${co.cc})` }}>
           <div className="h">
-            <h3>{CT[city].n}</h3>
+            <h3>{C.nomeCidade(s, city)}</h3>
           </div>
           <div className="b">
             <Avisos spot={`dicas:${city}`} rotulo="dica" />

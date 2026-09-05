@@ -38,6 +38,8 @@ const stay       = await g('stay');
 // um total que nao bate com a tela — a mesma "segunda copia da formula"
 // que ja tinha mordido na Fase 3.
 const stayOpt    = await g('stay_option');
+// As cidades que ELE criou (05/09). As 11 de sempre continuam no arquivo.
+const cidades = await g('city').catch(() => []);
 const extra      = await g('extra');
 
 const rate = num(settings?.eur_rate);
@@ -124,6 +126,11 @@ linha(leg.length === 12, 'trechos de transporte', 12, leg.length);
 linha(stay.length === 7, 'bases de hospedagem (tabela aposentada)', 7, stay.length);
 linha(stayOpt.length >= 18, 'opcoes de hospedagem', '>= 18', stayOpt.length);
 linha(
+  cidades.length === new Set(cidades.map((c) => c.k)).size,
+  'cidades dele sem chave repetida', 'sem repetida',
+  cidades.length === new Set(cidades.map((c) => c.k)).size ? 'ok' : 'CHAVE REPETIDA',
+);
+linha(
   marcadas.length === new Set(marcadas.map((o) => o.city)).size,
   '  ... no maximo uma marcada por cidade', 'sem cidade repetida',
   marcadas.length === new Set(marcadas.map((o) => o.city)).size ? 'ok' : 'DUAS marcadas na mesma cidade',
@@ -162,6 +169,7 @@ console.log(`      transportes .................... ${eur(legS('').eur)}`);
 console.log(`      burocracia inteira ............. ${brl(emBrl(bookS('')))}`);
 console.log(`      hospedagens com endereco ....... ${marcadas.filter((o) => (o.address ?? '').trim()).length}/7`);
 console.log(`      opcoes marcadas ................ ${marcadas.length}/7 bases`);
+console.log(`      cidades que ele criou .......... ${cidades.length}${cidades.length ? ' (' + cidades.map((c) => c.n).join(', ') + ')' : ''}`);
 console.log(`      trechos comprados .............. ${leg.filter((l) => l.bought).length}/12`);
 console.log(`      bases: ${bases.map((b) => `${b.base} (${b.d}d/${b.nt}n)`).join(' · ')}`);
 console.log(`      rodape: ${emTerra} dias em terra + ${isos.length - emTerra} de voo = ${isos.length} dias de viagem`);

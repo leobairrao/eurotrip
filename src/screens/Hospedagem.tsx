@@ -24,7 +24,7 @@
 // Atracoes e Comidas abrindo em Luxemburgo no proximo F5, porque
 // `setSelCO` grava em localStorage.
 // ============================================================
-import { CT, STAYS, coOf } from '@/content';
+import { CIDADES_FIXAS, CT, STAYS, coOf } from '@/content';
 import { AreaField, NumField, IntField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
@@ -36,8 +36,15 @@ import type { StayOption } from '@/lib/types';
 
 
 const CIDADES = STAYS.map((x) => x.c);
-/** As bases de cada pais. Pode ser vazio: Luxemburgo e Alemanha nao tem. */
-const basesDe = (co: string) => coOf(co).cities.filter((c) => CIDADES.includes(c));
+/**
+ * As bases de cada pais. Pode ser vazio: Luxemburgo e Alemanha nao tem.
+ *
+ * Isto le as 7 BASES do arquivo, e NAO as cidades que o Leo cria. E
+ * decisao dele, na palavra dele: "em hospedagem nao precisa mesmo, vou
+ * dormir so naquelas cidades que definimos". Uma cidade nova ganha cartao
+ * em Atracoes, em Dicas e entra no Roteiro — aqui, nao.
+ */
+const basesDe = (co: string) => (CIDADES_FIXAS[co] ?? []).filter((c) => CIDADES.includes(c));
 
 export default function Hospedagem() {
   const { s } = useApp();
@@ -61,7 +68,7 @@ export default function Hospedagem() {
         sel={selCO}
         onSel={setSelCO}
         valor={(k: string) => {
-          const v = coOf(k).cities.reduce((a, city) => a + C.stayTotal(s, city), 0);
+          const v = basesDe(k).reduce((a, city) => a + C.stayTotal(s, city), 0);
           return v ? eur(v) : '';
         }}
       />

@@ -4,7 +4,7 @@
 // conferida contra o numero que o usuario espera ver.
 // ============================================================
 import {
-  BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf,
+  BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf, CIDADES_FIXAS,
 } from '@/content';
 import { brl, eur, norm, num, saveMonths } from './fmt';
 import type { Attraction, Aviso, Contribution, Snapshot, Status, Who } from './types';
@@ -63,6 +63,47 @@ export function hasPlan(s: Snapshot, iso: string): boolean {
   return !!(d?.plan?.trim() || attrsOfDay(s, iso).length);
 }
 export const filledDays = (s: Snapshot) => ISOS.filter((i) => hasPlan(s, i)).length;
+
+// ---------------- cidades ----------------
+//
+// Ate 05/09 as cidades eram 11, fixas, e viviam no campo `cities` de cada
+// pais. O Leo pediu para poder criar uma — "se eu clicar na espanha, devo
+// conseguir cadastrar uma nova cidade (nas atracoes)". Entao existem duas
+// camadas, e TODO laco de cidade tem que ler as duas:
+//
+//   as 11 fixas   CIDADES_FIXAS, do arquivo. Nao se cria nem se apaga.
+//   as dele       s.cities, a tabela `city`. Nasce vazia.
+//
+// O campo `cities` foi TIRADO de `Country` de proposito: enquanto ele
+// existisse, um laco esquecido continuaria lendo so as 11 e a cidade nova
+// ficaria meio dentro meio fora. Sem ele, o `tsc` aponta os lugares.
+
+/** As cidades de um pais: as fixas primeiro, as dele depois. */
+export function cidadesDe(s: Snapshot, co: string): string[] {
+  const fixas = CIDADES_FIXAS[co] ?? [];
+  const dele = s.cities
+    .filter((c) => c.co === co)
+    .sort(porPosicao)
+    .map((c) => c.k)
+    .filter((k) => !fixas.includes(k));
+  return [...fixas, ...dele];
+}
+
+/** Todas as cidades da viagem, na ordem dos paises. */
+export const todasCidades = (s: Snapshot) => CO.flatMap((c) => cidadesDe(s, c.k));
+
+/** O nome de exibicao de uma cidade, fixa ou dele. */
+export function nomeCidade(s: Snapshot, k: string): string {
+  return CT[k]?.n ?? s.cities.find((c) => c.k === k)?.n ?? k;
+}
+
+/** O pais de uma cidade, fixa ou dele. '' se nao existe. */
+export function paisDaCidade(s: Snapshot, k: string): string {
+  return CT[k]?.co ?? s.cities.find((c) => c.k === k)?.co ?? '';
+}
+
+/** So as que ele criou, para o x saber quem pode apagar. */
+export const cidadeDele = (s: Snapshot, k: string) => s.cities.find((c) => c.k === k);
 
 // ---------------- 11.4 atracoes ----------------
 //
@@ -142,7 +183,7 @@ export function attrEur(s: Snapshot, city: string, f?: AttrFiltro): number {
   return attrsOf(s, city).reduce((a, x) => (passa(x, f) ? a + num(x.price_eur) : a), 0);
 }
 export function attrEurCountry(s: Snapshot, k: string, f?: AttrFiltro): number {
-  return coOf(k).cities.reduce((a, c) => a + attrEur(s, c, f), 0);
+  return cidadesDe(s, k).reduce((a, c) => a + attrEur(s, c, f), 0);
 }
 export function attrEurAll(s: Snapshot, f?: AttrFiltro): number {
   return s.attractions.reduce((a, x) => (passa(x, f) ? a + num(x.price_eur) : a), 0);
@@ -474,28 +515,43 @@ export function proxAviso(s: Snapshot, spot: string): number {
 }
 
 // ---------------- a base do dia acha a cidade (secao 10.2) ----------------
-export function cityOfBase(b: string): string {
+/**
+ * Casa o texto livre da base de um dia com uma cidade.
+ *
+ * As FIXAS vem primeiro em toda passada, de proposito: a terceira passada
+ * casa por pedaco de nome nos dois sentidos, e ela fica mais larga a cada
+ * cidade que ele criar. Uma cidade chamada "Nice" faria a base "Venice"
+ * resolver para ela, calado. Com as 11 na frente, elas continuam se
+ * comportando exatamente como hoje, e so o que sobra chega nas dele.
+ */
+export function cityOfBase(s: Snapshot, b: string): string {
   const n = norm(b);
   if (!n) return '';
+  const nomes: [string, string][] = [
+    ...Object.keys(CT).map((k) => [k, CT[k].n] as [string, string]),
+    ...s.cities.map((c) => [c.k, c.n] as [string, string]),
+  ];
   if (CT[n]) return n;
-  for (const k of Object.keys(CT)) if (norm(CT[k].n) === n) return k;
-  for (const k of Object.keys(CT)) {
-    const c = norm(CT[k].n);
+  if (s.cities.some((c) => c.k === n)) return n;
+  for (const [k, nome] of nomes) if (norm(nome) === n) return k;
+  for (const [k, nome] of nomes) {
+    const c = norm(nome);
     if (c.length > 3 && (n.indexOf(c) >= 0 || c.indexOf(n) >= 0)) return k;
   }
   return '';
 }
 
 /** A base do dia primeiro, depois o resto do pais, depois todas (secao 10.2). */
-export function pickCities(baseKey: string): string[] {
+export function pickCities(s: Snapshot, baseKey: string): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   const push = (c: string) => {
     if (!seen.has(c)) { seen.add(c); out.push(c); }
   };
   if (baseKey) push(baseKey);
-  if (baseKey && CT[baseKey]) for (const c of coOf(CT[baseKey].co).cities) push(c);
-  for (const co of CO) for (const c of co.cities) push(c);
+  const coBase = paisDaCidade(s, baseKey);
+  if (coBase) for (const c of cidadesDe(s, coBase)) push(c);
+  for (const co of CO) for (const c of cidadesDe(s, co.k)) push(c);
   return out;
 }
 

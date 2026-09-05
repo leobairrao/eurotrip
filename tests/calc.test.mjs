@@ -83,6 +83,8 @@ function snapshotDoLeo() {
     days, attractions, foods, legs, bookings, stays,
     // A `stay` ficou aposentada na Fase 6; quem manda e esta lista.
     stayOptions: [],
+    // so as cidades que ELE criou; as 11 fixas continuam no arquivo
+    cities: [],
     extras: [],
     settings: { id: 1, eur_rate: num(S.rate), flight_paid_brl: VOO },
     killed: Object.keys(S.killed ?? {}),
@@ -158,6 +160,71 @@ test('11.3 — a base sozinha NAO e plano (regra 5.4)', () => {
   const s4 = structuredClone(S);
   s4.foods.find((f) => f.kind === 'restaurante').day_iso = '2026-12-16';
   assert.equal(C.filledDays(s4), 0, 'comida NAO conta como plano');
+});
+
+// ---------------- cidade que ele cria (05/09) ----------------
+const cidade = (k, n, co, position = 0) => ({ id: `c-${k}`, k, n, co, position });
+
+test('cidade nova entra na lista do pais, depois das fixas', () => {
+  const s = structuredClone(S);
+  const fixas = C.cidadesDe(s, 'es');
+  s.cities = [cidade('sevilha', 'Sevilha', 'es')];
+  const agora = C.cidadesDe(s, 'es');
+  assert.deepEqual(agora.slice(0, fixas.length), fixas, 'as fixas nao se mexem');
+  assert.equal(agora[agora.length - 1], 'sevilha', 'a dele entra no fim');
+});
+
+test('cidade dele NAO aparece no pais errado', () => {
+  const s = structuredClone(S);
+  s.cities = [cidade('sevilha', 'Sevilha', 'es')];
+  assert.ok(!C.cidadesDe(s, 'pt').includes('sevilha'));
+});
+
+test('chave repetida nao pode contar o dinheiro duas vezes', () => {
+  // A trava de verdade e o `unique` do banco mais a recusa na tela; isto
+  // prova que, se uma repetida escapasse, a lista NAO a duplica.
+  const s = structuredClone(S);
+  s.cities = [cidade('madrid', 'Madrid de novo', 'es')];
+  const l = C.cidadesDe(s, 'es');
+  assert.equal(new Set(l).size, l.length, 'sem chave repetida na lista');
+});
+
+test('o nome sai da cidade dele quando nao e fixa', () => {
+  const s = structuredClone(S);
+  s.cities = [cidade('sevilha', 'Sevilha', 'es')];
+  assert.equal(C.nomeCidade(s, 'sevilha'), 'Sevilha');
+  assert.equal(C.nomeCidade(s, 'lisboa'), 'Lisboa', 'a fixa continua vindo do arquivo');
+  assert.equal(C.nomeCidade(s, 'naoexiste'), 'naoexiste', 'nunca devolve vazio');
+  assert.equal(C.paisDaCidade(s, 'sevilha'), 'es');
+});
+
+test('o dinheiro de uma atracao na cidade nova entra no total do pais', () => {
+  const s = structuredClone(S);
+  s.cities = [cidade('sevilha', 'Sevilha', 'es')];
+  const antes = C.attrEurCountry(s, 'es', 'roteiro');
+  s.attractions.push({
+    id: 'a-sev', city: 'sevilha', name: 'Alcázar', price_eur: 14, note: '',
+    status: 'backlog', kind: 'tour', day_iso: '2026-12-17', paid: false, seed_id: null,
+  });
+  assert.equal(C.attrEurCountry(s, 'es', 'roteiro'), antes + 14);
+});
+
+test('cityOfBase casa a cidade dele, e as fixas continuam ganhando', () => {
+  const s = structuredClone(S);
+  s.cities = [cidade('sevilha', 'Sevilha', 'es')];
+  assert.equal(C.cityOfBase(s, 'Sevilha'), 'sevilha');
+  assert.equal(C.cityOfBase(s, 'sevilha'), 'sevilha');
+  // a terceira passada casa por pedaco de nome e fica mais larga a cada
+  // cidade criada; as 11 vem primeiro justamente para nao mudarem
+  assert.equal(C.cityOfBase(s, 'Lisboa'), 'lisboa');
+  assert.equal(C.cityOfBase(s, 'Amsterdã'), 'amsterda');
+});
+
+test('cidadeDele so acha as que ele criou', () => {
+  const s = structuredClone(S);
+  s.cities = [cidade('sevilha', 'Sevilha', 'es')];
+  assert.ok(C.cidadeDele(s, 'sevilha'), 'a dele tem x');
+  assert.equal(C.cidadeDele(s, 'madrid'), undefined, 'a fixa nao se apaga');
 });
 
 // ---------------- 11.4 atracoes ----------------
@@ -372,20 +439,20 @@ test('6.3 — sugestoes de comida so dos 7 paises: nada de be/pl', () => {
 
 // ---------------- 10.2 a base do dia acha a cidade ----------------
 test('10.2 — cityOfBase normaliza e casa', () => {
-  assert.equal(C.cityOfBase('Lisboa'), 'lisboa');
-  assert.equal(C.cityOfBase('Amsterdã'), 'amsterda');
-  assert.equal(C.cityOfBase('Cáceres'), 'caceres');
-  assert.equal(C.cityOfBase('em trânsito'), '');
-  assert.equal(C.cityOfBase(''), '');
+  assert.equal(C.cityOfBase(S, 'Lisboa'), 'lisboa');
+  assert.equal(C.cityOfBase(S, 'Amsterdã'), 'amsterda');
+  assert.equal(C.cityOfBase(S, 'Cáceres'), 'caceres');
+  assert.equal(C.cityOfBase(S, 'em trânsito'), '');
+  assert.equal(C.cityOfBase(S, ''), '');
   assert.equal(norm('Amsterdã'), 'amsterda');
 });
 
 test('10.2 — a cidade da base vem primeiro nos chips', () => {
-  const cs = C.pickCities('roma');
+  const cs = C.pickCities(S, 'roma');
   assert.equal(cs[0], 'roma');
   assert.equal(cs.length, Object.keys(CT).length, 'todas as 11, sem repetir');
   assert.equal(new Set(cs).size, cs.length);
-  const fr = C.pickCities('metz');
+  const fr = C.pickCities(S, 'metz');
   assert.deepEqual(fr.slice(0, 4), ['metz', 'estrasburgo', 'reims', 'paris'], 'depois o resto do pais');
 });
 

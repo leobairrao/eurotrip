@@ -19,7 +19,6 @@ export interface Country {
   k: CountryKey;
   n: string;
   cc: string;
-  cities: string[];
 }
 export interface City {
   n: string;
@@ -28,10 +27,24 @@ export interface City {
 
 /** Os 7 paises, na ordem da viagem. */
 export const CO = paisesCidades.paises as Country[];
-/** As 11 cidades, por chave. */
+/** As 11 cidades FIXAS, por chave. As dele vivem na tabela `city`. */
 export const CT = paisesCidades.cidades as Record<string, City>;
 
 export const CITY_KEYS = Object.keys(CT);
+
+/**
+ * As cidades fixas de cada pais, na ordem da viagem.
+ *
+ * Isto era o campo `cities` de `Country`, e foi TIRADO de la de proposito
+ * na mudanca de 05/09 que deixou o Leo criar cidade: enquanto ele
+ * existisse, qualquer laco continuaria lendo so as 11 e a cidade nova
+ * ficaria meio dentro meio fora — cartao em Atracoes, nada em Dicas. Sem
+ * o campo, o `tsc` aponta sozinho todo lugar que precisa passar a somar
+ * as dele. Quem quiser a lista COMPLETA usa `C.cidadesDe(s, pais)`.
+ */
+export const CIDADES_FIXAS: Record<string, string[]> = Object.fromEntries(
+  (paisesCidades.paises as { k: string; cities: string[] }[]).map((c) => [c.k, c.cities]),
+);
 
 export function coOf(k: string): Country {
   return CO.find((c) => c.k === k) ?? CO[0];
