@@ -403,7 +403,7 @@ function CartaoTransporte({ iso }: { iso: string }) {
                 <div key={t.id} className={`atr pkd${v ? '' : ' free'}`}>
                   <div className="nm">{TKE[t.kind]} {t.name}</div>
                   <div className="vl">
-                    {v ? (t.currency === 'brl' ? brl(v) : eur(v)) : 'a lançar'}
+                    {v ? (t.currency === 'brl' ? brl(v) : eur(v)) : 'sem valor'}
                   </div>
                   <button
                     className="xb"

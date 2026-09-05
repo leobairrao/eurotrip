@@ -217,3 +217,23 @@
   padding-left: 9px;
   margin-top: 8px;
 }
+
+/* ============================================================
+   Fase 2 (05/09). O campo de preco vazio parecia texto fixo.
+
+   `estilo-atual.css:318-320` deixa `.pv:placeholder-shown` sem fundo
+   E SEM BORDA ate o mouse passar por cima. Num celular nao existe
+   "passar o mouse": o campo simplesmente nao parecia campo, e o Leo
+   perguntou "nao entendi o que e nem se faz sentido poder editar".
+
+   O tracejado diz as duas coisas de uma vez: da para escrever aqui,
+   e ainda nao tem nada escrito. Mesma especificidade (0,3,0) e depois
+   na ordem — o original fica intocado.
+   ============================================================ */
+.mrow .pv:placeholder-shown {
+  background: transparent;
+  border-color: var(--hairline-2);
+  border-style: dashed;
+}
+.mrow:hover .pv:placeholder-shown { border-color: var(--ink-2); }
+.mrow .pv:focus { border-style: solid; }

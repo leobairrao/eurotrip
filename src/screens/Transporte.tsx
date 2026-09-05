@@ -154,7 +154,7 @@ function Linhas() {
             value={it.amount}
             onCommit={(v) => patch('leg', it.id, 'amount', v)}
             className="pv"
-            placeholder="a lançar"
+            placeholder="quanto custa"
             aria-label="valor"
           />
           {/* regra 5.11 — transporte comeca em euro, e o € vem primeiro */}
@@ -295,7 +295,7 @@ function Acrescentar() {
         type="text"
         inputMode="decimal"
         className="pv"
-        placeholder="valor"
+        placeholder="quanto custa"
         aria-label="valor do trecho novo"
       />
       <select ref={moeda} defaultValue="eur" aria-label="moeda do trecho novo">

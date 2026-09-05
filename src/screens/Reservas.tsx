@@ -99,7 +99,7 @@ export default function Reservas() {
               value={r.amount}
               onCommit={(v) => patch('booking', r.id, 'amount', v)}
               className="pv rv"
-              placeholder="valor"
+              placeholder="quanto custa"
               aria-label="quanto você pagou"
             />
             {/* regra 5.11: R$ e a primeira opcao, e e o lado em que o calculo cai */}

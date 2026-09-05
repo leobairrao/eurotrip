@@ -165,7 +165,7 @@ function Base({ sp }: { sp: StaySpec }) {
                 fk={`stay|${city}|total_eur`}
                 value={st.total_eur}
                 onCommit={(v) => patch('stay', city, 'total_eur', v)}
-                placeholder="ignora a diária"
+                placeholder="total, se souber"
                 aria-label="total em euros"
               />
             </div>

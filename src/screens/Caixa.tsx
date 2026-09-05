@@ -250,7 +250,7 @@ function Aportes({ w }: { w: Who | null }) {
                     value={c.amount}
                     onCommit={(v) => patch('contribution', c.id, 'amount', v)}
                     className="pv"
-                    placeholder="valor"
+                    placeholder="quanto entrou"
                     aria-label="valor do aporte"
                   />
                 </span>
@@ -347,7 +347,7 @@ function Aportar({ w }: { w: Who | null }) {
         type="text"
         inputMode="decimal"
         className="pv"
-        placeholder="valor"
+        placeholder="quanto entrou"
         aria-label="valor do aporte"
       />
       <button type="button" onClick={() => void aportar()}>aportar</button>

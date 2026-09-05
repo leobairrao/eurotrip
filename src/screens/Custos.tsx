@@ -297,7 +297,7 @@ function Acrescentar() {
         type="text"
         inputMode="decimal"
         className="pv"
-        placeholder="valor"
+        placeholder="quanto custa"
         aria-label="valor da linha"
       />
       <select ref={moeda} defaultValue="eur" aria-label="moeda da linha">
