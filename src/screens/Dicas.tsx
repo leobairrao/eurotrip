@@ -16,8 +16,9 @@
 // seis a base e o DESTINO enquanto o aviso e da PARTIDA. Ver
 // `src/lib/dicas-destino.ts`.
 // ============================================================
-import { CO, CT, coOf } from '@/content';
+import { CT, coOf } from '@/content';
 import Avisos from '@/components/Avisos';
+import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
@@ -39,23 +40,15 @@ export default function Dicas() {
         </p>
       </div>
 
-      {/* as sub-abas por pais sao as mesmas de Atracoes e Comidas, de proposito */}
-      <div className="subtabs">
-        {CO.map((c) => {
-          const n = c.cities.reduce((a, city) => a + C.avisosDe(s, `dicas:${city}`).length, 0);
-          return (
-            <button
-              key={c.k}
-              className="chip"
-              aria-pressed={selCO === c.k}
-              style={{ ['--cc' as string]: `var(${c.cc})` }}
-              onClick={() => setSelCO(c.k)}
-            >
-              {c.n}<span className="cn">{n || '—'}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* a mesma fita das outras tres telas */}
+      <Fita
+        sel={selCO}
+        onSel={setSelCO}
+        valor={(k: string) => {
+          const n = coOf(k).cities.reduce((a, city) => a + C.avisosDe(s, `dicas:${city}`).length, 0);
+          return String(n || '');
+        }}
+      />
 
       {co.cities.map((city) => (
         <div key={city} className="card" style={{ ['--cc' as string]: `var(${co.cc})` }}>

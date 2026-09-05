@@ -1086,8 +1086,25 @@ Dinheiro e contagem sempre em **`font-variant-numeric: tabular-nums`**.
 ### 13.3 — Layout
 
 - Largura máxima **1000px**, centralizado. Respiro de 24px (16px no celular).
-- **Nada de cantos arredondados. Nada de sombra.** Bordas de 1px em `--hairline-2` e uma
-  borda de topo de **4px** na cor do contexto. É um visual editorial, de papel.
+- ~~**Nada de cantos arredondados. Nada de sombra.**~~ **REVOGADA em 05/09/2026 (Fase 7),
+  por decisão dele.** A regra dizia: *"bordas de 1px em `--hairline-2` e uma borda de topo
+  de 4px na cor do contexto; é um visual editorial, de papel"*. O Leo pediu "ajustar a id
+  visual, está feio", escolheu **mudar a identidade de vez**, e depois escolheu entre duas
+  direções olhando: **"Círculos"**, inspirada em Instagram.
+
+  **O motivo era medível, e o meu primeiro diagnóstico estava errado.** Eu disse que o
+  problema era o tema claro. Medido: o cartão contra a página dá **1,09:1 no escuro** e
+  1,07 no claro; o fio contra o cartão dá **1,33 no escuro** e 1,39 no claro. O mínimo para
+  o olho separar um elemento de interface do fundo é **3:1**. Os dois contrastes que fazem
+  o cartão existir reprovavam **nos dois temas** — consertar só o claro não resolveria nada.
+
+  **A direção escolhida resolve por tabela, e não por ajuste.** Num esqueleto de rede
+  social o cartão não tem borda: quem separa é o ar, o raio e uma elevação curta. O
+  problema deixa de existir em vez de ser consertado.
+
+  A identidade vive em `src/app/identidade.css`, carregado **depois** dos dois atuais.
+  `estilo-atual.css` continua **byte a byte igual** a `referencia/estilo-atual.css` — é ele
+  que permite provar o que era do desenho de origem e o que é nosso.
 - **Cartão** = borda + topo colorido + cabeçalho (título grande + linha mono de metadados) +
   corpo.
 - **Rótulos em caixa alta**, mono, 9–10px, `letter-spacing` largo, cor `--muted`.

@@ -9,6 +9,7 @@
 import { AK, AKE, CO, CT, coOf } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
+import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
@@ -60,23 +61,12 @@ export default function Atracoes() {
         </p>
       </div>
 
-      {/* ---- sub-abas por pais, com o € das escolhidas de cada ---- */}
-      <div className="subtabs">
-        {CO.map((c) => {
-          const e = C.attrEurCountry(s, c.k, 'roteiro');
-          return (
-            <button
-              key={c.k}
-              className="chip"
-              aria-pressed={selCO === c.k}
-              style={{ ['--cc' as string]: `var(${c.cc})` }}
-              onClick={() => setSelCO(c.k)}
-            >
-              {c.n}<span className="cn">{e ? eur(e) : '—'}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ---- a fita de paises, com o € do que esta no roteiro em cada ---- */}
+      <Fita
+        sel={selCO}
+        onSel={setSelCO}
+        valor={(k: string) => { const e = C.attrEurCountry(s, k, 'roteiro'); return e ? eur(e) : ''; }}
+      />
 
       {/* ---- filtros: a contagem e so do pais selecionado ---- */}
       <div className="filt">

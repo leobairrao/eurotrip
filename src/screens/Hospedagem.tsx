@@ -24,9 +24,10 @@
 // Atracoes e Comidas abrindo em Luxemburgo no proximo F5, porque
 // `setSelCO` grava em localStorage.
 // ============================================================
-import { CO, CT, STAYS, coOf } from '@/content';
+import { CT, STAYS, coOf } from '@/content';
 import { AreaField, NumField, IntField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
+import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
@@ -55,23 +56,15 @@ export default function Hospedagem() {
         </p>
       </div>
 
-      {/* as mesmas sub-abas de Atracoes e Comidas */}
-      <div className="subtabs">
-        {CO.map((c) => {
-          const v = c.cities.reduce((a, city) => a + C.stayTotal(s, city), 0);
-          return (
-            <button
-              key={c.k}
-              className="chip"
-              aria-pressed={selCO === c.k}
-              style={{ ['--cc' as string]: `var(${c.cc})` }}
-              onClick={() => setSelCO(c.k)}
-            >
-              {c.n}<span className="cn">{v ? eur(v) : '—'}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* a mesma fita de Atracoes, Comidas e Dicas */}
+      <Fita
+        sel={selCO}
+        onSel={setSelCO}
+        valor={(k: string) => {
+          const v = coOf(k).cities.reduce((a, city) => a + C.stayTotal(s, city), 0);
+          return v ? eur(v) : '';
+        }}
+      />
 
       <div className="bigsum">
         <div>

@@ -162,6 +162,17 @@ export const ISOS: string[] = (() => {
   return out;
 })();
 
+/**
+ * Um emoji por pais, para a fita de circulos (Fase 7).
+ *
+ * Bandeira, e nao monumento: sete circulos lado a lado tem que ser
+ * reconheciveis num relance e sem repetir. Monumento repetiria — Trier e
+ * Roma sao os dois ruina romana.
+ */
+export const COEMOJI: Record<string, string> = {
+  es: '🇪🇸', pt: '🇵🇹', fr: '🇫🇷', lu: '🇱🇺', de: '🇩🇪', nl: '🇳🇱', it: '🇮🇹',
+};
+
 export const TABS = [
   ['painel', 'Painel'],
   ['roteiro', 'Roteiro'],

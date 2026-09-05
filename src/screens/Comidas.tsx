@@ -11,6 +11,7 @@ import { CO, FK, FKCLS, FKE, FKPL, FOOD, coOf } from '@/content';
 import type { FoodSugg } from '@/content';
 import { Nota, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
+import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
@@ -55,22 +56,11 @@ export default function Comidas() {
       </div>
 
       {/* ---- sub-abas por pais: a contagem e o total do pais ---- */}
-      <div className="subtabs">
-        {CO.map((c) => {
-          const n = C.foodsOf(s, c.k).length;
-          return (
-            <button
-              key={c.k}
-              className="chip"
-              aria-pressed={selCO === c.k}
-              onClick={() => setSelCO(c.k)}
-              style={{ ['--cc' as string]: `var(${c.cc})` }}
-            >
-              {c.n}<span className="cn">{n || '—'}</span>
-            </button>
-          );
-        })}
-      </div>
+      <Fita
+        sel={selCO}
+        onSel={setSelCO}
+        valor={(k: string) => String(C.foodsOf(s, k).length || '')}
+      />
 
       {/* a chave leva o pais: trocar de pais limpa o campo de acrescentar, como no artefato */}
       {KINDS.map((k) => (

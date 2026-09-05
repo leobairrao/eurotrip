@@ -1,0 +1,539 @@
+/* ============================================================
+   IDENTIDADE — "Círculos"  (Fase 7, 05/09/2026)
+
+   O Leo pediu "ajustar a id visual, está feio", escolheu MUDAR A
+   IDENTIDADE DE VEZ, e depois escolheu esta direção entre duas, olhando:
+   inspirada em Instagram. Isso revoga a regra 13 da especificação
+   ("Nada de cantos arredondados. Nada de sombra... é um visual editorial,
+   de papel"), que era decisão dele e foi revogada por ele.
+
+   POR QUE O ESQUELETO MUDA, E NÃO SÓ A PALETA. A primeira rodada trouxe
+   três direções e ele disse, com razão, que estavam iguais: as três
+   mantinham cartão-com-borda-sobre-fundo e só trocavam o separador.
+
+   E isso resolve o problema de contraste POR TABELA. O motivo de tudo
+   parecer um borrão era que a borda do cartão precisa de 3:1 contra o
+   fundo para o olho separar os dois, e ela estava em 1,33 no escuro e
+   1,39 no claro — os dois temas reprovados, não só o claro como eu tinha
+   dito antes de medir. Aqui a borda SOME: quem separa é o ar, o raio e
+   uma elevação curta. O problema deixa de existir em vez de ser
+   consertado.
+
+   COMO ESTE ARQUIVO SE COMPORTA
+   - `estilo-atual.css` fica INTOCADO, byte a byte igual a
+     `referencia/estilo-atual.css`. É ele que permite provar depois o que
+     era do desenho de origem e o que é nosso (COMO-MEXER.md:137-138).
+     Tudo aqui é sobrescrita, e vem depois na ordem de import.
+   - NENHUMA classe é renomeada. As grades casam `grid-template-areas`
+     com nomes de área nos dois lados; um nome errado desmonta a linha
+     sem erro nenhum.
+   - Os tokens do escuro moram em TRÊS seletores, e dois deles têm
+     especificidade (0,2,0): `:root:not([data-theme="light"])` e
+     `:root[data-theme="dark"]`. Um `:root` pelado aqui PERDERIA deles, e
+     a cara nova apareceria só no claro — sem erro, que é o pior tipo de
+     bug (o sintoma catalogado em COMO-MEXER.md:624). Por isso os três
+     blocos abaixo estão repetidos.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. TOKENS — os três seletores, sempre
+   ------------------------------------------------------------ */
+:root {
+  /* fundo quase branco e superfície branca: a separação vem do ar */
+  --ground:     #F7F7F5;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F1EE;
+  --ink:        #111614;
+  --ink-2:      #454F4A;
+  --muted:      #6A756F;
+  --hairline:   #E6E9E6;
+  --hairline-2: #D5DAD6;
+
+  /* o verde ganha saturação: numa tela sem bordas, a cor é o que marca */
+  --pine:       #0E8F63;
+  --pine-wash:  #E7F5EF;
+  --ochre:      #8A6206;
+  --ochre-wash: #FAF1DC;
+  --rust:       #B03A26;
+  --rust-wash:  #FCEEEB;
+
+  /* o que o estilo-atual.css não tinha: metade do sistema faltava */
+  --raio-1: 10px;   /* pílula pequena, campo */
+  --raio-2: 16px;   /* bloco, cartão */
+  --raio-3: 999px;  /* círculo, pílula */
+  --elev-1: 0 1px 2px rgba(17, 22, 20, .05);
+  --elev-2: 0 1px 3px rgba(17, 22, 20, .07), 0 6px 16px rgba(17, 22, 20, .05);
+
+  --e1: 4px;  --e2: 8px;  --e3: 12px; --e4: 16px;
+  --e5: 24px; --e6: 32px; --e7: 48px;
+
+  --social: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* preto puro, como as duas redes que ele citou */
+    --ground:     #000000;
+    --surface:    #121614;
+    --surface-2:  #1A201D;
+    --ink:        #EAEFEC;
+    --ink-2:      #B9C3BD;
+    --muted:      #828E87;
+    --hairline:   #232A26;
+    --hairline-2: #313A35;
+
+    --pine:       #3ACF8B;
+    --pine-wash:  #0D2018;
+    --ochre:      #E0B45C;
+    --ochre-wash: #201A0C;
+    --rust:       #F2705A;
+    --rust-wash:  #1F100D;
+
+    --elev-1: 0 1px 2px rgba(0, 0, 0, .6);
+    --elev-2: 0 1px 3px rgba(0, 0, 0, .7), 0 6px 18px rgba(0, 0, 0, .5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:     #000000;
+  --surface:    #121614;
+  --surface-2:  #1A201D;
+  --ink:        #EAEFEC;
+  --ink-2:      #B9C3BD;
+  --muted:      #828E87;
+  --hairline:   #232A26;
+  --hairline-2: #313A35;
+
+  --pine:       #3ACF8B;
+  --pine-wash:  #0D2018;
+  --ochre:      #E0B45C;
+  --ochre-wash: #201A0C;
+  --rust:       #F2705A;
+  --rust-wash:  #1F100D;
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, .6);
+  --elev-2: 0 1px 3px rgba(0, 0, 0, .7), 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+/* ------------------------------------------------------------
+   2. TIPOGRAFIA — sem serifa, como as duas redes que ele citou.
+   A mono FICA, e só para dinheiro: é ela que alinha as colunas de
+   número. Sair dela em valor faz a coluna dançar.
+   ------------------------------------------------------------ */
+body {
+  font-family: var(--social);
+  font-size: 16px;
+  letter-spacing: -.005em;
+}
+h1, h2, h3, h4, h5 { font-family: var(--social); letter-spacing: -.025em; }
+
+.panelhead h2 { font-weight: 800; letter-spacing: -.032em; }
+.panelhead p { font-size: 16px; color: var(--ink-2); }
+
+/* ------------------------------------------------------------
+   3. O CARTÃO PERDE A BORDA
+   Era `border: 1px solid var(--hairline-2)` mais uma barra de 4px no
+   topo. Agora é superfície, raio largo e uma elevação curta — e a cor
+   do país, que morava na barra, vira um ponto ao lado do título.
+   ------------------------------------------------------------ */
+.card {
+  border: 0;
+  border-top: 0;
+  border-radius: var(--raio-2);
+  background: var(--surface);
+  box-shadow: var(--elev-1);
+  margin-bottom: var(--e4);
+  overflow: hidden;
+}
+.card > .h {
+  padding: var(--e4) var(--e5) var(--e2);
+  border-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.card > .h h3 {
+  font-size: 19px;
+  font-weight: 800;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+}
+/* o ponto que carrega a cor do contexto, no lugar da barra de topo */
+.card > .h h3::before {
+  content: "";
+  width: 9px; height: 9px; flex: none;
+  border-radius: var(--raio-3);
+  background: var(--cc, var(--pine));
+}
+.card > .h .m { font-family: var(--social); font-size: 13px; color: var(--muted); }
+.card > .b { padding: var(--e2) var(--e5) var(--e5); }
+.card > .b p { font-size: 15px; }
+
+/* ------------------------------------------------------------
+   4. OS NÚMEROS GRANDES — os três tratamentos viram um só
+   `.kpi` (30px), `.bigsum` (27px) e `.bigsum.b5` (24px) faziam o mesmo
+   trabalho de três jeitos, e o Painel empilhava DOIS deles logo na
+   primeira tela que ele abre.
+   ------------------------------------------------------------ */
+.bigsum, .kpi {
+  border: 0;
+  border-top: 0;
+  border-radius: var(--raio-2);
+  background: var(--hairline);
+  box-shadow: var(--elev-1);
+  padding: 0;
+  gap: 1px;
+  margin-bottom: var(--e4);
+  overflow: hidden;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.bigsum > div, .kpi > div {
+  background: var(--surface);
+  padding: var(--e4) var(--e5);
+}
+.bigsum > div b, .kpi b {
+  font-family: var(--social);
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+.bigsum > div span, .kpi span {
+  font-family: var(--social);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.kpi small, .bigsum > div i { font-size: 13px; color: var(--ink-2); }
+@media (max-width: 700px) {
+  .bigsum, .kpi { grid-template-columns: 1fr 1fr; }
+  .bigsum > div, .kpi > div { padding: var(--e3) var(--e4); }
+  .bigsum > div b, .kpi b { font-size: 20px; }
+}
+
+/* ------------------------------------------------------------
+   5. A FITA DE PAÍSES — o círculo, que é a assinatura desta direção.
+   Substitui os chips de `.subtabs`. O anel usa `--cc`, a cor de país
+   que já existia; país sem nada lançado fica com o anel apagado.
+   ------------------------------------------------------------ */
+.fita {
+  display: flex;
+  gap: var(--e4);
+  overflow-x: auto;
+  padding: var(--e1) var(--e1) var(--e3);
+  margin-bottom: var(--e4);
+  scrollbar-width: none;
+}
+.fita::-webkit-scrollbar { display: none; }
+.fita-item {
+  flex: none;
+  /* 78px cabe "Luxemburgo" inteiro a 11.5px. A 68px ele virava
+     "Luxembur…", que e o tipo de detalhe que faz a tela parecer
+     descuidada mesmo com todo o resto certo. */
+  width: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.fita-anel {
+  width: 58px; height: 58px;
+  border-radius: var(--raio-3);
+  padding: 2.5px;
+  background: var(--hairline-2);
+  display: grid;
+  place-items: center;
+}
+.fita-item[aria-pressed="true"] .fita-anel {
+  background: conic-gradient(from 140deg, var(--cc, var(--pine)), var(--pine), var(--cc, var(--pine)));
+}
+.fita-in {
+  width: 100%; height: 100%;
+  border-radius: var(--raio-3);
+  background: var(--surface);
+  border: 2.5px solid var(--ground);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  line-height: 1;
+}
+.fita-nome {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fita-item[aria-pressed="true"] .fita-nome { color: var(--ink); font-weight: 800; }
+.fita-vl {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.fita-item:hover .fita-anel { background: var(--muted); }
+.fita-item[aria-pressed="true"]:hover .fita-anel { filter: brightness(1.1); }
+.fita-item:focus-visible { outline: 2px solid var(--pine); outline-offset: 3px; border-radius: var(--raio-2); }
+
+/* ------------------------------------------------------------
+   6. AS LISTAS — a linha perde a caixa
+   `.mt` era uma grade de 1px sobre fundo `--hairline`, o que desenhava
+   uma borda em volta de cada linha. Agora é uma superfície só, com um
+   fio interno entre as linhas.
+   ------------------------------------------------------------ */
+.mt {
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--raio-2);
+  overflow: hidden;
+  gap: 0;
+  margin-top: var(--e2);
+  box-shadow: var(--elev-1);
+}
+.mt > .mrow + .mrow { border-top: 1px solid var(--hairline); }
+.mrow {
+  background: var(--surface);
+  padding: var(--e3) var(--e4);
+  gap: var(--e2) var(--e3);
+}
+/* a barra colorida da esquerda vira fundo tingido: sem borda, sem inset */
+.mrow.st-esc { background: var(--pine-wash); box-shadow: none; }
+.mrow.st-bac { background: var(--surface); box-shadow: none; }
+.mrow.st-sug { background: var(--surface-2); box-shadow: none; }
+.mrow.pgo    { background: var(--pine-wash); box-shadow: none; }
+.mrow.tr5.tk-trem, .mrow.tr5.tk-aviao,
+.mrow.tr5.tk-onibus, .mrow.tr5.tk-carro { box-shadow: none; }
+
+/* a etiqueta derivada vira pílula cheia, como o "seguindo" de uma rede */
+.sttag {
+  border-radius: var(--raio-3);
+  border: 0;
+  font-family: var(--social);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  padding: 5px 10px;
+}
+.sttag.st-dentro { background: var(--pine); color: var(--ground); }
+.sttag.st-fora   { background: var(--hairline); color: var(--muted); }
+
+/* "é esta", em Hospedagem: mesma família de pílula */
+.esta {
+  border-radius: var(--raio-3);
+  font-family: var(--social);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  padding: 5px 9px;
+  background: var(--hairline);
+  border: 0;
+  color: var(--muted);
+}
+.esta.on { background: var(--pine); color: var(--ground); }
+.esta:hover { filter: brightness(.95); }
+
+/* ------------------------------------------------------------
+   7. OS CAMPOS — cantos, e o anel de foco de volta
+   `:focus-visible` global existe em estilo-atual.css:48 com
+   especificidade (0,1,0), mas ONZE regras `outline:none` de
+   especificidade maior o anulavam em todo campo de texto. Quem navega
+   por teclado só ganhava 1px de borda. Aqui volta como `box-shadow`,
+   que não briga com nada.
+   ------------------------------------------------------------ */
+.mrow input, .mrow select, .mrow textarea,
+.form input, .form select, .form textarea,
+.addrow input, .addrow select {
+  border-radius: var(--raio-1);
+  border-color: var(--hairline-2);
+}
+.mrow input:focus-visible, .mrow select:focus-visible, .mrow textarea:focus-visible,
+.form input:focus-visible, .form select:focus-visible, .form textarea:focus-visible,
+.addrow input:focus-visible, .addrow select:focus-visible {
+  box-shadow: 0 0 0 3px var(--pine-wash), 0 0 0 1.5px var(--pine);
+  border-color: var(--pine);
+}
+/* `.nv` tem !important em quatro propriedades (estilo-atual.css:321-322):
+   toda regra nova para o campo de nome perde para ela, mesmo vindo
+   depois. É o único lugar onde eu preciso responder com !important. */
+.nv { border-radius: var(--raio-1) !important; }
+.mrow:hover .nv, .bkr:hover .nv { border-color: var(--hairline-2) !important; }
+
+/* botões: pílula */
+.addrow button, .form button, button.pb {
+  border-radius: var(--raio-3);
+  font-family: var(--social);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0;
+  padding: 9px 18px;
+  background: var(--pine);
+  color: var(--ground);
+}
+.addrow button:hover, .form button:hover { filter: brightness(1.08); }
+.addrow button:disabled { opacity: .5; cursor: default; filter: none; }
+
+/* ------------------------------------------------------------
+   8. OS FILTROS E AS ABAS — pílulas
+   ------------------------------------------------------------ */
+.fchip, .chip {
+  border-radius: var(--raio-3);
+  font-family: var(--social);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 7px 15px;
+  border-color: var(--hairline-2);
+}
+.fchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--ground); }
+.chip:hover, .fchip[aria-pressed="false"]:hover { border-color: var(--muted); }
+.tabs button {
+  font-family: var(--social);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  border-radius: var(--raio-3);
+  border-bottom: 0;
+  padding: 8px 14px;
+}
+.tabs button[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--ground);
+  border-bottom-color: transparent;
+  font-weight: 700;
+}
+.tabs button:hover { background: var(--surface-2); }
+.tabs button[aria-selected="true"]:hover { background: var(--ink); }
+.top { border-bottom: 1px solid var(--hairline); background: var(--ground); }
+
+/* ------------------------------------------------------------
+   9. O AVISO — deixa de ser barra à esquerda e vira bloco tingido
+   ------------------------------------------------------------ */
+.n {
+  border-left: 0;
+  border-radius: var(--raio-2);
+  background: var(--surface-2);
+  padding: var(--e3) var(--e4);
+  font-size: 14.5px;
+}
+.n.free  { background: var(--pine-wash); }
+.n.warn  { background: var(--ochre-wash); }
+.n.alert { background: var(--rust-wash); }
+.n > b:first-child {
+  font-family: var(--social);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  text-transform: none;
+}
+.day--move .n, .day--today .n { background: var(--surface-2); }
+
+/* ------------------------------------------------------------
+   10. A CAMADA DE PESQUISA — bloco separado, com o + em pílula
+   ------------------------------------------------------------ */
+.sg {
+  margin-top: var(--e4);
+  border-top: 0;
+  padding: var(--e3);
+  background: var(--surface-2);
+  border-radius: var(--raio-2);
+}
+.sgh {
+  font-family: var(--social);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  margin-bottom: var(--e2);
+}
+.sgr { border-bottom-color: var(--hairline); padding: var(--e2) 0; }
+.sgr .nm { font-size: 14.5px; }
+.sg .sgr .pb {
+  background: var(--pine);
+  color: var(--ground);
+  border-radius: var(--raio-3);
+  font-family: var(--social);
+  font-weight: 800;
+  padding: 3px 12px;
+  font-size: 15px;
+}
+.plus { border-radius: var(--raio-3); }
+
+/* ------------------------------------------------------------
+   11. PRESENÇA — o pontinho vira bolinha de gente
+   ------------------------------------------------------------ */
+.presenca { font-family: var(--social); font-size: 12.5px; font-weight: 600; }
+.presenca i { width: 9px; height: 9px; box-shadow: 0 0 0 3px var(--pine-wash); }
+.sairbtn { font-family: var(--social); font-size: 12.5px; }
+
+/* ------------------------------------------------------------
+   12. CELULAR — alvo de toque, que estava abaixo do mínimo
+   WCAG 2.2 pede 24px; as caixinhas tinham 17, 18 e 19, e as setas de
+   ordem ~19x23. Numa tela de dedo isso é erro garantido.
+   ------------------------------------------------------------ */
+@media (max-width: 700px) {
+  /* AS GRADES DE CELULAR, MEDIDAS E NAO CHUTADAS.
+     O respiro maior que eu dei a `.mrow` (12/16 no lugar de 10/12, gap
+     12 no lugar de 9) ESTOURAVA a linha em 32px num aparelho de 360 —
+     e a coluna do preco colapsava para 20px, ilegivel. Com o respiro
+     original a linha ainda estourava 16px, porque a coluna da caixinha
+     "ja paguei" e nova. Entao aqui o respiro volta ao apertado e as
+     colunas foram redimensionadas ate fechar em ZERO, medindo numa
+     caixa de 328px (360 de tela menos os 32 do cartao).
+     A ESPECIFICACAO.md:1024-1025 registra o caso ja vivido: coluna de
+     `select` em `1fr` no celular fez "🚶 passeio" virar "🚶 pa". Por
+     isso o select fica em px, e so o preco pega o `1fr`. */
+  .mrow { padding: 10px 12px; gap: 7px 9px; }
+  .mrow.at6 {
+    grid-template-columns: 74px 76px 1fr 26px 30px;
+    grid-template-areas: "nm nm nm nm x" "st ak pr ok ok" "wh wh wh wh wh";
+  }
+  .mrow.ho6 {
+    grid-template-columns: 1fr 52px 46px 26px 30px;
+    grid-template-areas: "nm nm nm nm x" "pr nt tt es ok" "wh wh wh wh wh";
+  }
+  .sttag { font-size: 10px; padding: 4px 7px; }
+  .esta { font-size: 9.5px; padding: 4px 5px; }
+  .mrow .kv, .mrow .sv { font-size: 10px; padding: 6px 2px; }
+  .mrow .pv { font-size: 12.5px; padding: 6px 4px; max-width: none; }
+
+  .mrow .ck, .bkr input[type="checkbox"], .mrow input[type="checkbox"] {
+    width: 24px; height: 24px;   /* WCAG 2.2 pede 24; tinha 17, 18 e 19 */
+  }
+  .ordb { min-width: 30px; min-height: 30px; }
+  .xb { min-width: 34px; min-height: 34px; border-radius: var(--raio-3); }
+  .xb:hover { background: var(--rust-wash); color: var(--rust); }
+  .card > .h { padding: var(--e3) var(--e4) var(--e2); }
+  .card > .b { padding: var(--e2) var(--e4) var(--e4); }
+  .fita-anel { width: 54px; height: 54px; }
+  .fita-item { width: 72px; }
+  .fita { gap: var(--e3); }
+  /* o afordance escondido: 9,5px em cinza a 70% de opacidade era
+     invisível no toque, e não existe "passar o mouse" no celular */
+  .n .mexer { opacity: 1; font-size: 12px; }
+}
+
+/* ------------------------------------------------------------
+   13. MOVIMENTO — curto, e só onde há resposta a um toque.
+   Existia UMA transição no app inteiro; tudo o mais piscava.
+   ------------------------------------------------------------ */
+button, .chip, .fchip, .sttag, .esta, .fita-anel,
+input, select, textarea, .card, .mrow {
+  transition: background-color .14s ease, border-color .14s ease,
+              box-shadow .14s ease, filter .14s ease;
+}
+button:active, .chip:active, .fchip:active, .fita-item:active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; transform: none !important; }
+}
