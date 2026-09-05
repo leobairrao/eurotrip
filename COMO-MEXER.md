@@ -19,21 +19,32 @@ anônimo apanha), 45 linhas na distribuição certa (7 cidade, 18 dia, 4 país, 
 1 transporte), zero tag crua, 21 com `*negrito*`. Semear de novo não duplica. As notas
 antigas que tinham `<b>` viraram `*asterisco*`: 6 atrações e 3 trechos.
 
-### O que nunca foi testado
+### O tempo real foi testado, e funciona
 
-**Os dois navegadores ao mesmo tempo.** É a promessa central do projeto e nunca foi
-exercitada com duas sessões de gente diferente: nem por mim, nem antes. Há teste unitário
-da mesclagem (`tests/merge.test.mjs`), e isso não é a mesma coisa. Se for mexer em
-Realtime, comece por aí.
+**05/09/2026 — o Leo confirmou:** os dois navegadores ao mesmo tempo, e está funcionando.
+Era a promessa central do projeto e a única coisa que nunca tinha sido exercitada com duas
+sessões de gente diferente — nem por mim, nem antes de mim.
 
-O que testar, com os dois logados na mesma aba: um edita um aviso e o outro tem que ver
-sem recarregar; um apaga e some da tela do outro; os dois digitando em campos diferentes
-não se apagam; e o cursor de quem está digitando não pula quando chega mudança do outro.
+Registro de quem verificou: **foi ele, não eu.** Eu só tenho uma sessão; o que eu consigo
+provar aqui é a mesclagem em memória (`tests/merge.test.mjs`) e a assinatura do canal, que
+não é a mesma coisa. Ele não detalhou item por item, então o que está confirmado é o
+conjunto: um edita, o outro vê.
 
-**E a renovação de sessão.** O middleware ficou na raiz do repositório desde a primeira
-publicação e por isso nunca rodou — a sessão nunca se renovava, e passada a validade do
-token os dois caíam na tela de entrada. Consertado em 05/09 (é `src/middleware.ts`, não
-`middleware.ts`), mas só o uso ao longo de horas prova que funciona.
+Se um dia algo de tempo real falhar, dois lugares antes de qualquer outro:
+
+- `src/lib/store.tsx`, o array `tabelas` do canal `eurotrip` — **toda tabela nova precisa
+  entrar ali**. A `aviso` ficou de fora na primeira escrita e nada de aviso sincronizava,
+  com o SQL todo correto do outro lado. Foi a revisão que pegou.
+- No Supabase, se a tabela está na publicação `supabase_realtime` e tem
+  `replica identity full` (sem isso o DELETE não chega com a linha, e o item não sai da
+  tela do outro).
+
+**Ainda sem prova: a renovação de sessão.** O `middleware.ts` ficou na RAIZ desde a
+primeira publicação e por isso **nunca rodou** — o Next procura `src/middleware.ts` quando
+o app vive em `src/app`. A sessão nunca se renovava, e passada a validade do token os dois
+caíam na tela de entrada; é provavelmente a origem do "a Lu não consegue entrar".
+Consertado em 05/09. Só o uso ao longo de horas prova. Se for mexer: depois do build, o
+relatório tem que imprimir `ƒ Middleware`.
 
 ---
 
