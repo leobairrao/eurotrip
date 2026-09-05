@@ -1,6 +1,6 @@
 'use client';
 // ============================================================
-// O esqueleto: cabecalho, as 9 abas, quem esta online, e o rodape.
+// O esqueleto: cabecalho, as 10 abas, quem esta online, e o rodape.
 // A barra de abas rola na horizontal no celular, e a aba ativa e
 // trazida para a vista ao trocar — sem rolar a pagina (secao 10).
 // ============================================================
@@ -16,6 +16,7 @@ import Comidas from '@/screens/Comidas';
 import Transporte from '@/screens/Transporte';
 import Hospedagem from '@/screens/Hospedagem';
 import Reservas from '@/screens/Reservas';
+import Dicas from '@/screens/Dicas';
 import Caixa from '@/screens/Caixa';
 import Custos from '@/screens/Custos';
 
@@ -27,6 +28,7 @@ const TELAS: Record<TabKey, () => React.JSX.Element> = {
   transporte: Transporte,
   stay: Hospedagem,
   reservas: Reservas,
+  dicas: Dicas,
   caixa: Caixa,
   custos: Custos,
 };

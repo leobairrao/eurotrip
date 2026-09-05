@@ -56,13 +56,55 @@ test('ida e volta: o que eu semeei aparece igual ao que eu escrevi', () => {
 // ---------------- a lista semeada ----------------
 const SEMENTE = avisosSemeados();
 
-test('a semeadura cobre as quatro telas', () => {
+test('a semeadura cobre as cinco telas', () => {
   const conta = (p) => SEMENTE.filter((a) => a.spot.startsWith(p)).length;
   assert.ok(conta('atracoes:') >= 7, 'aviso de cidade');
-  assert.ok(conta('roteiro:') >= 18, 'aviso de dia');
   assert.ok(conta('comidas:') >= 15, 'aviso de pais e "nao vale"');
   assert.equal(conta('transporte'), 1, 'o "nao conte duas vezes"');
   assert.ok(SEMENTE.length >= 40, `poucos avisos: ${SEMENTE.length}`);
+});
+
+// ---------------- Fase 4: as dicas sairam dos dias ----------------
+// O Leo pediu "tirar todos os disclaimers dos dias do roteiro". Os 18
+// avisos de dia continuam existindo — 3 ficam no dia, 15 viraram Dicas.
+// Estes testes existem porque a semente e o `scripts/mover-avisos.mjs`
+// TEM que concordar: e da semente que `carregarDemo` reconstroi tudo, e
+// e ela que um banco novo usa.
+test('os 18 avisos de dia continuam os 18 — nenhum foi perdido ao mover', () => {
+  const dia = SEMENTE.filter((a) => a.seed_id.startsWith('av:dia:'));
+  assert.equal(dia.length, 18, 'sumiu ou apareceu aviso de dia');
+});
+
+test('so os tres alertas ficam no Roteiro; o resto vai para Dicas', () => {
+  const noRoteiro = SEMENTE.filter((a) => a.spot.startsWith('roteiro:'));
+  assert.equal(noRoteiro.length, 3, 'o dia so guarda o que pode arruinar o dia');
+  assert.ok(noRoteiro.every((a) => a.tone === 'alert'), 'e todos sao alerta');
+  assert.deepEqual(
+    noRoteiro.map((a) => a.seed_id).sort(),
+    ['av:dia:2026-12-24', 'av:dia:2026-12-29', 'av:dia:2027-01-06'],
+    'Luxemburgo as 20h, a perna mais cara, e a Epifania',
+  );
+
+  const dicas = SEMENTE.filter((a) => a.spot.startsWith('dicas:'));
+  assert.equal(dicas.length, 15);
+});
+
+test('os que nao tem cidade nao se perdem: voos e pernas tem cartao proprio', () => {
+  const spot = (sid) => SEMENTE.find((a) => a.seed_id === sid)?.spot;
+  // os dois dias "em transito" guardam os numeros dos voos
+  assert.equal(spot('av:dia:2026-12-10'), 'dicas:voos');
+  assert.equal(spot('av:dia:2027-01-12'), 'dicas:voos');
+  // e estes seis tem base = DESTINO enquanto o aviso e da PARTIDA
+  for (const iso of ['2026-12-11', '2026-12-16', '2026-12-19', '2026-12-26', '2027-01-02', '2027-01-10']) {
+    assert.equal(spot(`av:dia:${iso}`), 'dicas:pernas', `${iso} nao pode ir para a cidade de chegada`);
+  }
+});
+
+test('os numeros dos voos sobreviveram a mudanca', () => {
+  const corpo = SEMENTE.filter((a) => a.spot === 'dicas:voos').map((a) => a.body).join(' ');
+  for (const v of ['LA4519', 'LA8066', 'LA705', 'LA726']) {
+    assert.ok(corpo.includes(v), `perdi o numero do voo ${v}`);
+  }
 });
 
 test('cada aviso semeado tem seed_id proprio — senao um apaga o outro', () => {

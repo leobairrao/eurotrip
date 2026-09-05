@@ -157,6 +157,10 @@ export const TABS = [
   ['transporte', 'Transporte'],
   ['stay', 'Hospedagem'],
   ['reservas', 'Reservas'],
+  // Dicas nasceu na Fase 4 (05/09): as dicas sairam dos dias do Roteiro e
+  // vieram para ca, por cidade. Fica ao lado de Reservas porque as duas
+  // sao "coisas para lembrar", nao dinheiro.
+  ['dicas', 'Dicas'],
   ['caixa', 'Caixa'],
   ['custos', 'Custos'],
 ] as const;

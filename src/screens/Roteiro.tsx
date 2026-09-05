@@ -44,6 +44,18 @@ const WDS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
  * primeiro, que e o que cabe; a tela do dia mostra todos.
  */
 const avisoDe = (s: Snapshot, iso: string) => C.avisosDe(s, `roteiro:${iso}`)[0];
+/**
+ * O que aparece no calendario e na linha do bloco SEM ele clicar no dia
+ * (Fase 4, 05/09). Eram os dois unicos lugares assim, e o Leo pediu o dia
+ * limpo — mas so os `alert` podem arruinar um dia se ele nao os vir NAQUELE
+ * dia: o transporte de Luxemburgo parando as 20h no 24, a perna mais cara
+ * no 29, a Epifania no 6. Dia limpo e dia sem triangulo e sem etiqueta de
+ * dica; nao e dia sem alerta. O resto virou a aba Dicas.
+ */
+const alertaDe = (s: Snapshot, iso: string) => {
+  const av = avisoDe(s, iso);
+  return av && av.tone === 'alert' ? av : undefined;
+};
 const cidadeDe = (k: string): City | undefined => CT[k];
 
 export default function Roteiro() {
@@ -198,7 +210,7 @@ function Mes({ y, m, label }: { y: number; m: number; label: string }) {
       cels.push(<div key={iso} className="cd off">{d}</div>);
       continue;
     }
-    const av = avisoDe(s, iso);
+    const av = alertaDe(s, iso);
     cels.push(
       <div
         key={iso}
@@ -237,7 +249,7 @@ function DiaLinha({ iso }: { iso: string }) {
   const d = s.days[iso];
   const base = (d?.base ?? '').trim();
   const plano = (d?.plan ?? '').trim();
-  const av = avisoDe(s, iso);
+  const av = alertaDe(s, iso);
 
   return (
     <div

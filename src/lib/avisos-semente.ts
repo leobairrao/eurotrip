@@ -13,6 +13,7 @@
 // ============================================================
 import { CITYNOTE, DAYNOTE, FOOD } from '@/content';
 import { deHtml } from './fmt';
+import { planoDasDicas } from './dicas-destino';
 import type { Aviso, Tone } from './types';
 
 export type AvisoSemente = Omit<Aviso, 'id'>;
@@ -33,12 +34,26 @@ export function avisosSemeados(): AvisoSemente[] {
     });
   }
 
-  // o aviso de um dia, na aba Roteiro
+  // O aviso de um dia (Fase 4, 05/09): so os tres `alert` continuam no
+  // Roteiro. Os outros 15 viraram a aba Dicas, por cidade.
+  //
+  // ISTO TEM QUE CONCORDAR COM `scripts/mover-avisos.mjs`: e daqui que
+  // `carregarDemo` reconstroi os avisos, entao se a semente ficasse com
+  // `roteiro:<iso>` a demonstracao nasceria com a aba Dicas vazia e os 18
+  // de volta nos dias — e um banco novo pelo ritual do README tambem.
+  //
+  // O `seed_id` NAO muda (`av:dia:<iso>`), de proposito: e ele que faz
+  // `seed.mjs` pular a linha ja semeada em vez de duplicar.
+  const plano = planoDasDicas(Object.keys(DAYNOTE));
   for (const [iso, a] of Object.entries(DAYNOTE)) {
+    const d = plano.get(iso);
     out.push({
-      spot: `roteiro:${iso}`, tone: tom(a[0]),
-      title: deHtml(a[1]), body: deHtml(a[2]),
-      position: 0, seed_id: `av:dia:${iso}`,
+      spot: d?.spot ?? `roteiro:${iso}`,
+      tone: tom(a[0]),
+      title: d?.title ?? deHtml(a[1]),
+      body: d?.body ?? deHtml(a[2]),
+      position: d?.position ?? 0,
+      seed_id: `av:dia:${iso}`,
     });
   }
 
