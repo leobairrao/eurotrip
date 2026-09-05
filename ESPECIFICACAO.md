@@ -123,13 +123,49 @@ que o usuário vai notar na hora.
 **Nunca escreva "31 + 2 = 34".** Isso já foi publicado errado uma vez. A última base perde
 uma noite porque o voo de volta sai 23h35 do último dia.
 
-### 5.2 — Só o que está marcado como **escolhida** entra no custo.
-Atração tem três situações: `escolhida`, `backlog`, `sugerida`. O custo real soma **apenas
-`escolhida`**. As outras aparecem como "o backlog inteiro somaria mais € X", separado.
+### 5.2 — ~~Só o que está marcado como **escolhida**~~ **Só o que está num dia do Roteiro** entra no custo.
 
-### 5.3 — Pôr uma atração num dia **é** escolhê-la.
-Ao atribuir um dia, a situação vira `escolhida` automaticamente. **Tirar do dia NÃO desfaz** —
-o item continua escolhido, só perde a data.
+> **Revista em 05/09/2026.** A regra dizia: *"atração tem três situações — `escolhida`,
+> `backlog`, `sugerida` — e o custo real soma apenas `escolhida`"*. O código obedecia. O
+> resultado no banco dele: **15 atrações marcadas `escolhida` e 14 delas em dia nenhum**,
+> somando R$ 793,60 no total real. Ele disse: *"total real até agora não faz sentido, está
+> contando passeios que não estão em lugar nenhum, deve contar apenas o que foi adicionado,
+> se foi retirado o valor deve diminuir (acompanhar o roteiro)"*.
+
+**`day_iso` é a única verdade sobre uma atração** — para a etiqueta e para o dinheiro. A
+etiqueta na lista é **derivada e não clicável**: *no roteiro* ou *backlog*.
+
+`status` **não morreu**: continua a mesma coluna, com o mesmo `check` e os mesmos três
+valores, e passou a significar **origem**. As três famílias são exclusivas e cobrem tudo:
+
+| família | quem é | entra no custo? |
+|---|---|---|
+| **roteiro** | tem `day_iso` | **sim** |
+| **fora** | dele, sem dia | não — é a linha *"fora do roteiro somaria mais € X"* |
+| **pesquisa** | `sugerida` sem dia | não — a camada que eu pesquisei, com painel e total próprios |
+
+**A linha "fora do roteiro somaria mais € X" não é enfeite.** Sem ela, no dia em que isto
+subiu o total caiu de R$ 5.821 para R$ 5.337 e o *"ainda por gastar"* virou **R$ 0,00** —
+porque nenhum trecho e nenhuma hospedagem tem valor lançado ainda. Zero não é um número
+honesto ali; é um app que parece quebrado. E ela protege o erro inverso: os € 78 de Sintra
+são bate-volta real (regra 5.12) e, enquanto não tiverem dia, o total **subestima** a
+viagem em R$ 483,60.
+
+**Transporte, hospedagem e burocracia NÃO seguem o roteiro**, de propósito — ver 5.10.
+
+### 5.3 — Pôr uma atração num dia **é** escolhê-la. ~~Tirar do dia não desfaz.~~
+
+> **Revista em 05/09/2026, junto com a 5.2.** A segunda metade dizia: *"tirar do dia NÃO
+> desfaz — o item continua escolhido, só perde a data"*. Era ela que deixava um passeio
+> somar dinheiro depois de ter saído do roteiro.
+
+Ao atribuir um dia, a situação vira `escolhida` automaticamente — isso continua, e agora
+**também adota** a sugestão para a lista dele. **Tirar do dia continua não mexendo no
+`status`**, mas agora **tira o dinheiro do total na hora**, que é o que ele pediu.
+
+Consequência deliberada, registrada para não ser descoberta depois: com o uso, tudo que
+passar por um dia vira `escolhida`, e o corte atual entre a lista dele e o backlog deixa
+de ser recuperável pela coluna.
 
 ### 5.4 — A base do dia sozinha não é "plano".
 Um dia conta como planejado se tem **texto escrito pelo usuário** ou **pelo menos uma atração
@@ -178,9 +214,17 @@ Restaurante e café são lugares e podem ser marcados num dia. Trocar o tipo de 
 Nenhum campo de valor em comida. O custo de comer vive na estimativa e na Caixa, não no custo
 real. Só atração, hospedagem, transporte, burocracia e linhas livres têm valor.
 
-### 5.10 — Transporte: o valor conta sempre; a caixinha só decide de que lado.
+### 5.10 — Transporte, burocracia **e hospedagem**: o valor conta sempre; a caixinha só decide de que lado.
 Todo trecho com valor entra no **custo total**. A caixinha **comprado** decide se ele aparece
 como **"já pago"** ou como **"previsto"**. Mesma regra para os itens de burocracia (reservas).
+
+> **Estendida em 05/09/2026.** Quando a 5.2 passou a fazer **atração** seguir o roteiro,
+> ficou a pergunta se os outros três seguiriam também. **Não seguem**, e o motivo é
+> concreto: dois dos doze trechos são **agrupamentos que por decisão dele nunca vão ter
+> dia** ("Bate-voltas de Metz no TER" e "Reims ⇄ Paris no TER" — e "Metz ⇄ Luxemburgo, 24
+> e 25" tem a mesma cara); **hospedagem é por cidade e não tem data nenhuma**; e passaporte
+> e seguro também não têm dia. Fazer os três seguirem o roteiro esconderia dinheiro que ele
+> vai pagar de verdade. **Hospedagem não estava escrita nesta regra e passou a estar.**
 
 ### 5.11 — A moeda de burocracia começa em **R$**; a de transporte, em **€**.
 Passaporte, seguro e cartão são pagos no Brasil. Trem e voo europeu, em euro. **O cálculo e o

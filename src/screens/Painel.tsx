@@ -52,10 +52,10 @@ export default function Painel() {
           </small>
         </div>
         <div>
-          <b>{C.attrCount(s, 'escolhida')}</b>
-          <span>atrações escolhidas</span>
+          <b>{C.attrCount(s, 'roteiro')}</b>
+          <span>atrações no roteiro</span>
           <small>
-            {C.attrCount(s, 'backlog')} no backlog · {C.attrCount(s, 'sugerida')} sugeridas por mim
+            {C.attrCount(s, 'fora')} no backlog · {C.attrCount(s, 'pesquisa')} sugeridas por mim
           </small>
         </div>
         <div>
@@ -78,9 +78,9 @@ export default function Painel() {
           <i>{comEndereco} de {STAYS.length} bases lançadas</i>
         </div>
         <div>
-          <b>{eur(C.attrEurAll(s, 'escolhida'))}</b>
+          <b>{eur(C.attrEurAll(s, 'roteiro'))}</b>
           <span>atrações</span>
-          <i>{C.attrCount(s, 'escolhida')} escolhidas</i>
+          <i>{C.attrCount(s, 'roteiro')} no roteiro</i>
         </div>
         <div>
           <b>{eur(legEur)}</b>

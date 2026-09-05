@@ -53,8 +53,13 @@ const legS  = (m) => sides(leg, 'bought', m, true);    // transporte -> euro
 const bookS = (m) => sides(booking, 'done', m, false); // burocracia -> real
 const emBrl = (x) => x.eur * rate + x.brl;
 
-const escolhidas = attraction.filter((a) => a.status === 'escolhida');
-const attrEsc = escolhidas.reduce((a, x) => a + num(x.price_eur), 0);
+// 5.2 REVISTA (05/09): o custo segue `day_iso`, nao `status`.
+// `status` passou a significar origem: 'sugerida' e a camada de pesquisa.
+const noRoteiro = attraction.filter((a) => a.day_iso);
+const foraDoRoteiro = attraction.filter((a) => !a.day_iso && a.status !== 'sugerida');
+const pesquisa = attraction.filter((a) => !a.day_iso && a.status === 'sugerida');
+const somaEur = (l) => l.reduce((a, x) => a + num(x.price_eur), 0);
+const attrEsc = somaEur(noRoteiro);
 const stayTot = stay.reduce((a, s) => {
   const t = num(s.total_eur);
   return a + (t ? t : num(s.nightly_eur) * num(s.nights));
@@ -82,11 +87,10 @@ const noites = bases.reduce((a, b) => a + b.nt, 0);
 const emTerra = bases.reduce((a, b) => a + b.d, 0);
 
 console.log('\n  ================ NUMEROS DE ACEITE (secao 12.3) ================\n');
-linha(escolhidas.length === 13, 'atracoes escolhidas', 13, escolhidas.length);
+linha(noRoteiro.length === 0, 'atracoes no roteiro', 0, noRoteiro.length);
 linha(
-  escolhidas.every((a) => a.city === 'lisboa'),
-  '  ... todas de Lisboa', 'lisboa',
-  [...new Set(escolhidas.map((a) => a.city))].join(',') || '(nenhuma)',
+  foraDoRoteiro.length === 35,
+  '  ... na lista dele, sem dia', 35, foraDoRoteiro.length,
 );
 linha(Math.round(jaPago) === 5337, 'total ja pago', 'R$ 5.337', brl(jaPago));
 linha(rate === 6.2, 'cambio', '6,2', String(rate));
@@ -98,15 +102,11 @@ linha(emTerra === 32, 'dias em terra', 32, emTerra);
 linha(isos.length - emTerra === 2, 'dias so de voo', 2, isos.length - emTerra);
 linha(bases.length === 8, 'bases (linhas da tabela do roteiro)', 8, bases.length);
 linha(attraction.length === 104, 'atracoes no total', 104, attraction.length);
+linha(pesquisa.length === 69, '  ... sugeridas por mim (pesquisa)', 69, pesquisa.length);
 linha(
-  attraction.filter((a) => a.status === 'sugerida').length === 69,
-  '  ... sugeridas por mim', 69,
-  attraction.filter((a) => a.status === 'sugerida').length,
-);
-linha(
-  attraction.filter((a) => a.status === 'backlog').length === 22,
-  '  ... no backlog (35 - 13 escolhidas)', 22,
-  attraction.filter((a) => a.status === 'backlog').length,
+  noRoteiro.length + foraDoRoteiro.length + pesquisa.length === attraction.length,
+  '  ... as tres familias cobrem tudo', attraction.length,
+  noRoteiro.length + foraDoRoteiro.length + pesquisa.length,
 );
 linha(leg.length === 12, 'trechos de transporte', 12, leg.length);
 linha(stay.length === 7, 'bases de hospedagem', 7, stay.length);
@@ -136,8 +136,9 @@ linha(
 console.log('\n  ================ OS OUTROS NUMEROS DO PAINEL ================\n');
 console.log(`      total real ate agora ............ ${brl(totalReal)}`);
 console.log(`      ainda por gastar ............... ${brl(totalReal - jaPago)}`);
-console.log(`      atracoes escolhidas (EUR) ...... ${eur(attrEsc)}`);
-console.log(`      backlog inteiro somaria ........ ${eur(attraction.filter((a) => a.status === 'backlog').reduce((a, x) => a + num(x.price_eur), 0))}`);
+console.log(`      atracoes no roteiro (EUR) ...... ${eur(attrEsc)}`);
+console.log(`      fora do roteiro somaria ........ ${eur(somaEur(foraDoRoteiro))}`);
+console.log(`      a pesquisa inteira somaria ..... ${eur(somaEur(pesquisa))}`);
 console.log(`      hospedagem ..................... ${eur(stayTot)}`);
 console.log(`      transportes .................... ${eur(legS('').eur)}`);
 console.log(`      burocracia inteira ............. ${brl(emBrl(bookS('')))}`);

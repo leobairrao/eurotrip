@@ -7,7 +7,7 @@ import {
   BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf,
 } from '@/content';
 import { brl, eur, norm, num, saveMonths } from './fmt';
-import type { Aviso, Contribution, Snapshot, Status, Who } from './types';
+import type { Attraction, Aviso, Contribution, Snapshot, Status, Who } from './types';
 
 // ---------------- 11.2 blocos, noites e dias ----------------
 export interface Block { base: string; from: string; to: string; n: number }
@@ -65,28 +65,93 @@ export function hasPlan(s: Snapshot, iso: string): boolean {
 export const filledDays = (s: Snapshot) => ISOS.filter((i) => hasPlan(s, i)).length;
 
 // ---------------- 11.4 atracoes ----------------
+//
+// REGRAS 5.2 E 5.3, REVISTAS EM 05/09/2026 A PEDIDO DO LEO.
+//
+// A 5.2 dizia "so o que esta marcado como escolhida entra no custo" e a
+// 5.3 dizia "por num dia E escolher; tirar do dia NAO desfaz". O codigo
+// obedecia. O resultado, no banco dele: 15 atracoes marcadas "escolhida"
+// e 14 delas em dia nenhum, somando R$ 793,60 no total real. Ele disse:
+// "esta contando passeios que nao estao em lugar nenhum, deve contar
+// apenas o que foi adicionado, se foi retirado o valor deve diminuir".
+//
+// Entao `day_iso` passou a ser a UNICA verdade, para a etiqueta e para o
+// dinheiro, e `status` deixou de ser escolha para significar ORIGEM.
+//
+// As tres familias sao exclusivas e cobrem todas as linhas:
+//
+//   roteiro   tem dia            -> ENTRA no custo, etiqueta "no roteiro"
+//   fora      dele, sem dia      -> nao entra, etiqueta "backlog".
+//                                   E a linha "fora do roteiro somaria
+//                                   mais EUR X", que impede o total de
+//                                   virar zero sem explicacao.
+//   pesquisa  'sugerida', sem dia -> a camada que eu pesquisei. Nunca e
+//                                   dele ate ele clicar no + (regra 5.13,
+//                                   que continua valendo). Total proprio.
+//
+// `status` NAO mudou de forma no banco: mesma coluna, mesmo check, mesmos
+// tres valores. Mudou quem le e quem escreve.
+
+/** Esta num dia do roteiro. A unica coisa que move dinheiro agora. */
+export const noRoteiro = (a: Attraction) => !!a.day_iso;
+/** Da camada de pesquisa: nunca foi dele (regra 5.13). */
+export const ehPesquisa = (a: Attraction) => a.status === 'sugerida' && !a.day_iso;
+/** Dele, mas ainda sem dia. E o "backlog" de verdade. */
+export const foraDoRoteiro = (a: Attraction) => !a.day_iso && a.status !== 'sugerida';
+
+export type AttrFiltro = '' | 'roteiro' | 'fora' | 'pesquisa';
+
+const CASA: Record<Exclude<AttrFiltro, ''>, (a: Attraction) => boolean> = {
+  roteiro: noRoteiro,
+  fora: foraDoRoteiro,
+  pesquisa: ehPesquisa,
+};
+const passa = (a: Attraction, f?: AttrFiltro) => (!f ? true : CASA[f](a));
+
 export const attrsOf = (s: Snapshot, city: string) => s.attractions.filter((a) => a.city === city);
 
-/** Ordenadas escolhida -> backlog -> sugerida (secao 10.3). */
+/**
+ * A lista DELE de uma cidade: o que esta no roteiro primeiro, e o resto
+ * por nome. Nao traz a camada de pesquisa junto — ela tem painel proprio.
+ *
+ * O desempate por nome importa: `load.ts` passou a pedir `.order('name')`
+ * na Fase 0, porque sem ordem a lista dancava entre um F5 e outro.
+ */
+export function attrsDele(s: Snapshot, city: string) {
+  return attrsOf(s, city)
+    .filter((a) => !ehPesquisa(a))
+    .sort((a, b) =>
+      (noRoteiro(b) ? 1 : 0) - (noRoteiro(a) ? 1 : 0) || a.name.localeCompare(b.name, 'pt'));
+}
+
+/** O painel "sugestoes que eu pesquisei", por cidade. */
+export function attrsPesquisa(s: Snapshot, city: string) {
+  return attrsOf(s, city).filter(ehPesquisa).sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+}
+
+/**
+ * Ordenada por situacao. So sobrou para a lista de um DIA do roteiro,
+ * onde toda linha tem dia e a origem ainda ordena de forma util.
+ */
 export function attrsSorted(s: Snapshot, city: string) {
   return attrsOf(s, city).slice().sort((a, b) => STORD[a.status] - STORD[b.status]);
 }
 
-/** Soma de price_eur dos itens com aquele status. O custo real usa 'escolhida'. */
-export function attrEur(s: Snapshot, city: string, st?: Status): number {
-  return attrsOf(s, city).reduce((a, x) => (!st || x.status === st ? a + num(x.price_eur) : a), 0);
+/** Soma de price_eur. O custo real usa 'roteiro'. */
+export function attrEur(s: Snapshot, city: string, f?: AttrFiltro): number {
+  return attrsOf(s, city).reduce((a, x) => (passa(x, f) ? a + num(x.price_eur) : a), 0);
 }
-export function attrEurCountry(s: Snapshot, k: string, st?: Status): number {
-  return coOf(k).cities.reduce((a, c) => a + attrEur(s, c, st), 0);
+export function attrEurCountry(s: Snapshot, k: string, f?: AttrFiltro): number {
+  return coOf(k).cities.reduce((a, c) => a + attrEur(s, c, f), 0);
 }
-export function attrEurAll(s: Snapshot, st?: Status): number {
-  return s.attractions.reduce((a, x) => (!st || x.status === st ? a + num(x.price_eur) : a), 0);
+export function attrEurAll(s: Snapshot, f?: AttrFiltro): number {
+  return s.attractions.reduce((a, x) => (passa(x, f) ? a + num(x.price_eur) : a), 0);
 }
-export function attrCount(s: Snapshot, st?: Status): number {
-  return s.attractions.filter((x) => !st || x.status === st).length;
+export function attrCount(s: Snapshot, f?: AttrFiltro): number {
+  return s.attractions.filter((x) => passa(x, f)).length;
 }
-export function attrCountCity(s: Snapshot, city: string, st?: Status): number {
-  return attrsOf(s, city).filter((x) => !st || x.status === st).length;
+export function attrCountCity(s: Snapshot, city: string, f?: AttrFiltro): number {
+  return attrsOf(s, city).filter((x) => passa(x, f)).length;
 }
 
 /** As atracoes de um dia, ordenadas por situacao. */
@@ -220,12 +285,19 @@ export function pagoBrl(s: Snapshot): number {
 /**
  * Transporte e burocracia entram no total INTEIROS, comprados ou nao.
  * A caixinha so move o dinheiro entre "ja pago" e "previsto" (regra 5.10).
+ *
+ * ATRACAO segue o roteiro desde 05/09 (5.2 revista): so entra a que tem
+ * dia. Transporte, hospedagem e burocracia NAO seguem, de proposito —
+ * dois dos doze trechos sao agrupamentos que por decisao dele nunca vao
+ * ter dia (ESPECIFICACAO.md:669-671), hospedagem e por cidade e nao tem
+ * data, e passaporte e seguro tambem nao. Faze-los seguir o roteiro
+ * esconderia dinheiro que ele vai pagar de verdade.
  */
 export function totalBrl(s: Snapshot, cities: string[]): number {
   const x = legSum(s, '');
   return (
     VOO +
-    (attrEurAll(s, 'escolhida') + stayTotalAll(s, cities) + extraEur(s) + x.eur) * rate(s) +
+    (attrEurAll(s, 'roteiro') + stayTotalAll(s, cities) + extraEur(s) + x.eur) * rate(s) +
     extraBrl(s) +
     x.brl +
     bookingBrl(s, '')

@@ -18,7 +18,7 @@ export default function Custos() {
   const { s } = useApp();
 
   const ho = C.stayTotalAll(s, CIDADES);
-  const at = C.attrEurAll(s, 'escolhida');       // regra 5.2: so 'escolhida' entra no custo
+  const at = C.attrEurAll(s, 'roteiro');         // 5.2 revista: so o que esta num dia entra
   const xe = C.extraEur(s);
   const xb = C.extraBrl(s);
   const tr = C.legSum(s, '');                    // regra 5.10: os trechos entram inteiros
@@ -76,8 +76,13 @@ export default function Custos() {
               <td className="num">{eur(at)}</td>
               <td className="num">{brl(at * rt)}</td>
               <td className="sb">
-                {C.attrCount(s, 'escolhida')} escolhidas · backlog somaria mais{' '}
-                {eur(C.attrEurAll(s, 'backlog'))}
+                {/* A LINHA QUE IMPEDE O ZERO. Sem ela o total cai de R$ 5.821
+                    para R$ 5.337, "ainda por gastar" vira R$ 0,00 e os EUR 78
+                    de Sintra somem da vista sem rastro. "Fora do roteiro" e a
+                    lista DELE sem dia — a camada de pesquisa nunca foi dele
+                    (regra 5.13) e tem total proprio na aba Atracoes. */}
+                {C.attrCount(s, 'roteiro')} no roteiro · fora do roteiro somaria mais{' '}
+                {eur(C.attrEurAll(s, 'fora'))}
               </td>
             </tr>
             <tr>

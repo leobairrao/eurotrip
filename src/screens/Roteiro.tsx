@@ -24,7 +24,16 @@ import type { Attraction, Food, Leg, Snapshot } from '@/lib/types';
 // inteira) e nem sempre esta no tipo estreito de `as const`.
 const TKROT: Record<string, string> = TK;
 const FKROT: Record<string, string> = FK;
-const STROT: Record<string, string> = ST;
+/**
+ * A ORIGEM da linha, nao mais a situacao (05/09).
+ *
+ * Ate 05/09 isto imprimia a palavra do `status` cru — e a lista "por neste
+ * dia" e, por definicao, so de itens SEM dia: ela escrevia "escolhida" em
+ * 14 atracoes exatamente enquanto a regra nova as declarava fora do
+ * roteiro. Agora so distingue o que e dele do que eu pesquisei.
+ */
+const ORIGEM = (a: Attraction) => (C.ehPesquisa(a) ? 'sugestão minha' : 'sua lista');
+const ORIGCLS = (a: Attraction) => (C.ehPesquisa(a) ? 'sug' : 'bac');
 const TKS = Object.keys(TK);
 
 const WDS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
@@ -281,8 +290,9 @@ function DiaTags({ iso }: { iso: string }) {
       })}
       {a.map((it) => {
         const pr = num(it.price_eur);
+        // dentro do dia toda linha esta no roteiro, por definicao
         return (
-          <span key={it.id} className={`dtg st-${STCLS[it.status]}`}>
+          <span key={it.id} className="dtg st-esc">
             {AKE[it.kind]} {it.name}
             {pr ? <> <b>{eur(pr)}</b></> : null}
           </span>
@@ -500,7 +510,10 @@ function CartaoAtracoes({ iso }: { iso: string }) {
   const livres: Attraction[] = [];
   let other = 0;
   if (pk) {
-    for (const it of C.attrsSorted(s, pk)) {
+    // A lista dele primeiro, a pesquisa depois — a mesma separacao que a aba
+    // Atracoes passou a fazer. Separar so la deixaria misturado justamente na
+    // tela onde o dinheiro nasce.
+    for (const it of [...C.attrsDele(s, pk), ...C.attrsPesquisa(s, pk)]) {
       if (it.day_iso === iso) continue;
       if (it.day_iso) { other++; continue; }
       livres.push(it);
@@ -538,7 +551,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                   </button>
                   <div className="wh">
                     {cidadeDe(it.city)?.n ?? it.city} ·{' '}
-                    <span className={`stg st-${STCLS[it.status]}`}>{STROT[it.status]}</span>
+                    <span className={`stg st-${ORIGCLS(it)}`}>{ORIGEM(it)}</span>
                   </div>
                 </div>
               );
@@ -586,7 +599,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                     <div key={it.id} className="sgr">
                       <div className="nm">
                         {AKE[it.kind]} {it.name}{' '}
-                        <span className={`stg st-${STCLS[it.status]}`}>{STROT[it.status]}</span>
+                        <span className={`stg st-${ORIGCLS(it)}`}>{ORIGEM(it)}</span>
                       </div>
                       <div className="vl">{pr ? eur(pr) : 'grátis'}</div>
                       {/* Por num dia E escolher, numa escrita so (regra 5.3). */}

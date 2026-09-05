@@ -100,11 +100,14 @@ function snapshotDoLeo() {
 const S = snapshotDoLeo();
 
 // ---------------- os tres numeros de aceite (secao 12.3) ----------------
-test('12.3 — 8 atracoes escolhidas, todas de Lisboa', () => {
+test('12.3 — as 8 marcadas na fixture sao de Lisboa, e NENHUMA conta mais', () => {
+  // A coluna `status` continua existindo e continua com estes valores; o
+  // que mudou e que ela nao decide mais dinheiro nem etiqueta (5.2 revista).
   const esc = S.attractions.filter((a) => a.status === 'escolhida');
   assert.equal(esc.length, 8);
   assert.deepEqual([...new Set(esc.map((a) => a.city))], ['lisboa']);
-  assert.equal(C.attrCount(S, 'escolhida'), 8);
+  assert.equal(C.attrCount(S, 'roteiro'), 0, 'nenhuma esta num dia');
+  assert.equal(C.attrEurAll(S, 'roteiro'), 0, 'entao nenhuma entra no custo');
 });
 
 test('12.3 — total ja pago = R$ 5.337 (voo + passaporte)', () => {
@@ -156,26 +159,87 @@ test('11.3 — a base sozinha NAO e plano (regra 5.4)', () => {
 });
 
 // ---------------- 11.4 atracoes ----------------
-test('11.4 — 104 atracoes: 27 backlog, 8 escolhidas, 69 sugeridas', () => {
+// REGRA REVISTA EM 05/09. A 5.2 dizia "so o que esta marcado como
+// escolhida entra no custo" e a 5.3 dizia "tirar do dia NAO desfaz".
+// O Leo revogou as duas: agora `day_iso` e a unica verdade, para a
+// etiqueta e para o dinheiro. `status` passou a significar ORIGEM —
+// 'sugerida' e a camada de pesquisa, o resto e a lista dele.
+test('11.4 — 104 atracoes: 35 dele, 69 da pesquisa', () => {
   assert.equal(C.attrCount(S), 104);
-  assert.equal(C.attrCount(S, 'backlog'), 27);
-  assert.equal(C.attrCount(S, 'escolhida'), 8);
-  assert.equal(C.attrCount(S, 'sugerida'), 69);
+  assert.equal(C.attrCount(S, 'pesquisa'), 69);
+  assert.equal(C.attrCount(S, 'roteiro') + C.attrCount(S, 'fora'), 35, 'as dele');
+  assert.equal(C.attrCount(S, 'roteiro'), 0, 'a fixture nao tem nenhuma num dia');
 });
 
-test('5.2 — so escolhida entra no custo', () => {
-  assert.equal(C.attrEurAll(S, 'escolhida'), 0, 'as 8 de Lisboa sao todas gratis');
-  assert.ok(C.attrEurAll(S, 'backlog') > 0, 'o backlog somaria mais');
+test('as tres familias sao exclusivas e cobrem tudo', () => {
+  const n = C.attrCount(S, 'roteiro') + C.attrCount(S, 'fora') + C.attrCount(S, 'pesquisa');
+  assert.equal(n, C.attrCount(S), 'ninguem fica de fora e ninguem conta duas vezes');
+});
+
+test('5.2 REVISTA — so entra no custo o que esta num dia do roteiro', () => {
   const s2 = structuredClone(S);
   const antes = C.totalBrl(s2, CIDADES_STAY);
-  const bac = s2.attractions.find((a) => a.status === 'backlog');
-  bac.price_eur = 20;
-  assert.equal(C.totalBrl(s2, CIDADES_STAY), antes, 'atracao no backlog nao muda o total');
-  bac.status = 'escolhida';
+  const a = s2.attractions.find((x) => x.status === 'backlog');
+
+  a.price_eur = 20;
+  assert.equal(C.totalBrl(s2, CIDADES_STAY), antes, 'sem dia, nao entra no total');
+
+  // Marcar como "escolhida" NAO basta mais — era exatamente o que fazia
+  // 14 passeios "que nao estao em lugar nenhum" somarem R$ 793,60.
+  a.status = 'escolhida';
+  assert.equal(C.totalBrl(s2, CIDADES_STAY), antes, 'a etiqueta velha nao move dinheiro');
+
+  a.day_iso = '2026-12-12';
   assert.equal(Math.round(C.totalBrl(s2, CIDADES_STAY) - antes), 124, '€ 20 x 6,20 = R$ 124');
+
+  // 5.3 REVISTA: tirar do dia agora DIMINUI o total na hora.
+  a.day_iso = null;
+  assert.equal(C.totalBrl(s2, CIDADES_STAY), antes, 'tirou do dia, saiu da conta');
 });
 
-test('11.4 — ordenacao escolhida -> backlog -> sugerida', () => {
+test('a linha que impede o zero: fora do roteiro e a lista DELE sem dia', () => {
+  const s2 = structuredClone(S);
+  const dele = s2.attractions.find((x) => x.status === 'backlog');
+  const pesq = s2.attractions.find((x) => x.status === 'sugerida');
+  dele.price_eur = 30;
+  pesq.price_eur = 500;
+
+  const fora = C.attrEurAll(s2, 'fora');
+  assert.ok(fora >= 30, 'a dele sem dia entra na linha');
+  assert.ok(fora < 500, 'a da PESQUISA nao entra: nunca foi dele (regra 5.13)');
+  assert.equal(C.attrEurAll(s2, 'pesquisa') >= 500, true, 'a pesquisa tem total proprio');
+});
+
+test('quem tem dia sai de "fora do roteiro" e entra no custo, sem contar duas vezes', () => {
+  const s2 = structuredClone(S);
+  const a = s2.attractions.find((x) => x.status === 'backlog');
+  a.price_eur = 40;
+  const foraAntes = C.attrEurAll(s2, 'fora');
+  a.day_iso = '2026-12-12';
+  assert.equal(C.attrEurAll(s2, 'fora'), foraAntes - 40, 'saiu da linha de fora');
+  assert.equal(C.attrEurAll(s2, 'roteiro'), 40, 'e entrou no custo');
+});
+
+test('11.4 — a lista dele nao traz a camada de pesquisa junto', () => {
+  const dele = C.attrsDele(S, 'lisboa');
+  const pesq = C.attrsPesquisa(S, 'lisboa');
+  assert.ok(dele.length > 0 && pesq.length > 0, 'Lisboa tem das duas');
+  assert.ok(dele.every((a) => a.status !== 'sugerida'), 'nenhuma pesquisa na lista dele');
+  assert.ok(pesq.every((a) => a.status === 'sugerida'), 'so pesquisa no painel de sugestoes');
+  assert.equal(dele.length + pesq.length, C.attrsOf(S, 'lisboa').length);
+});
+
+test('a lista dele poe o que esta no roteiro primeiro, e desempata por nome', () => {
+  const s2 = structuredClone(S);
+  const l = s2.attractions.filter((a) => a.city === 'lisboa' && a.status !== 'sugerida');
+  l[3].day_iso = '2026-12-12';
+  const ord = C.attrsDele(s2, 'lisboa');
+  assert.equal(ord[0].id, l[3].id, 'quem esta num dia sobe');
+  const resto = ord.slice(1).map((a) => a.name);
+  assert.deepEqual(resto, [...resto].sort((a, b) => a.localeCompare(b, 'pt')), 'o resto por nome');
+});
+
+test('11.4 — ordenacao velha (mantida so para o dia do roteiro)', () => {
   const ord = C.attrsSorted(S, 'lisboa').map((a) => a.status);
   assert.deepEqual(ord.slice(0, 8), Array(8).fill('escolhida'));
   const idx = { escolhida: 0, backlog: 1, sugerida: 2 };
