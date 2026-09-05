@@ -238,7 +238,7 @@ export function Provider({
     const ch = db.channel('eurotrip', { config: { presence: { key: me.who } } });
 
     const tabelas = ['day','attraction','food','leg','booking','stay','extra',
-                     'settings','killed_seed','adopted','savings','contribution'];
+                     'settings','killed_seed','adopted','savings','contribution','aviso'];
     for (const t of tabelas) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, (p) => {
         setS((v) => aplicarRemoto(v, t as Tabela, p, pend.current));

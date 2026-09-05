@@ -7,7 +7,7 @@ import {
   BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf,
 } from '@/content';
 import { brl, eur, norm, num, saveMonths } from './fmt';
-import type { Contribution, Snapshot, Status, Who } from './types';
+import type { Aviso, Contribution, Snapshot, Status, Who } from './types';
 
 // ---------------- 11.2 blocos, noites e dias ----------------
 export interface Block { base: string; from: string; to: string; n: number }
@@ -337,6 +337,16 @@ export function cxMes(s: Snapshot, w: Who | null, hoje?: string | Date): number 
 /** A estimativa convertida, para os botoes que so PREENCHEM o campo da meta. */
 export const estimNaMoeda = (s: Snapshot, w: Who) =>
   Math.round(cxCur(s, w) === 'eur' ? ESTIM_EUR : ESTIM_EUR * rate(s));
+
+// ---------------- avisos (nao somam em nada; ver 5.6, revista em 05/09) ----------------
+/** Os avisos de um lugar, na ordem. `spot` e a chave: 'atracoes:lisboa'. */
+export function avisosDe(s: Snapshot, spot: string): Aviso[] {
+  return s.avisos.filter((a) => a.spot === spot).sort(porPosicao);
+}
+/** A proxima posicao livre naquele lugar, para o aviso novo entrar no fim. */
+export function proxAviso(s: Snapshot, spot: string): number {
+  return avisosDe(s, spot).reduce((a, x) => Math.max(a, x.position), -1) + 1;
+}
 
 // ---------------- a base do dia acha a cidade (secao 10.2) ----------------
 export function cityOfBase(b: string): string {

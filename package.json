@@ -9,8 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs tests/merge.test.mjs tests/ordem.test.mjs tests/entrar.test.mjs",
-    "seed": "node scripts/seed.mjs",
+    "test": "node --import ./tests/reg.mjs --test tests/calc.test.mjs tests/merge.test.mjs tests/ordem.test.mjs tests/entrar.test.mjs tests/avisos.test.mjs",
+    "seed": "node --import ./scripts/_ts.mjs scripts/seed.mjs",
     "import": "node scripts/import.mjs",
     "check": "node scripts/check.mjs",
     "usuarios": "node scripts/usuarios.mjs"

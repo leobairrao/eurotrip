@@ -140,10 +140,30 @@ Ordem dele: *"deixe todo o roteiro em branco, eu vou preencher com base nas minh
 atrações"*. As **bases** (cidades) vêm preenchidas; o campo de texto de todos os 34 dias vem
 vazio. Não preencha com sugestão.
 
-### 5.6 — Os avisos de dia e de cidade são **meus, não dele**.
-`avisos-dia.json` e `avisos-cidade.json` são fatos operacionais (o corte das 20h do dia 24, as
-janelas grátis do Palacio Real). **Não são editáveis, não contam em soma nenhuma, e não podem
-ser apagados pelo usuário.** São exibidos junto do dia/cidade.
+### 5.6 — Os avisos ~~são meus~~ **são dele**, e não somam.
+
+> **Revista em 05/09/2026.** A regra dizia: *"os avisos de dia e de cidade são meus, não
+> dele — não edita, não apaga, não soma"*. O Leo pediu que **tudo** fosse editável, e
+> escolheu isso sabendo que implicava tabela nova. As duas primeiras partes caíram; a
+> terceira continua de pé, e é a que importava:
+
+**AVISO NÃO SOMA EM CONTA NENHUMA.** Nem no custo real, nem na estimativa, nem na Caixa.
+Ele é recado, não dinheiro.
+
+O que mudou na prática:
+
+- Os avisos saíram dos arquivos e viraram linhas da tabela `aviso` (`supabase/04-avisos.sql`).
+  Os JSONs de `src/content` continuam sendo a **semente**: `npm run seed` os traduz em
+  linhas, uma vez, e daí em diante quem manda é o banco.
+- Cada aviso tem `spot` (onde aparece), `tone` (a cor), título, corpo e posição. São
+  **45**: 7 de cidade, 18 de dia, 4 de país, 15 do "o que eu acho que não vale", e o
+  "não conte duas vezes" do Transporte.
+- **O corpo é texto puro.** Negrito se escreve `*assim*`, entre asteriscos, como no
+  WhatsApp — `marcado()` em `fmt.ts` é o único lugar do app que transforma isso em HTML,
+  e ele escapa tudo antes. Foi assim que o `<b>` das minhas notas sobreviveu à mudança
+  sem reabrir o buraco de 04/09, em que um `<` solto engolia o resto da frase.
+- Regra 5.14 continua valendo: aviso apagado tem o `seed_id` gravado em `killed_seed` e
+  **não volta** na próxima semeadura.
 
 ### 5.7 — A diária de hospedagem é a **cheia do anúncio**, não a parte dele.
 Ordem explícita: *"deixe a diaria total, não a minha parte"*. A divisão entre os dois é
@@ -350,8 +370,8 @@ Ficam como constantes no código, porque não são editáveis e não contam em n
 | constante | fonte | por quê |
 |---|---|---|
 | países e cidades | `paises-cidades.json` | estrutura fixa da viagem |
-| avisos de dia (18) | `avisos-dia.json` | regra 5.6 |
-| avisos de cidade (7) | `avisos-cidade.json` | regra 5.6 |
+| avisos de dia (18) | `avisos-dia.json` | **semente** da tabela `aviso` (5.6, revista) |
+| avisos de cidade (7) | `avisos-cidade.json` | **semente** da tabela `aviso` (5.6, revista) |
 | sugestões de comida | `comidas-sugeridas.json` | camada de pesquisa; o + copia para `food`. **Só os 7 países de `paises-cidades.json`** — `be` e `pl` são resquício de cidades cortadas |
 | sugestões de reserva | `reservas-sugeridas.json` | idem, o + copia para `booking` |
 | textos de hospedagem | `hospedagem.json` (`res`, `warn`, `area`) | é a justificativa do bairro, não dado dele |

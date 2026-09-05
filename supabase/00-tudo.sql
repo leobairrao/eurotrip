@@ -183,6 +183,23 @@ create table if not exists settings (
 );
 insert into settings (id) values (1) on conflict do nothing;
 
+-- ---------- 9b. avisos ----------
+-- Eram meus e moravam em arquivo (regra 5.6). Desde 05/09/2026 sao dele:
+-- editaveis e apagaveis. O corpo e TEXTO PURO — negrito se escreve *assim*.
+create table if not exists aviso (
+  id          uuid primary key default gen_random_uuid(),
+  spot        text not null,                 -- 'atracoes:lisboa', 'comidas:pt', 'transporte'...
+  tone        text not null default 'warn'
+              check (tone in ('free','warn','alert')),
+  title       text not null default '',
+  body        text not null default '',
+  position    int not null default 0,
+  seed_id     text unique,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists aviso_spot_idx on aviso (spot);
+
 -- ---------- 10. sementes apagadas ----------
 -- Regra 5.14: seed_id que o usuario apagou nunca volta.
 create table if not exists killed_seed (
@@ -247,6 +264,7 @@ alter table extra        enable row level security;
 alter table settings     enable row level security;
 alter table killed_seed  enable row level security;
 alter table adopted      enable row level security;
+alter table aviso        enable row level security;
 alter table savings      enable row level security;
 alter table contribution enable row level security;
 
@@ -262,7 +280,7 @@ create policy "app_user ler" on app_user for select using (is_member());
 do $$
 declare t text;
 begin
-  foreach t in array array['day','attraction','food','leg','booking','stay','extra','settings','killed_seed','adopted']
+  foreach t in array array['day','attraction','food','leg','booking','stay','extra','settings','killed_seed','adopted','aviso']
   loop
     execute format('drop policy if exists %I on %I', 'so os dois', t);
     execute format(
@@ -306,7 +324,7 @@ declare t text;
 begin
   foreach t in array array['day','attraction','food','leg','booking','stay',
                            'extra','settings','killed_seed','adopted',
-                           'savings','contribution']
+                           'savings','contribution','aviso']
   loop
     begin
       execute format('alter publication supabase_realtime add table %I', t);
@@ -324,6 +342,7 @@ alter table extra        replica identity full;
 alter table killed_seed  replica identity full;
 alter table adopted      replica identity full;
 alter table contribution replica identity full;
+alter table aviso        replica identity full;
 
 -- ------------------------------------------------------------
 -- Limpeza: se este banco ja tinha a versao privada, tire o que

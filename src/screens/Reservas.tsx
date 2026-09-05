@@ -11,7 +11,7 @@ import { Nota, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp, useOrdemEstavel } from '@/lib/store';
 import * as C from '@/lib/calc';
 import { mover } from '@/lib/ordem';
-import { brl, parseNum, stripTags } from '@/lib/fmt';
+import { brl, deHtml, parseNum } from '@/lib/fmt';
 
 export default function Reservas() {
   const { s, patch, now, insert, remove } = useApp();
@@ -142,7 +142,7 @@ export default function Reservas() {
               </span>
               <TextField
                 fk={`booking|${r.id}|note`}
-                value={stripTags(r.note)}
+                value={r.note}
                 onCommit={(v) => patch('booking', r.id, 'note', v)}
                 className="wv"
                 placeholder="prazo, preço, onde se faz"
@@ -179,9 +179,9 @@ export default function Reservas() {
                   onClick={() => {
                     void insert('booking', {
                       position: proximaPos(),
-                      name: stripTags(sg[0]),
+                      name: deHtml(sg[0]),
                       // igual ao + de Comidas: linha dele nunca guarda tag (regra 10.0)
-      note: stripTags(sg[1]),
+      note: deHtml(sg[1]),
                       amount: null,
                       currency: 'brl',
                       done: false,
@@ -218,9 +218,9 @@ function Acrescentar({ proximaPos }: { proximaPos: () => number }) {
     if (!nm) return;
     void insert('booking', {
       position: proximaPos(),
-      name: stripTags(nm),
+      name: nm,
       // o detalhe e mostrado como HTML na lista, entao arranca as tags (secao 10.0)
-      note: stripTags(detalhe.get()),
+      note: detalhe.get(),
       amount: parseNum(valor.get()),
       currency: moeda.current?.value === 'eur' ? 'eur' : 'brl',
       done: false,

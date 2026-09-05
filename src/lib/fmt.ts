@@ -176,6 +176,33 @@ export function escHtml(s: unknown): string {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * Texto puro -> HTML seguro, com *negrito* entre asteriscos.
+ *
+ * Escapa TUDO primeiro, e so depois deixa o asterisco virar <b>. Assim o
+ * unico HTML que sai daqui e o que esta funcao mesmo pos — o que ele
+ * digitar nunca vira tag, nem engole a frase (foi o bug de 04/09).
+ *
+ * O asterisco e a convencao do WhatsApp, que e onde ele ja escreve
+ * assim. Conferido: nenhum dos 45 avisos semeados tinha asterisco, entao
+ * a troca de <b> por * nao colide com nada.
+ */
+export function marcado(s: unknown): string {
+  return escHtml(s).replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+}
+
+/**
+ * O caminho inverso, SO para a semeadura: '<b>x</b>' vira '*x*'.
+ * O <i> nao tem par no asterisco — vira texto comum (so um aviso usava).
+ */
+export function deHtml(s: unknown): string {
+  return stripTags(
+    String(s ?? '')
+      .replace(/<\/?b>/g, '*')
+      .replace(/<\/?i>/g, ''),
+  );
+}
+
 export function stripTags(s: string): string {
   return String(s ?? '')
     .replace(/<[^>]*>/g, '')

@@ -39,9 +39,12 @@ src/lib/
   ui.tsx          76    estado de navegação (aba, dia, país, filtro)
   supabase/      2 arq  cliente do navegador e do servidor
   ordem.ts        40    subir/descer numa lista ordenada por `position`
+  entrar.ts       55    quem entra, e com que nome
+  avisos-semente.ts ~76 os JSONs de aviso -> linhas da tabela `aviso`
 
 src/components/
-  Field.tsx      138    OS CAMPOS. Leia a seção 4 antes de tocar.
+  Field.tsx      ~180   OS CAMPOS. Leia a seção 4 antes de tocar.
+  Avisos.tsx     ~220   desenha e edita aviso — usado nas 4 telas
   AppShell.tsx   120    cabeçalho, as 9 abas, presença, rodapé
   Login.tsx      105    a tela de entrada
 
@@ -54,8 +57,8 @@ src/screens/           uma tela por arquivo, na ordem das abas
 
 src/app/
   estilo-atual.css 587  O CSS, sem a tag <style>. NÃO RENOMEIE CLASSE.
-  extras.css       ~86  o pouco que o artefato não tinha (login, presença,
-                        e o extrato de aportes da Caixa)
+  extras.css      ~210  o que o artefato não tinha: login, presença, o extrato
+                        de aportes, os controles de linha e os avisos
   page.tsx              servidor: sessão → allowlist → carrega tudo
   layout.tsx            html lang=pt-BR, as 3 fontes do Google
   auth/callback/        o link mágico volta aqui
@@ -67,6 +70,8 @@ supabase/
   02-politicas.sql      RLS, Realtime, e a nota de como fechar a Caixa
   03-caixa-aportes.sql  migração: a Caixa deixa de ser mês a mês (04/09).
                         Só para banco que já existia. Num banco novo, 01 já basta.
+  04-avisos.sql         migração: os avisos saem do arquivo e viram tabela (05/09).
+                        Depois dela, rode `npm run seed` para encher.
 
 scripts/                rodam SÓ na sua máquina, com a chave secreta
   seed.mjs              primeira carga + reconciliação por seed_id
@@ -75,7 +80,7 @@ scripts/                rodam SÓ na sua máquina, com a chave secreta
   usuarios.mjs          cria as 2 contas e a allowlist
   link.mjs              gera link de entrada sem passar pelo e-mail
 
-tests/                  62 testes sobre o código de produção
+tests/                  82 testes sobre o código de produção
 ```
 
 ---
@@ -262,7 +267,7 @@ números que o usuário espera ver, calculados do estado real dele.
 ### Conferir se não quebrou nada
 
 ```bash
-npm test          # 62 testes: as fórmulas, a mesclagem e a ordem
+npm test          # 82 testes: as fórmulas, a mesclagem e a ordem
 npm run typecheck # TypeScript estrito
 npm run build     # o build da Vercel roda isso
 npm run check     # os 18 números de aceite, lidos DO BANCO
@@ -399,6 +404,37 @@ Duas coisas que parecem detalhe e não são:
 - **Cidade vazia órfãa a linha.** A atração só aparece dentro do cartão da cidade dela;
   com `city = ''` ela some de todos e não há como achá-la de novo pela tela. O select não
   tem como devolver vazio, mas a trava custa uma linha e está lá.
+
+### Os avisos viraram dele, e o negrito virou *asterisco*
+
+A regra 5.6 dizia "o aviso é meu, não dele — não edita, não apaga, não soma". Em 05/09 ele
+pediu tudo editável. As duas primeiras partes caíram; **a terceira continua de pé e é a que
+importava: aviso não soma em conta nenhuma.**
+
+São 45 linhas agora: 7 de cidade, 18 de dia, 4 de país, 15 do "o que eu acho que não vale"
+e o "não conte duas vezes" do Transporte — este último era JSX cravado na tela.
+
+**A decisão que carrega o resto: o corpo é texto puro, e o negrito se escreve `*assim*`.**
+
+Podia ter guardado HTML e editado num textarea com as tags à mostra. Não dá: de manhã eu
+descobri, do jeito difícil, que `stripTags` não segura um `<` sem `>` depois, e que
+`dangerouslySetInnerHTML` engole a frase inteira a partir dali. Guardar tag num campo que
+ele edita seria reabrir aquele buraco em 45 lugares novos.
+
+O asterisco resolve os dois lados: `marcado()` **escapa tudo primeiro** e só depois deixa
+`*x*` virar `<b>`, então o único HTML que existe é o que essa função produz. E é a
+convenção do WhatsApp, que é onde ele já escreve assim. Conferi antes de decidir: nenhum
+dos 49 textos semeados tinha asterisco, então a troca não colidiu com nada.
+
+**Uma fonte só para a semeadura.** `src/lib/avisos-semente.ts` traduz os JSONs em linhas, e
+é importado por dois lugares que precisam concordar: o `npm run seed` e o modo
+demonstração. Se divergissem, a demonstração deixaria de valer como ensaio da tela real.
+Foi por isso que `npm run seed` passou a rodar com o resolvedor de TypeScript
+(`scripts/_ts.mjs`, o mesmo dos testes) — antes ele só lia JSON.
+
+**O formulário de acrescentar fica recolhido atrás de um `+ aviso`.** Aberto, ele apareceria
+embaixo de cada uma das 11 cidades e de cada um dos 34 dias do Roteiro. E o botão `mexer`
+só aparece no hover — no toque, onde não há hover, ele fica sempre visível a 70%.
 
 ### O middleware nunca rodou — e ninguém tinha percebido
 
@@ -581,7 +617,7 @@ Reset database password.
 
 ### Provado
 
-- **62 testes** rodando contra o código de produção (`src/lib/calc.ts` e
+- **82 testes** rodando contra o código de produção (`src/lib/calc.ts` e
   `src/lib/merge.ts`), sobre o estado real de `dados/estado-atual-do-leo.json` — não
   contra uma cópia.
 - **18 números de aceite** lidos do banco por `npm run check`.
@@ -625,7 +661,7 @@ As que mais aparecem no código:
 - **5.2** só `escolhida` entra no custo.
 - **5.3** pôr num dia **é** escolher; tirar do dia **não** desfaz.
 - **5.4** a base sozinha não é plano — plano é texto dele ou atração marcada.
-- **5.6** os avisos são fixos: não editáveis, não apagáveis, não somam.
+- **5.6** ~~os avisos são fixos~~ **revista em 05/09**: ele edita e apaga. Só continua valendo que **não somam** em conta nenhuma.
 - **5.8** prato típico não vai para dia; trocar para prato limpa a data.
 - **5.9** comida não tem preço. Nenhum campo.
 - **5.10** o valor conta sempre; a caixinha só decide de que lado.

@@ -46,6 +46,7 @@ alter table extra        enable row level security;
 alter table settings     enable row level security;
 alter table killed_seed  enable row level security;
 alter table adopted      enable row level security;
+alter table aviso        enable row level security;
 alter table savings      enable row level security;
 alter table contribution enable row level security;
 
@@ -61,7 +62,7 @@ create policy "app_user ler" on app_user for select using (is_member());
 do $$
 declare t text;
 begin
-  foreach t in array array['day','attraction','food','leg','booking','stay','extra','settings','killed_seed','adopted']
+  foreach t in array array['day','attraction','food','leg','booking','stay','extra','settings','killed_seed','adopted','aviso']
   loop
     execute format('drop policy if exists %I on %I', 'so os dois', t);
     execute format(
@@ -105,7 +106,7 @@ declare t text;
 begin
   foreach t in array array['day','attraction','food','leg','booking','stay',
                            'extra','settings','killed_seed','adopted',
-                           'savings','contribution']
+                           'savings','contribution','aviso']
   loop
     begin
       execute format('alter publication supabase_realtime add table %I', t);
@@ -123,6 +124,7 @@ alter table extra        replica identity full;
 alter table killed_seed  replica identity full;
 alter table adopted      replica identity full;
 alter table contribution replica identity full;
+alter table aviso        replica identity full;
 
 -- ------------------------------------------------------------
 -- Limpeza: se este banco ja tinha a versao privada, tire o que

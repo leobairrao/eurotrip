@@ -77,6 +77,8 @@ function snapshotDoLeo() {
       lu:  { who: 'lu',  goal: null, currency: 'eur' },
     },
     contributions: [],
+    avisos: [],
+  avisos: [],
     me: { id: 'x', email: 'leo@x', who: 'leo' },
     hoje: '2026-09-04',
   };

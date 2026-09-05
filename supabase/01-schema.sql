@@ -177,6 +177,23 @@ create table if not exists settings (
 );
 insert into settings (id) values (1) on conflict do nothing;
 
+-- ---------- 9b. avisos ----------
+-- Eram meus e moravam em arquivo (regra 5.6). Desde 05/09/2026 sao dele:
+-- editaveis e apagaveis. O corpo e TEXTO PURO — negrito se escreve *assim*.
+create table if not exists aviso (
+  id          uuid primary key default gen_random_uuid(),
+  spot        text not null,                 -- 'atracoes:lisboa', 'comidas:pt', 'transporte'...
+  tone        text not null default 'warn'
+              check (tone in ('free','warn','alert')),
+  title       text not null default '',
+  body        text not null default '',
+  position    int not null default 0,
+  seed_id     text unique,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists aviso_spot_idx on aviso (spot);
+
 -- ---------- 10. sementes apagadas ----------
 -- Regra 5.14: seed_id que o usuario apagou nunca volta.
 create table if not exists killed_seed (

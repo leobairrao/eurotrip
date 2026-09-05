@@ -31,6 +31,7 @@ const base = () => ({
     lu:  { who: 'lu',  goal: null, currency: 'eur' },
   },
   contributions: [],
+  avisos: [],
   me: { id: 'u1', email: 'leo@x', who: 'leo' },
   hoje: '2026-09-04',
 });
@@ -217,6 +218,38 @@ test('o aporte tirado pelo outro sai da tela', () => {
     old: { id: 'c1', who: 'lu', on_date: '2026-09-03', label: 'sobra', amount: 100 },
   }, new Map());
   assert.equal(s.contributions.length, 0);
+});
+
+test('o aviso que o outro escreveu aparece, e o que ele apagou some', () => {
+  let s = base();
+  assert.equal(s.avisos.length, 0);
+  s = aplicarRemoto(s, 'aviso', {
+    eventType: 'INSERT',
+    new: { id: 'a1', spot: 'atracoes:lisboa', tone: 'warn', title: 'fila',
+           body: 'vá cedo', position: 0, seed_id: null },
+    old: {},
+  }, new Map());
+  assert.equal(s.avisos.length, 1);
+  assert.equal(s.avisos[0].title, 'fila');
+
+  // ele estava digitando o corpo quando chegou o eco antigo
+  const pend = new Map([[chave('aviso', 'a1', 'body'), 'vá muito cedo']]);
+  s = mesclar(s, 'aviso', 'a1', { body: 'vá muito cedo' });
+  s = aplicarRemoto(s, 'aviso', {
+    eventType: 'UPDATE',
+    new: { id: 'a1', spot: 'atracoes:lisboa', tone: 'alert', title: 'fila enorme',
+           body: 'vá cedo', position: 0, seed_id: null },
+    old: {},
+  }, pend);
+  assert.equal(s.avisos[0].body, 'vá muito cedo', 'o que ele digitou fica');
+  assert.equal(s.avisos[0].title, 'fila enorme', 'o titulo dela entra');
+  assert.equal(s.avisos[0].tone, 'alert', 'a cor dela entra');
+
+  s = aplicarRemoto(s, 'aviso', {
+    eventType: 'DELETE', new: {},
+    old: { id: 'a1', spot: 'atracoes:lisboa' },
+  }, new Map());
+  assert.equal(s.avisos.length, 0);
 });
 
 test('mesclar e imutavel: nao mexe no objeto antigo', () => {

@@ -8,16 +8,17 @@
 // ============================================================
 import type { ReactNode } from 'react';
 import {
-  AKE, CO, CT, DAYNOTE, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL,
+  AKE, CO, CT, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL,
   ccOf, coOf,
 } from '@/content';
-import type { Aviso, City } from '@/content';
+import type { City } from '@/content';
 import { AreaField, Inline, TextField } from '@/components/Field';
+import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, eur, longDt, num, shortDt, wdOf } from '@/lib/fmt';
-import type { Attraction, Food, Leg } from '@/lib/types';
+import { brl, eur, longDt, marcado, num, shortDt, wdOf } from '@/lib/fmt';
+import type { Attraction, Food, Leg, Snapshot } from '@/lib/types';
 
 // Os rotulos como Record<string,string>: a chave vem do banco (palavra
 // inteira) e nem sempre esta no tipo estreito de `as const`.
@@ -28,8 +29,12 @@ const TKS = Object.keys(TK);
 
 const WDS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
 
-/** DAYNOTE e CT sao dicionarios esparsos: a maioria das chaves nao existe. */
-const avisoDe = (iso: string): Aviso | undefined => DAYNOTE[iso];
+/**
+ * O aviso de um dia. Desde 05/09 ele vem do BANCO, nao do arquivo: e
+ * dele, edita e apaga. O calendario e o cartao do dia mostram so o
+ * primeiro, que e o que cabe; a tela do dia mostra todos.
+ */
+const avisoDe = (s: Snapshot, iso: string) => C.avisosDe(s, `roteiro:${iso}`)[0];
 const cidadeDe = (k: string): City | undefined => CT[k];
 
 export default function Roteiro() {
@@ -184,7 +189,7 @@ function Mes({ y, m, label }: { y: number; m: number; label: string }) {
       cels.push(<div key={iso} className="cd off">{d}</div>);
       continue;
     }
-    const av = avisoDe(iso);
+    const av = avisoDe(s, iso);
     cels.push(
       <div
         key={iso}
@@ -198,7 +203,7 @@ function Mes({ y, m, label }: { y: number; m: number; label: string }) {
       >
         {d}
         {C.hasPlan(s, iso) ? <span className="pip" /> : null}
-        {av ? <span className={`nt nt-${av[0]}`} /> : null}
+        {av ? <span className={`nt nt-${av.tone}`} /> : null}
       </div>,
     );
   }
@@ -223,7 +228,7 @@ function DiaLinha({ iso }: { iso: string }) {
   const d = s.days[iso];
   const base = (d?.base ?? '').trim();
   const plano = (d?.plan ?? '').trim();
-  const av = avisoDe(iso);
+  const av = avisoDe(s, iso);
 
   return (
     <div
@@ -243,7 +248,7 @@ function DiaLinha({ iso }: { iso: string }) {
           : <p style={{ color: 'var(--muted)' }}>clique para escrever</p>}
         <DiaTags iso={iso} />
         {av ? (
-          <div className="ntags"><span className={`ntg nt-${av[0]}`}>{av[1]}</span></div>
+          <div className="ntags"><span className={`ntg nt-${av.tone}`}>{av.title}</span></div>
         ) : null}
       </div>
     </div>
@@ -311,7 +316,7 @@ function Editor({ iso }: { iso: string }) {
 function CartaoDia({ iso }: { iso: string }) {
   const { s, patch, now } = useApp();
   const d = s.days[iso];
-  const av = avisoDe(iso);
+  const av = avisoDe(s, iso);
 
   return (
     <div className="card" style={{ ['--cc' as string]: 'var(--pine)' }}>
@@ -320,13 +325,8 @@ function CartaoDia({ iso }: { iso: string }) {
         <div className="m">{wdOf(iso)} · dia {ISOS.indexOf(iso) + 1} de {ISOS.length}</div>
       </div>
       <div className="b">
-        {/* O aviso e meu, nao dele: nao se edita nem se apaga (regra 5.6). */}
-        {av ? (
-          <div className={`n ${av[0]}`} style={{ maxWidth: 'none', margin: '0 0 4px' }}>
-            <b>{av[1]}</b>
-            <Inline html={av[2]} />
-          </div>
-        ) : null}
+        {/* O aviso do dia virou dele em 05/09: edita, apaga, e pode ter mais de um. */}
+        <Avisos spot={`roteiro:${iso}`} rotulo="aviso do dia" />
 
         <div className="form">
           <div className="fld">
@@ -469,7 +469,7 @@ function CartaoTransporte({ iso }: { iso: string }) {
                     >
                       +
                     </button>
-                    {t.note ? <div className="wh">{t.note}</div> : null}
+                    {t.note ? <Inline html={marcado(t.note)} className="wh" /> : null}
                   </div>
                 );
               })}
@@ -600,7 +600,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                       >
                         +
                       </button>
-                      {it.note ? <div className="wh">{it.note}</div> : null}
+                      {it.note ? <Inline html={marcado(it.note)} className="wh" /> : null}
                     </div>
                   );
                 })}
@@ -671,7 +671,7 @@ function CartaoComidas({ iso }: { iso: string }) {
                 >
                   ×
                 </button>
-                {it.note ? <div className="wh">{it.note}</div> : null}
+                {it.note ? <Inline html={marcado(it.note)} className="wh" /> : null}
               </div>
             ))}
           </div>
@@ -728,7 +728,7 @@ function CartaoComidas({ iso }: { iso: string }) {
                   >
                     +
                   </button>
-                  {it.note ? <div className="wh">{it.note}</div> : null}
+                  {it.note ? <Inline html={marcado(it.note)} className="wh" /> : null}
                 </div>
               ))}
               {other ? (

@@ -6,8 +6,8 @@
 import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
 import type {
-  AppUser, Attraction, Booking, Contribution, Extra, Food, Leg,
-  Savings, Settings, Snapshot, Stay, Who,
+  AppUser, Attraction, Aviso, Booking, Contribution, Extra, Food, Leg,
+  Savings, Settings, Snapshot, Stay, Tone, Who,
 } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -38,6 +38,7 @@ const vazio = (): Snapshot => ({
     lu:  { who: 'lu',  goal: null, currency: 'eur' },
   },
   contributions: [],
+  avisos: [],
   me: null,
   hoje: hojeIso(),
 });
@@ -55,7 +56,7 @@ function hojeIso(): string {
 export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<Snapshot> {
   const [
     day, attraction, food, leg, booking, stay, extra, settings,
-    killed, adopted, savings, contribution,
+    killed, adopted, savings, contribution, aviso,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
     db.from('attraction').select('*'),
@@ -69,6 +70,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('adopted').select('seed_id'),
     db.from('savings').select('*'),
     db.from('contribution').select('*').order('on_date'),
+    db.from('aviso').select('*').order('position'),
   ]);
 
   const s = vazio();
@@ -90,6 +92,9 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     s.savings[r.who] = { who: r.who, goal: n(r.goal), currency: r.currency };
   }
   s.contributions = (contribution.data ?? []).map(normAporte);
+  // A tabela pode nao existir ainda (antes de rodar 04-avisos.sql): o
+  // erro nao derruba a pagina, a tela so fica sem aviso nenhum.
+  s.avisos = (aviso.data ?? []).map(normAviso);
   return s;
 }
 
@@ -125,6 +130,14 @@ const normBooking = (r: Record<string, unknown>): Booking => ({
 const normExtra = (r: Record<string, unknown>): Extra => ({
   id: String(r.id), name: String(r.name), amount: n(r.amount),
   currency: r.currency as Extra['currency'],
+});
+const TONES: Tone[] = ['free', 'warn', 'alert'];
+const normAviso = (r: Record<string, unknown>): Aviso => ({
+  id: String(r.id), spot: String(r.spot ?? ''),
+  tone: TONES.includes(r.tone as Tone) ? (r.tone as Tone) : 'warn',
+  title: String(r.title ?? ''), body: String(r.body ?? ''),
+  position: Number(r.position ?? 0),
+  seed_id: r.seed_id ? String(r.seed_id) : null,
 });
 const normAporte = (r: Record<string, unknown>): Contribution => ({
   id: String(r.id), who: r.who === 'lu' ? 'lu' : 'leo',
@@ -234,6 +247,11 @@ export async function carregarDemo(): Promise<Snapshot> {
           label: 'aporte do mês', amount: v,
         });
     }
+  // Os avisos, montados dos mesmos JSONs que o `npm run seed` usa —
+  // assim a demonstracao mostra a tela como ela fica depois de semeada.
+  const { avisosSemeados } = await import('./avisos-semente');
+  s.avisos = avisosSemeados().map((a, i) => ({ ...a, id: `demo-av-${i}` }));
+
   s.me = { id: 'demo', email: 'demonstração', who: 'leo' };
   return s;
 }

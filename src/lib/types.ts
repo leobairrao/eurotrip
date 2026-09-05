@@ -5,6 +5,8 @@ export type AttrKind = 'passeio' | 'tour';
 export type FoodKind = 'prato' | 'restaurante' | 'cafe';
 export type LegKind = 'trem' | 'aviao' | 'onibus' | 'carro';
 export type Who = 'leo' | 'lu';
+/** A cor da barra de um aviso: verde, ambar, vermelho. */
+export type Tone = 'free' | 'warn' | 'alert';
 
 export interface Day {
   iso: string;
@@ -94,6 +96,23 @@ export interface Contribution {
   /** So para desempatar dois aportes do MESMO dia no acumulado. */
   created_at?: string;
 }
+/**
+ * Um aviso: um cartao de recado numa tela.
+ *
+ * Ate 05/09/2026 eles eram meus e moravam em arquivo (regra 5.6). Agora
+ * sao linhas, e ele edita e apaga. O `body` e TEXTO PURO: negrito se
+ * escreve *assim*, e a tela converte com `marcado()`.
+ */
+export interface Aviso {
+  id: string;
+  /** onde aparece: 'atracoes:lisboa' | 'roteiro:2026-12-10' | 'comidas:pt' | 'comidas:pt:naovale' | 'transporte' */
+  spot: string;
+  tone: Tone;
+  title: string;
+  body: string;
+  position: number;
+  seed_id: string | null;
+}
 export interface Settings {
   id: number;
   eur_rate: number;
@@ -128,6 +147,8 @@ export interface Snapshot {
   savings: Record<Who, Savings>;
   /** Todos os aportes dos dois, sem ordem garantida. Ordene com C.cxLista. */
   contributions: Contribution[];
+  /** Os avisos de todas as telas. Filtre com C.avisosDe(s, spot). */
+  avisos: Aviso[];
   me: AppUser | null;
   /**
    * A data de hoje, fixada UMA vez no servidor (ISO 'aaaa-mm-dd').

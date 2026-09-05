@@ -9,7 +9,7 @@
 // ============================================================
 import { useEffect, useId, useRef } from 'react';
 import { estaFocado, limparFoco, marcarFoco } from '@/lib/store';
-import { inputInt, inputNum, isData, parseInt10, parseNum, stripTags } from '@/lib/fmt';
+import { inputInt, inputNum, isData, parseInt10, parseNum } from '@/lib/fmt';
 
 interface Base {
   /** Chave unica do campo: "tabela|linha|coluna". E o que protege o foco. */
@@ -35,6 +35,17 @@ function useRemoto(
 }
 
 // ---------------- texto ----------------
+// O que ele digita vai para o banco COMO ELE DIGITOU.
+//
+// Ate 05/09 estes campos passavam por stripTags a cada tecla. Parecia
+// prudencia e era destruicao: a regex e /<[^>]*>/g, que nao escapa —
+// APAGA. Escrever "metro custa < 2 euros e > 1 zona" gravava "metro
+// custa  1 zona", e as quatro palavras sumiam do banco, nao so da tela.
+// Era o bug de 04/09 ao contrario, e a revisao de 05/09 o pegou.
+//
+// Podar aqui deixou de ser necessario quando a SAIDA passou a escapar
+// sempre: `marcado()` para nota e aviso, JSX puro no resto. A regra 10.0
+// continua cumprida — so que no lugar certo, sem comer o texto dele.
 export function TextField({
   value, onCommit, fk, ...r
 }: Base & { value: string; onCommit: (v: string) => void }) {
@@ -47,7 +58,7 @@ export function TextField({
       defaultValue={value}
       onFocus={() => marcarFoco(fk)}
       onBlur={() => limparFoco(fk)}
-      onInput={(e) => onCommit(stripTags(e.currentTarget.value))}
+      onInput={(e) => onCommit(e.currentTarget.value)}
       {...r}
     />
   );
@@ -65,7 +76,7 @@ export function AreaField({
       defaultValue={value}
       onFocus={() => marcarFoco(fk)}
       onBlur={() => limparFoco(fk)}
-      onInput={(e) => onCommit(stripTags(e.currentTarget.value))}
+      onInput={(e) => onCommit(e.currentTarget.value)}
       {...r}
     />
   );
@@ -165,13 +176,13 @@ export function useLocal(inicial = '') {
 
 /**
  * Nota semeada: vem dos JSONs com <b> e <i>, e SO ela e renderizada
- * como HTML. O que o usuario digita passa por stripTags antes de salvar,
- * entao nunca chega tag aqui (secao 10.0).
+ * como HTML. O que o usuario digita nao passa por aqui: ele e pintado
+ * por `marcado()`, que escapa tudo antes (secao 10.0).
  */
 export function Nota({ html, className }: { html: string; className?: string }) {
   if (!html) return null;
   return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
-export function Inline({ html }: { html: string }) {
-  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+export function Inline({ html, className }: { html: string; className?: string }) {
+  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }

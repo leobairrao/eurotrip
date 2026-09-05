@@ -155,6 +155,31 @@ async function seedIdsDe(tabela) {
   conta('linhas de caixa', novas.length);
 }
 
+// ============ 7b. avisos ============
+// Eram meus e moravam em arquivo (regra 5.6). Desde 05/09 sao linhas
+// dele. A lista sai da MESMA funcao que o modo demonstracao usa, para as
+// duas nao divergirem: src/lib/avisos-semente.ts.
+//
+// Regra 5.14: aviso que ele apagou nao volta. Por isso a semeadura pula
+// o que estiver em killed_seed, e pula tambem o que ja existe.
+{
+  const { avisosSemeados } = await import('../src/lib/avisos-semente.ts');
+  const mortos = new Set(
+    (await precisa(await db.from('killed_seed').select('seed_id'), 'ler killed_seed'))
+      .map((r) => r.seed_id),
+  );
+  const existentes = new Set(
+    (await precisa(await db.from('aviso').select('seed_id'), 'ler avisos'))
+      .map((r) => r.seed_id)
+      .filter(Boolean),
+  );
+  const novos = avisosSemeados().filter(
+    (a) => !mortos.has(a.seed_id) && !existentes.has(a.seed_id),
+  );
+  if (novos.length) await precisa(await db.from('aviso').insert(novos), 'inserir avisos');
+  conta('avisos', novos.length);
+}
+
 // ============ 8. settings ============
 await precisa(
   await db.from('settings').upsert({ id: 1 }, { onConflict: 'id', ignoreDuplicates: true }),

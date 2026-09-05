@@ -6,8 +6,9 @@
 // Regra 5.2: so 'escolhida' entra no custo. O backlog aparece
 // sempre em linha propria ("somaria mais"), nunca somado ao real.
 // ============================================================
-import { AK, AKE, CITYNOTE, CO, CT, ST, STCLS, coOf } from '@/content';
-import { Inline, NumField, TextField, useLocal } from '@/components/Field';
+import { AK, AKE, CO, CT, ST, STCLS, coOf } from '@/content';
+import { NumField, TextField, useLocal } from '@/components/Field';
+import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
@@ -129,8 +130,6 @@ function Cidade({ city, cc }: { city: string; cc: string }) {
   const { s } = useApp();
   const te = C.attrEur(s, city, 'escolhida');
   const tb = C.attrEur(s, city, 'backlog');
-  // Regra 5.6: o aviso de cidade e meu, nao dele — nao edita, nao apaga, nao soma.
-  const av = CITYNOTE[city];
 
   return (
     <div className="card" style={{ ['--cc' as string]: `var(${cc})` }}>
@@ -141,12 +140,8 @@ function Cidade({ city, cc }: { city: string; cc: string }) {
         </div>
       </div>
       <div className="b">
-        {av ? (
-          <div className={`n ${av[0]}`}>
-            <b>{av[1]}</b>
-            <Inline html={av[2]} />
-          </div>
-        ) : null}
+        {/* o aviso da cidade agora e dele: edita e apaga (05/09) */}
+        <Avisos spot={`atracoes:${city}`} rotulo="aviso" />
         <Lista city={city} />
         <AddRow city={city} />
         {te || tb ? (
@@ -267,7 +262,7 @@ function Linha({ it }: { it: Attraction }) {
             nenhum mostra tag crua. O que ele digitar ja sai puro. */}
         <TextField
           fk={`attraction|${it.id}|note`}
-          value={stripTags(it.note)}
+          value={it.note}
           onCommit={(v) => patch('attraction', it.id, 'note', v)}
           className="wv"
           placeholder="uma nota sua"
@@ -286,13 +281,13 @@ function AddRow({ city }: { city: string }) {
   const preco = useLocal();
 
   const por = () => {
-    const nm = stripTags(nome.get()).trim();
+    const nm = nome.get().trim();
     if (!nm) return;
     void insert('attraction', {
       city,
       name: nm,
       price_eur: parseNum(preco.get()) ?? 0,
-      note: stripTags(nota.get()),
+      note: nota.get(),
       status: 'backlog',
       kind: 'passeio',
       day_iso: null,

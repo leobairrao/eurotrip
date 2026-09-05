@@ -6,6 +6,7 @@
 // ============================================================
 import { TK, TKE, TKPL } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
+import Avisos from '@/components/Avisos';
 import { useApp, useOrdemEstavel } from '@/lib/store';
 import * as C from '@/lib/calc';
 import { mover } from '@/lib/ordem';
@@ -80,13 +81,9 @@ export default function Transporte() {
           </p>
           <Linhas />
           <Acrescentar />
-          {/* regra 5.12 — bate-volta com trem no preco da atracao nao entra aqui */}
-          <div className="n warn">
-            <b>não conte duas vezes</b>
-            Bate-volta cujo trem já está no preço da atração —{' '}
-            <b>Sintra, Cascais, Toledo, Segovia, Ávila, Utrecht, Ostia, Nápoles, Florença</b> —
-            fica só na aba Atrações. Aqui é perna entre bases.
-          </div>
+          {/* regra 5.12 — bate-volta com trem no preco da atracao nao entra aqui.
+              O texto virou linha do banco em 05/09: ele edita e apaga. */}
+          <Avisos spot="transporte" rotulo="aviso" />
         </div>
       </div>
 
@@ -217,7 +214,7 @@ function Linhas() {
             {it.day_iso ? <span className="dtag">{shortDt(it.day_iso)}</span> : null}
             <TextField
               fk={`leg|${it.id}|note`}
-              value={stripTags(it.note)}
+              value={it.note}
               onCommit={(v) => patch('leg', it.id, 'note', v)}
               className="wv"
               placeholder="uma nota sua"
@@ -241,7 +238,7 @@ function Acrescentar() {
 
   const juntar = () => {
     // o que ele digita e texto puro: arranca tag antes de salvar (secao 10.0)
-    const n = stripTags(nome.get());
+    const n = nome.get();
     if (!n) return;
     const kv = tipo.current?.value ?? 'trem';
     // regra 5.11 — o que nao for R$ cai no euro, do mesmo lado do calculo
@@ -251,7 +248,7 @@ function Acrescentar() {
     void insert('leg', {
       position: pos,
       name: n,
-      note: stripTags(nota.get()),
+      note: nota.get(),
       kind: TIPOS.find((x) => x === kv) ?? 'trem',
       amount: parseNum(valor.get()),
       currency: moe,

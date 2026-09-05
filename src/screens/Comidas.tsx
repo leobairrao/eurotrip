@@ -9,11 +9,12 @@
 // ============================================================
 import { CO, FK, FKCLS, FKE, FKPL, FOOD, coOf } from '@/content';
 import type { FoodSugg } from '@/content';
-import { Inline, Nota, TextField, useLocal } from '@/components/Field';
+import { Nota, TextField, useLocal } from '@/components/Field';
+import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { shortDt, stripTags } from '@/lib/fmt';
+import { deHtml, shortDt } from '@/lib/fmt';
 import type { Food, FoodKind } from '@/lib/types';
 
 /** A ordem do select e a dos cartoes. E a mesma do artefato. */
@@ -183,7 +184,7 @@ function Linha({ it }: { it: Food }) {
         {it.day_iso ? <span className="dtag">{shortDt(it.day_iso)}</span> : null}
         <TextField
           fk={`food|${it.id}|note`}
-          value={stripTags(it.note)}
+          value={it.note}
           onCommit={(v) => patch('food', it.id, 'note', v)}
           className="wv"
           placeholder="uma nota sua"
@@ -201,12 +202,12 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
   const nota = useLocal();
 
   const por = () => {
-    const nome = stripTags(campo.get());
+    const nome = campo.get();
     if (!nome) return;
     void insert('food', {
       country: selCO,
       name: nome,
-      note: stripTags(nota.get()),
+      note: nota.get(),
       kind,
       day_iso: null,
       seed_id: null,
@@ -250,10 +251,10 @@ function Sugestoes({ f }: { f: FoodSugg }) {
     // killed_seed (regra 5.14).
     await insert('food', {
       country: selCO,
-      name: stripTags(f.reg[ix][0]),
+      name: deHtml(f.reg[ix][0]),
       // texto puro ao entrar: a partir daqui a linha e dele, e linha dele
       // nunca guarda tag. O negrito fica so no meu painel de sugestao.
-      note: stripTags(f.reg[ix][1]),
+      note: deHtml(f.reg[ix][1]),
       kind: 'prato',
       day_iso: null,
       seed_id: sid,
@@ -288,26 +289,9 @@ function Sugestoes({ f }: { f: FoodSugg }) {
           })}
         </div>
 
-        {f.av && f.av.length ? (
-          <div className="sg">
-            <div className="sgh">o que eu acho que não vale</div>
-            {f.av.map((a) => (
-              <div key={a[0]} className="sgr">
-                <Nota html={a[0]} className="nm" />
-                <div className="vl">—</div>
-                <Nota html={a[1]} className="wh" />
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {/* o aviso do pais e meu, nao dele: nao editavel, nao apagavel (regra 5.6) */}
-        {f.warn ? (
-          <div className="n warn" style={{ maxWidth: 'none' }}>
-            <b><Inline html={f.warn[0]} /></b>
-            <Inline html={f.warn[1]} />
-          </div>
-        ) : null}
+        {/* as duas coisas abaixo eram minhas e viraram dele em 05/09 */}
+        <Avisos spot={`comidas:${selCO}:naovale`} lista />
+        <Avisos spot={`comidas:${selCO}`} rotulo="aviso do país" />
       </div>
     </div>
   );

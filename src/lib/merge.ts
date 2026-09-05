@@ -17,13 +17,14 @@ export const PK: Record<string, string> = {
   settings: 'id',
   savings: 'who',
   contribution: 'id',
+  aviso: 'id',
 };
 
 export type Tabela =
   | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'extra'
-  | 'settings' | 'savings' | 'contribution' | 'killed_seed' | 'adopted';
+  | 'settings' | 'savings' | 'contribution' | 'killed_seed' | 'adopted' | 'aviso';
 
-type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'extras' | 'contributions';
+type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'extras' | 'contributions' | 'avisos';
 export const LISTA: Record<string, Lista> = {
   attraction: 'attractions',
   food: 'foods',
@@ -33,6 +34,7 @@ export const LISTA: Record<string, Lista> = {
   // Desde que o aporte virou uma linha com id proprio, a Caixa nao tem
   // mais caso especial nenhum aqui: e uma lista igual as outras.
   contribution: 'contributions',
+  aviso: 'avisos',
 };
 
 export const chave = (t: string, pk: string, col: string) => `${t}|${pk}|${col}`;

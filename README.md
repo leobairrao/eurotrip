@@ -54,7 +54,7 @@ scripts/                 semeadura, importação, allowlist e os números de ace
 src/content/             os JSONs que viram constante no código (seção 6.3)
 src/lib/                 formulas (seção 11), store em tempo real, tipos
 src/screens/             as nove telas
-tests/                   62 testes sobre as formulas e as regras
+tests/                   82 testes sobre as formulas e as regras
 ```
 
 ---
@@ -96,6 +96,12 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 #      supabase/00-tudo.sql        (esquema + politicas, numa colada so)
 #    ou, se preferir separado:
 #      supabase/01-schema.sql  depois  supabase/02-politicas.sql
+#
+# 1c. SO se o seu banco e anterior a 05/09/2026: rode tambem
+#       supabase/04-avisos.sql
+#     Ele cria a tabela `aviso`, para onde os avisos de cidade, de dia e de
+#     pais mudaram — eram arquivo, viraram linha editavel. Depois dela,
+#     `npm run seed` enche a tabela (45 avisos).
 #
 #    O Supabase avisa "destructive operations": e o bloco de limpeza do fim,
 #    que derruba a versao privada da Caixa com `drop ... if exists`. Num banco
