@@ -13,6 +13,7 @@ export const PK: Record<string, string> = {
   leg: 'id',
   booking: 'id',
   stay: 'city',
+  stay_option: 'id',
   extra: 'id',
   settings: 'id',
   savings: 'who',
@@ -21,15 +22,21 @@ export const PK: Record<string, string> = {
 };
 
 export type Tabela =
-  | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'extra'
-  | 'settings' | 'savings' | 'contribution' | 'killed_seed' | 'adopted' | 'aviso';
+  | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'stay_option'
+  | 'extra' | 'settings' | 'savings' | 'contribution' | 'killed_seed'
+  | 'adopted' | 'aviso';
 
-type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'extras' | 'contributions' | 'avisos';
+type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'stayOptions'
+  | 'extras' | 'contributions' | 'avisos';
 export const LISTA: Record<string, Lista> = {
   attraction: 'attractions',
   food: 'foods',
   leg: 'legs',
   booking: 'bookings',
+  // Esquecer esta linha NAO e falha silenciosa, e queda: `inserirLocal`
+  // faz spread sobre `undefined` no primeiro INSERT remoto e a tela toda
+  // cai. A chave TEM que existir no Snapshot tambem (load.ts `vazio()`).
+  stay_option: 'stayOptions',
   extra: 'extras',
   // Desde que o aporte virou uma linha com id proprio, a Caixa nao tem
   // mais caso especial nenhum aqui: e uma lista igual as outras.

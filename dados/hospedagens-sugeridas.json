@@ -1,0 +1,43 @@
+{
+  "_": "Fase 6, 05/09/2026. As opcoes de hospedagem por cidade, tiradas da PROSA que ja estava pesquisada em hospedagem.json — onde Madrid, por exemplo, escondia tres bairros dentro de uma frase. Nenhum preco foi inventado: `diaria` so aparece onde a pesquisa ja trazia numero, e fica null no resto. Formato: [nome, diaria_eur ou null, nota]. A copia identica vive em src/content/ — o seed le dados/ e a tela le src/content/, e criar so num dos dois da uma tela mostrando opcao que o banco nunca vai ter.",
+
+  "caceres": [
+    ["Casa do irmão do CK", 0, "Resolvida e de graça. *Só confirmar com o CK antes de contar com ela.*"]
+  ],
+
+  "lisboa": [
+    ["Arroios", null, "Residencial, metrô direto pra Baixa em 10 min, muito brasileiro. *Metade do preço do Chiado.*"],
+    ["Campo de Ourique", null, "Bairro de família, tranquilo, com o elétrico 28 passando perto. *Metade do preço do Chiado.*"],
+    ["Chiado", null, "O caro. Está aqui só como referência do que você está economizando."]
+  ],
+
+  "madrid": [
+    ["Chamberí", null, "Elegante e residencial, 15 min a pé do centro."],
+    ["Argüelles", null, "Zona universitária, mais barata que Chamberí."],
+    ["Tetuán", null, "Logo ao norte de Chamberí: mais barato, muita comida boa, e vizinho do Bernabéu — encaixa com o tour do estádio. *A melhor parte é Cuatro Caminos*; a faixa de Estrecho na Bravo Murillo é mais movimentada à noite."]
+  ],
+
+  "metz": [
+    ["Perto da Gare de Metz", null, "*É de lá que saem Luxemburgo (45 min), Estrasburgo, Nancy e Paris.* Na semana do mercado de Natal, € 28–92 a diária. A área colada na estação é sem graça à noite, mas não é perigosa."],
+    ["Centro", null, "A pé de tudo. Um pouco mais caro que a estação."],
+    ["Montigny-lès-Metz", null, "Mais barato que o centro; exige um trecho até a Gare todo dia."],
+    ["Woippy", null, "Ainda mais barato. Mesma ressalva do Montigny."]
+  ],
+
+  "reims": [
+    ["Perto da Gare de Reims", null, "*É de lá que sai o trem para Paris*, e são só 3 noites. O eixo estação–catedral é tranquilo."],
+    ["15 a 20 min afastado do centro", null, "O centro é pequeno e se anda todo a pé, então afastar não custa tempo e corta bem a diária. *Evite Croix-Rouge e Orgeval, a oeste.*"]
+  ],
+
+  "amsterda": [
+    ["Haarlem", null, "15 min de trem, canais próprios, muito segura, e *fora da taxa municipal de 12,5%*. É a maior economia isolada do roteiro: ~€ 170 nas três noites."],
+    ["Amsterdam Noord", null, "A alternativa, com balsa gratuita saindo da Centraal."],
+    ["Amsterdã, dentro da cidade", null, "*Cuidado:* 33,5% de imposto sobre pernoite desde 2026 — 21% de IVA mais 12,5% municipal. Um quarto de € 200 sai por € 267."]
+  ],
+
+  "roma": [
+    ["Prati", null, "Do lado do Vaticano: residencial, seguro, com metrô, e bem mais barato que Trastevere ou o Centro Storico."],
+    ["Pigneto", null, "A opção jovem e barata."],
+    ["Termini", null, "*Não durma colado na Termini* — é a região mais degradada do centro à noite. Está aqui para você reconhecer e evitar."]
+  ]
+}

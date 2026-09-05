@@ -33,6 +33,11 @@ const food       = await g('food');
 const leg        = await g('leg');
 const booking    = await g('booking');
 const stay       = await g('stay');
+// Fase 6: a `stay` ficou APOSENTADA (continua no banco, ninguem le) e quem
+// manda e `stay_option`. Sem esta leitura o check diria hospedagem EUR 0 e
+// um total que nao bate com a tela — a mesma "segunda copia da formula"
+// que ja tinha mordido na Fase 3.
+const stayOpt    = await g('stay_option');
 const extra      = await g('extra');
 
 const rate = num(settings?.eur_rate);
@@ -60,14 +65,21 @@ const foraDoRoteiro = attraction.filter((a) => !a.day_iso && a.status !== 'suger
 const pesquisa = attraction.filter((a) => !a.day_iso && a.status === 'sugerida');
 const somaEur = (l) => l.reduce((a, x) => a + num(x.price_eur), 0);
 const attrEsc = somaEur(noRoteiro);
-const stayTot = stay.reduce((a, s) => {
-  const t = num(s.total_eur);
-  return a + (t ? t : num(s.nightly_eur) * num(s.nights));
-}, 0);
+// SO a opcao marcada. Somar todas infla o total em silencio no dia em que
+// existirem tres opcoes em Madrid com diaria lancada.
+const valorOpc = (o) => {
+  const t = num(o.total_eur);
+  return t ? t : num(o.nightly_eur) * num(o.nights);
+};
+const marcadas = stayOpt.filter((o) => o.chosen);
+const stayTot = marcadas.reduce((a, o) => a + valorOpc(o), 0);
 const xEur = extra.reduce((a, x) => (x.currency !== 'brl' ? a + num(x.amount) : a), 0);
 const xBrl = extra.reduce((a, x) => (x.currency === 'brl' ? a + num(x.amount) : a), 0);
 
-const jaPago = VOO + emBrl(bookS('pago')) + emBrl(legS('pago'));
+// Fase 5: atracao e hospedagem passaram a poder ser marcadas como pagas.
+const attrPago = noRoteiro.filter((a) => a.paid).reduce((a, x) => a + num(x.price_eur), 0);
+const stayPago = marcadas.filter((o) => o.paid).reduce((a, o) => a + valorOpc(o), 0);
+const jaPago = VOO + emBrl(bookS('pago')) + emBrl(legS('pago')) + (attrPago + stayPago) * rate;
 const totalReal =
   VOO + (attrEsc + stayTot + xEur + legS('').eur) * rate + xBrl + legS('').brl + emBrl(bookS(''));
 
@@ -109,7 +121,13 @@ linha(
   noRoteiro.length + foraDoRoteiro.length + pesquisa.length,
 );
 linha(leg.length === 12, 'trechos de transporte', 12, leg.length);
-linha(stay.length === 7, 'bases de hospedagem', 7, stay.length);
+linha(stay.length === 7, 'bases de hospedagem (tabela aposentada)', 7, stay.length);
+linha(stayOpt.length >= 18, 'opcoes de hospedagem', '>= 18', stayOpt.length);
+linha(
+  marcadas.length === new Set(marcadas.map((o) => o.city)).size,
+  '  ... no maximo uma marcada por cidade', 'sem cidade repetida',
+  marcadas.length === new Set(marcadas.map((o) => o.city)).size ? 'ok' : 'DUAS marcadas na mesma cidade',
+);
 linha(
   days.every((d) => !d.plan || !d.plan.trim()),
   'texto dos dias comeca vazio (regra 5.5)', 'todos vazios',
@@ -142,7 +160,8 @@ console.log(`      a pesquisa inteira somaria ..... ${eur(somaEur(pesquisa))}`);
 console.log(`      hospedagem ..................... ${eur(stayTot)}`);
 console.log(`      transportes .................... ${eur(legS('').eur)}`);
 console.log(`      burocracia inteira ............. ${brl(emBrl(bookS('')))}`);
-console.log(`      hospedagens com endereco ....... ${stay.filter((s) => (s.address ?? '').trim()).length}/7`);
+console.log(`      hospedagens com endereco ....... ${marcadas.filter((o) => (o.address ?? '').trim()).length}/7`);
+console.log(`      opcoes marcadas ................ ${marcadas.length}/7 bases`);
 console.log(`      trechos comprados .............. ${leg.filter((l) => l.bought).length}/12`);
 console.log(`      bases: ${bases.map((b) => `${b.base} (${b.d}d/${b.nt}n)`).join(' · ')}`);
 console.log(`      rodape: ${emTerra} dias em terra + ${isos.length - emTerra} de voo = ${isos.length} dias de viagem`);

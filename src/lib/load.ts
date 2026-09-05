@@ -7,7 +7,7 @@ import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
 import type {
   AppUser, Attraction, Aviso, Booking, Contribution, Extra, Food, Leg,
-  Savings, Settings, Snapshot, Stay, Tone, Who,
+  Savings, Settings, Snapshot, Stay, StayOption, Tone, Who,
 } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -29,6 +29,10 @@ const vazio = (): Snapshot => ({
   legs: [],
   bookings: [],
   stays: Object.fromEntries(STAYS.map((s) => [s.c, EMPTY_STAY(s.c)])),
+  // A chave TEM que existir aqui, e nao so em `merge.ts`: `inserirLocal`
+  // faz spread sobre ela no primeiro INSERT remoto, e sobre `undefined`
+  // isso e TypeError — a tela inteira cai.
+  stayOptions: [],
   extras: [],
   settings: { id: 1, eur_rate: 6, flight_paid_brl: VOO },
   killed: [],
@@ -55,7 +59,7 @@ function hojeIso(): string {
 
 export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<Snapshot> {
   const [
-    day, attraction, food, leg, booking, stay, extra, settings,
+    day, attraction, food, leg, booking, stay, stayOption, extra, settings,
     killed, adopted, savings, contribution, aviso,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
@@ -67,6 +71,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('leg').select('*').order('position'),
     db.from('booking').select('*').order('position'),
     db.from('stay').select('*'),
+    db.from('stay_option').select('*').order('position'),
     db.from('extra').select('*').order('created_at'),
     db.from('settings').select('*').eq('id', 1).maybeSingle(),
     db.from('killed_seed').select('seed_id'),
@@ -86,6 +91,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
   s.bookings = (booking.data ?? []).map(normBooking);
   s.extras = (extra.data ?? []).map(normExtra);
   for (const st of stay.data ?? []) s.stays[st.city] = normStay(st);
+  s.stayOptions = (stayOption.data ?? []).map(normStayOption);
   if (settings.data) s.settings = { ...settings.data, eur_rate: Number(settings.data.eur_rate) };
   s.killed = (killed.data ?? []).map((r: { seed_id: string }) => r.seed_id);
   s.adopted = (adopted.data ?? []).map((r: { seed_id: string }) => r.seed_id);
@@ -108,6 +114,18 @@ const normAttr = (r: Record<string, unknown>): Attraction => ({
   price_eur: Number(r.price_eur ?? 0), note: String(r.note ?? ''),
   status: r.status as Attraction['status'], kind: r.kind as Attraction['kind'],
   day_iso: r.day_iso ? String(r.day_iso) : null,
+  paid: !!r.paid,
+  seed_id: r.seed_id ? String(r.seed_id) : null,
+});
+const normStayOption = (r: Record<string, unknown>): StayOption => ({
+  id: String(r.id), city: String(r.city), name: String(r.name),
+  note: String(r.note ?? ''),
+  nightly_eur: n(r.nightly_eur), nights: n(r.nights), total_eur: n(r.total_eur),
+  address: String(r.address ?? ''),
+  check_in: String(r.check_in ?? ''), check_out: String(r.check_out ?? ''),
+  link: String(r.link ?? ''),
+  chosen: !!r.chosen, paid: !!r.paid,
+  position: Number(r.position ?? 0),
   seed_id: r.seed_id ? String(r.seed_id) : null,
 });
 const normFood = (r: Record<string, unknown>): Food => ({
@@ -191,6 +209,7 @@ export async function carregarDemo(): Promise<Snapshot> {
         status: ST[String(it.st)] ?? 'backlog',
         kind: it.k === 'tour' ? 'tour' : 'passeio',
         day_iso: it.day && String(it.day).trim() ? String(it.day) : null,
+        paid: !!it.paid,
         seed_id: it.sid ? String(it.sid) : null,
       });
 

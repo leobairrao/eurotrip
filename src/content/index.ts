@@ -10,6 +10,7 @@ import avisosDiaJson from './avisos-dia.json';
 import comidasSugeridasJson from './comidas-sugeridas.json';
 import reservasSugeridasJson from './reservas-sugeridas.json';
 import hospedagemJson from './hospedagem.json';
+import hospSugeridasJson from './hospedagens-sugeridas.json';
 
 export type CountryKey = 'es' | 'pt' | 'fr' | 'lu' | 'de' | 'nl' | 'it';
 export type NoteKind = 'free' | 'warn' | 'alert';
@@ -58,6 +59,18 @@ export interface StaySpec {
   free?: number;
 }
 export const STAYS = hospedagemJson as StaySpec[];
+
+/**
+ * As opcoes de hospedagem por cidade (Fase 6, 05/09).
+ *
+ * Ate aqui nao existia lista nenhuma no repositorio, so PROSA: Madrid
+ * escondia tres bairros dentro de uma frase de `res`. Isto e a mesma
+ * pesquisa, virada em itens. `[nome, diaria em euro ou null, nota]` — a
+ * diaria e null onde a pesquisa nao trazia numero, porque preco de hotel
+ * nao se inventa.
+ */
+export type HospSugg = [string, number | null, string];
+export const HOSP_SUG = hospSugeridasJson as unknown as Record<string, HospSugg[]>;
 
 // ---------- camada de pesquisa: o + copia para a tabela dele (regra 5.13) ----------
 export interface FoodSugg {

@@ -271,3 +271,63 @@
   padding: 4px 9px;
   cursor: pointer;
 }
+
+/* ============================================================
+   Fases 5 e 6 (05/09). Duas grades novas, as duas AQUI e nao no
+   estilo-atual.css — ele continua byte a byte igual a referencia.
+
+   `at6` = a `at5` de Atracoes com uma coluna a mais, para a caixinha
+   "ja paguei". As areas tem que existir dos dois lados da grade: um
+   nome errado e a linha desmonta calada, sem erro nenhum.
+
+   `ho6` = a linha de uma opcao de hospedagem.
+   ============================================================ */
+.mrow.at6 {
+  grid-template-columns: 1fr 104px 116px 84px 30px 34px;
+  grid-template-areas: "nm st ak pr ok x" "wh wh wh wh wh wh";
+}
+.mrow.at6 .kv { color: var(--ink-2); }
+.mrow.at6.st-esc .kv { border-color: var(--pine); }
+
+.mrow.ho6 {
+  grid-template-columns: 1fr 92px 64px 84px 62px 30px 34px;
+  grid-template-areas: "nm pr nt tt es ok x" "wh wh wh wh wh wh wh";
+}
+.mrow.ho6 .nt { grid-area: nt; }
+.mrow.ho6 .vl { grid-area: tt; text-align: right; font-family: var(--mono);
+  font-variant-numeric: tabular-nums; align-self: center; color: var(--ink-2); }
+
+/* "e esta": o botao que decide o que entra no custo da viagem */
+.esta {
+  grid-area: es;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  padding: 7px 4px;
+  border: 1px solid var(--hairline-2);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.esta.on { border-color: var(--pine); color: var(--pine); font-weight: 600; }
+.esta:hover { border-color: var(--ink-2); }
+
+/* o formulario da reserva so aparece depois de ele marcar uma opcao */
+.resv { margin-top: 12px; border-top: 1px solid var(--hairline); padding-top: 12px; }
+
+@media (max-width: 700px) {
+  .mrow.at6 {
+    grid-template-columns: 78px 92px 1fr 30px 32px;
+    grid-template-areas: "nm nm nm nm x" "st ak pr ok ok" "wh wh wh wh wh";
+  }
+  .mrow.at6 .sv, .mrow.at6 .kv { font-size: 10px; padding: 6px 2px; }
+  .mrow.at6 .pv { font-size: 13px; padding: 7px 4px; max-width: none; }
+  .mrow.ho6 {
+    grid-template-columns: 1fr 56px 62px 30px 32px;
+    grid-template-areas: "nm nm nm nm x" "pr nt tt es ok" "wh wh wh wh wh";
+  }
+  .mrow.ho6 .pv { max-width: none; font-size: 13px; }
+  /* WCAG 2.2 pede 24px de alvo; a caixinha herdada tem 18. */
+  .mrow.at6 .ck, .mrow.ho6 .ck { width: 24px; height: 24px; }
+}

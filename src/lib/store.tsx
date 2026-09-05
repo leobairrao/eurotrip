@@ -149,7 +149,7 @@ export function Provider({
       setPendentes(pend.current.size);
 
       // Toda tabela tem updated_at; so as compartilhadas tem updated_by.
-      const COM_AUTOR = ['day','attraction','food','leg','booking','stay','extra'];
+      const COM_AUTOR = ['day','attraction','food','leg','booking','stay','stay_option','extra'];
       const payload: Record<string, unknown> = {
         ...cols,
         updated_at: new Date().toISOString(),
@@ -288,8 +288,12 @@ export function Provider({
     if (!db || !me) return;
     const ch = db.channel('eurotrip', { config: { presence: { key: me.who } } });
 
-    const tabelas = ['day','attraction','food','leg','booking','stay','extra',
-                     'settings','killed_seed','adopted','savings','contribution','aviso'];
+    // TODA TABELA NOVA PRECISA ENTRAR AQUI. A `aviso` ficou de fora na
+    // primeira escrita, em 05/09, e nada de aviso sincronizava — com o SQL
+    // todo correto do outro lado. Foi a revisao que pegou.
+    const tabelas = ['day','attraction','food','leg','booking','stay','stay_option',
+                     'extra','settings','killed_seed','adopted','savings',
+                     'contribution','aviso'];
     for (const t of tabelas) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, (p) => {
         setS((v) => aplicarRemoto(v, t as Tabela, p, pend.current));

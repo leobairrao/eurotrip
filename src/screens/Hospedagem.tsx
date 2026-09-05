@@ -1,39 +1,82 @@
 'use client';
 // ============================================================
-// 10.6 — Hospedagem. Um cartao por base (as 7 de STAYS, nessa ordem).
-// O texto do bairro (area/res/warn) e MEU, semeado: nao e editavel,
-// nao apaga e nao soma (regra 5.6 aplicada ao conteudo fixo da 6.3).
-// O que ele escreve e so o formulario da linha `stay`.
+// 10.6 — Hospedagem, REESCRITA na Fase 6 (05/09/2026).
+//
+// O Leo pediu: "na parte de hospedagem, vamos colocar assim como em
+// atracoes e restaurantes, vamos fazer opcoes por pais". E escolheu, das
+// tres leituras possiveis, a de ESCOLHER: cada cidade vira uma lista de
+// opcoes e ele marca a que fechou.
+//
+// Ate aqui isto eram 7 cartoes fixos, um por base, e os bairros que eu
+// pesquisei estavam em PROSA, escondidos numa frase — Madrid tinha tres
+// (Chamberi, Arguelles, Tetuan) empacotados numa linha so.
+//
+// SO A OPCAO MARCADA ENTRA NO CUSTO. Sem isso, tres opcoes em Madrid com
+// diaria lancada entrariam as tres no total da viagem, e ele veria um
+// numero errado sem nada na tela indicando erro.
+//
+// DUAS ABAS NASCEM SEM BASE, e nao e bug: Luxemburgo e Alemanha nao tem
+// hospedagem porque sao bate-volta de Metz. Aba vazia parece defeito,
+// entao elas dizem isso com todas as letras.
+//
+// O `selCO` e o MESMO de Atracoes e Comidas, de proposito — as duas ja o
+// compartilham. Consequencia registrada: escolher Luxemburgo aqui deixa
+// Atracoes e Comidas abrindo em Luxemburgo no proximo F5, porque
+// `setSelCO` grava em localStorage.
 // ============================================================
-import { CT, STAYS, ccOf, type StaySpec } from '@/content';
-import { AreaField, Inline, NumField, IntField, TextField } from '@/components/Field';
+import { CO, CT, STAYS, coOf } from '@/content';
+import { AreaField, NumField, IntField, TextField, useLocal } from '@/components/Field';
+import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
+import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { EMPTY_STAY } from '@/lib/types';
-import { brl, eur, num } from '@/lib/fmt';
+import { brl, eur, parseNum } from '@/lib/fmt';
+import type { StayOption } from '@/lib/types';
+
 
 const CIDADES = STAYS.map((x) => x.c);
+/** As bases de cada pais. Pode ser vazio: Luxemburgo e Alemanha nao tem. */
+const basesDe = (co: string) => coOf(co).cities.filter((c) => CIDADES.includes(c));
 
 export default function Hospedagem() {
   const { s } = useApp();
+  const { selCO, setSelCO } = useUi();
   const tt = C.stayTotalAll(s, CIDADES);
+  const bases = basesDe(selCO);
 
   return (
     <>
       <div className="panelhead">
         <h2>Hospedagem</h2>
         <p>
-          Os bairros que valem em cada base candidata — baratos, seguros e em cima de transporte.
-          A diária é a <b>diária cheia do anúncio</b>, sem dividir: a divisão a gente resolve
-          quando souber quem vai em qual trecho.
+          As opções que eu pesquisei em cada base, e você marca <b>a que fechou</b>. Só a
+          marcada entra no custo da viagem — as outras ficam guardadas como plano B. A
+          diária é a <b>diária cheia do anúncio</b>, sem dividir.
         </p>
       </div>
 
-      {/* ---- os tres numeros do topo ---- */}
+      {/* as mesmas sub-abas de Atracoes e Comidas */}
+      <div className="subtabs">
+        {CO.map((c) => {
+          const v = c.cities.reduce((a, city) => a + C.stayTotal(s, city), 0);
+          return (
+            <button
+              key={c.k}
+              className="chip"
+              aria-pressed={selCO === c.k}
+              style={{ ['--cc' as string]: `var(${c.cc})` }}
+              onClick={() => setSelCO(c.k)}
+            >
+              {c.n}<span className="cn">{v ? eur(v) : '—'}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="bigsum">
         <div>
           <b>{C.stayCount(s, CIDADES)}/{STAYS.length}</b>
-          <span>com endereço salvo</span>
+          <span>bases com endereço salvo</span>
         </div>
         <div>
           <b>{eur(tt)}</b>
@@ -45,156 +88,236 @@ export default function Hospedagem() {
         </div>
       </div>
 
-      {STAYS.map((sp) => (
-        <Base key={sp.c} sp={sp} />
-      ))}
+      {bases.length === 0 ? (
+        <div className="card" style={{ ['--cc' as string]: `var(${coOf(selCO).cc})` }}>
+          <div className="h"><h3>{coOf(selCO).n}</h3></div>
+          <div className="b">
+            <div className="empty">
+              Aqui é bate-volta de Metz — você não dorme neste país, e isso foi escolha sua.
+              {selCO === 'lu'
+                ? ' Luxemburgo fica a 45 min de trem, e o lado luxemburguês é de graça.'
+                : ' Trier se faz de Metz via Luxemburgo, num dia.'}
+            </div>
+          </div>
+        </div>
+      ) : (
+        bases.map((city) => <Base key={city} city={city} cc={coOf(selCO).cc} />)
+      )}
 
       <p className="mono foot">
-        Paris saiu daqui: virou bate-volta de Amsterdã, você não dorme lá. Em Amsterdã, a base é{' '}
-        <b>Haarlem</b> — 15 min de trem e fora da taxa municipal de 12,5%.
+        Paris saiu daqui: virou bate-volta de Amsterdã, você não dorme lá. Em Amsterdã, a
+        base é <b>Haarlem</b> — 15 min de trem e fora da taxa municipal de 12,5%.
       </p>
     </>
   );
 }
 
-function Base({ sp }: { sp: StaySpec }) {
-  const { s, patch } = useApp();
-  const city = sp.c;
-  const st = s.stays[city] ?? EMPTY_STAY(city);
-  const tot = C.stayTotal(s, city);
-  const nt = num(st.nights);
-  // total_eur preenchido manda na conta e a diaria e ignorada (11.5).
-  // O rotulo tem que usar o MESMO teste do C.stayTotal (verdadeiro/falso,
-  // nao "> 0"), senao ele mente sobre qual formula deu o numero.
-  const lancado = num(st.total_eur) !== 0;
-  const end = st.address.trim();
+function Base({ city, cc }: { city: string; cc: string }) {
+  const { s } = useApp();
+  const opcoes = C.staysOf(s, city);
+  const marcada = C.stayChosen(s, city);
 
   return (
-    <div className="card" style={{ ['--cc' as string]: `var(${ccOf(city)})` }}>
+    <div className="card" style={{ ['--cc' as string]: `var(${cc})` }}>
       <div className="h">
         <h3>{CT[city].n}</h3>
         <div className="m">
-          {sp.area}
-          {nt ? ` · ${nt}${nt > 1 ? ' noites' : ' noite'}` : ''}
+          {opcoes.length} {opcoes.length === 1 ? 'opção' : 'opções'}
+          {marcada ? ` · fechou: ${marcada.name}` : ' · nenhuma marcada ainda'}
         </div>
       </div>
       <div className="b">
-        <p><Inline html={sp.res} /></p>
-        {sp.warn ? (
-          <div className="n warn">
-            <b>Atenção</b>
-            <Inline html={sp.warn} />
-          </div>
-        ) : null}
+        {/* o "warn" de cada base virou aviso dele, como em Atracoes e Comidas */}
+        <Avisos spot={`stay:${city}`} rotulo="aviso" />
 
-        {/* ---- o resumo do que ja esta fechado: so com endereco salvo ---- */}
-        {end ? (
-          <div className="saved">
-            <span className="k">fechado</span>
-            <div className="v">{st.address}</div>
-            {st.check_in || st.check_out ? (
-              <div className="x mono">{st.check_in || '?'} → {st.check_out || '?'}</div>
-            ) : null}
-            {st.notes ? <div className="x">{st.notes}</div> : null}
-            {st.link ? (
-              <div className="x">
-                <a href={st.link} target="_blank" rel="noopener">{st.link}</a>
-              </div>
-            ) : null}
+        {opcoes.length === 0 ? (
+          <div className="empty">Nenhuma opção aqui ainda. Escreve abaixo.</div>
+        ) : (
+          <div className="mt">
+            {opcoes.map((o) => <Opcao key={o.id} o={o} />)}
           </div>
-        ) : null}
+        )}
 
-        <div className="form">
-          <div className="fld">
-            <label>Endereço</label>
-            <TextField
-              fk={`stay|${city}|address`}
-              value={st.address}
-              onCommit={(v) => patch('stay', city, 'address', v)}
-              placeholder="rua, número, bairro"
-              aria-label="endereço"
-            />
-          </div>
-          <div className="frow">
-            <div className="fld">
-              <label>Check-in</label>
-              <TextField
-                fk={`stay|${city}|check_in`}
-                value={st.check_in}
-                onCommit={(v) => patch('stay', city, 'check_in', v)}
-                placeholder="dia · hora"
-                aria-label="check-in"
-              />
-            </div>
-            <div className="fld">
-              <label>Check-out</label>
-              <TextField
-                fk={`stay|${city}|check_out`}
-                value={st.check_out}
-                onCommit={(v) => patch('stay', city, 'check_out', v)}
-                placeholder="dia · hora"
-                aria-label="check-out"
-              />
-            </div>
-          </div>
-          <div className="frow3">
-            {/* diaria CHEIA do anuncio, sem dividir (regra 5.7) */}
-            <div className="fld">
-              <label>Diária cheia €</label>
-              <NumField
-                fk={`stay|${city}|nightly_eur`}
-                value={st.nightly_eur}
-                onCommit={(v) => patch('stay', city, 'nightly_eur', v)}
-                placeholder="ex. 68"
-                aria-label="diária cheia em euros"
-              />
-            </div>
-            <div className="fld">
-              <label>Noites</label>
-              <IntField
-                fk={`stay|${city}|nights`}
-                value={st.nights}
-                onCommit={(v) => patch('stay', city, 'nights', v)}
-                placeholder="ex. 4"
-                aria-label="noites"
-              />
-            </div>
-            <div className="fld">
-              <label>Total € (se souber)</label>
-              <NumField
-                fk={`stay|${city}|total_eur`}
-                value={st.total_eur}
-                onCommit={(v) => patch('stay', city, 'total_eur', v)}
-                placeholder="total, se souber"
-                aria-label="total em euros"
-              />
-            </div>
-          </div>
-          <div className="calcline">
-            {tot ? `${lancado ? 'total lançado' : 'diária × noites'}: ${eur(tot)} · ${brl(tot * C.rate(s))}` : ''}
-          </div>
-          <div className="fld">
-            <label>Link da reserva</label>
-            <TextField
-              fk={`stay|${city}|link`}
-              value={st.link}
-              onCommit={(v) => patch('stay', city, 'link', v)}
-              placeholder="https://"
-              aria-label="link da reserva"
-            />
-          </div>
-          <div className="fld">
-            <label>Anotações</label>
-            <AreaField
-              fk={`stay|${city}|notes`}
-              value={st.notes}
-              onCommit={(v) => patch('stay', city, 'notes', v)}
-              placeholder="código do portão, wifi, contato do anfitrião, como chegar do aeroporto…"
-              aria-label="anotações"
-            />
-          </div>
+        <Acrescentar city={city} proximaPos={opcoes.length} />
+
+        {marcada ? <Reserva o={marcada} /> : null}
+      </div>
+    </div>
+  );
+}
+
+/** nome | diária | noites | total | "é essa" | ✓pago | × */
+function Opcao({ o }: { o: StayOption }) {
+  const { s, patch, now, remove } = useApp();
+  const v = C.stayValor(o);
+
+  /** Marcar uma DESMARCA a anterior: nao existe duas fechadas na mesma cidade. */
+  const marcar = () => {
+    if (o.chosen) { now('stay_option', o.id, 'chosen', false); return; }
+    const antiga = C.stayChosen(s, o.city);
+    if (antiga && antiga.id !== o.id) now('stay_option', antiga.id, 'chosen', false);
+    now('stay_option', o.id, 'chosen', true);
+  };
+
+  return (
+    <div className={`mrow ho6${o.chosen ? ' pgo' : ''}`}>
+      <TextField
+        fk={`stay_option|${o.id}|name`}
+        value={o.name}
+        onCommit={(x) => patch('stay_option', o.id, 'name', x)}
+        className="nv"
+        aria-label="nome da opção"
+      />
+      <NumField
+        fk={`stay_option|${o.id}|nightly_eur`}
+        value={o.nightly_eur}
+        onCommit={(x) => patch('stay_option', o.id, 'nightly_eur', x)}
+        className="pv"
+        placeholder="quanto custa"
+        aria-label="diária cheia em euros"
+      />
+      <IntField
+        fk={`stay_option|${o.id}|nights`}
+        value={o.nights}
+        onCommit={(x) => patch('stay_option', o.id, 'nights', x)}
+        className="pv nt"
+        placeholder="noites"
+        aria-label="noites"
+      />
+      <span className="vl" title="diária × noites, ou o total se você lançou">
+        {v ? eur(v) : '—'}
+      </span>
+      <button
+        className={`esta${o.chosen ? ' on' : ''}`}
+        title={o.chosen ? 'desmarcar' : 'é esta que eu fechei'}
+        aria-pressed={o.chosen}
+        onClick={marcar}
+      >
+        é esta
+      </button>
+      <input
+        className="ck"
+        type="checkbox"
+        title="já paguei"
+        aria-label="já paguei"
+        checked={o.paid}
+        onChange={(e) => now('stay_option', o.id, 'paid', e.currentTarget.checked)}
+      />
+      <button
+        className="xb"
+        title="apagar esta opção"
+        aria-label={`apagar ${o.name}`}
+        onClick={() => void remove('stay_option', o.id, o.seed_id)}
+      >
+        ×
+      </button>
+      <AreaField
+        fk={`stay_option|${o.id}|note`}
+        value={o.note}
+        onCommit={(x) => patch('stay_option', o.id, 'note', x)}
+        className="wh"
+        placeholder="uma nota sua"
+      />
+    </div>
+  );
+}
+
+/** O formulario da reserva fechada: so aparece depois de ele marcar uma. */
+function Reserva({ o }: { o: StayOption }) {
+  const { patch } = useApp();
+  return (
+    <div className="form resv">
+      <div className="fld">
+        <label>Endereço de {o.name}</label>
+        <TextField
+          fk={`stay_option|${o.id}|address`}
+          value={o.address}
+          onCommit={(v: string) => patch('stay_option', o.id, 'address', v)}
+          placeholder="rua, número, bairro"
+        />
+      </div>
+      <div className="frow">
+        <div className="fld">
+          <label>Check-in</label>
+          <TextField
+            fk={`stay_option|${o.id}|check_in`}
+            value={o.check_in}
+            onCommit={(v: string) => patch('stay_option', o.id, 'check_in', v)}
+            placeholder="ex. dia 12 - 15h"
+          />
+        </div>
+        <div className="fld">
+          <label>Check-out</label>
+          <TextField
+            fk={`stay_option|${o.id}|check_out`}
+            value={o.check_out}
+            onCommit={(v: string) => patch('stay_option', o.id, 'check_out', v)}
+            placeholder="ex. dia 16 - 11h"
+          />
         </div>
       </div>
+      <div className="frow">
+        <div className="fld">
+          <label>Total lançado, se souber</label>
+          <NumField
+            fk={`stay_option|${o.id}|total_eur`}
+            value={o.total_eur}
+            onCommit={(v: number | null) => patch('stay_option', o.id, 'total_eur', v)}
+            className="pv"
+            placeholder="total, se souber"
+            aria-label="total em euros"
+          />
+        </div>
+        <div className="fld">
+          <label>Link do anúncio</label>
+          <TextField
+            fk={`stay_option|${o.id}|link`}
+            value={o.link}
+            onCommit={(v: string) => patch('stay_option', o.id, 'link', v)}
+            placeholder="cole aqui"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number }) {
+  const { insert } = useApp();
+  const nome = useLocal();
+  const diaria = useLocal();
+
+  const por = async () => {
+    const n = nome.get();
+    if (!n) return;
+    const r = insert('stay_option', {
+      city, name: n, note: '',
+      nightly_eur: parseNum(diaria.get()),
+      position: proximaPos,
+      seed_id: null,
+    });
+    // So limpa depois de o banco confirmar (secao 8, promessa 3).
+    if (!(await r).ok) return;
+    nome.limpar();
+    diaria.limpar();
+  };
+
+  return (
+    <div className="addrow three">
+      <input
+        ref={(el) => { nome.ref.current = el; }}
+        type="text"
+        placeholder="ex. Chamberí"
+        aria-label="nome da opção"
+      />
+      <input
+        ref={(el) => { diaria.ref.current = el; }}
+        type="text"
+        inputMode="decimal"
+        placeholder="quanto custa"
+        aria-label="diária em euros"
+      />
+      <button type="button" onClick={() => void por()}>acrescentar opção</button>
     </div>
   );
 }

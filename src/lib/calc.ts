@@ -176,19 +176,55 @@ export function foodsOfDay(s: Snapshot, iso: string) {
 export const foodPlaced = (s: Snapshot) => s.foods.filter((f) => f.day_iso).length;
 
 // ---------------- 11.5 hospedagem ----------------
-/** total_eur se preenchido e > 0, SENAO nightly_eur x nights. */
-export function stayTotal(s: Snapshot, city: string): number {
-  const st = s.stays[city];
-  if (!st) return 0;
-  const t = num(st.total_eur);
+//
+// REESCRITA EM 05/09 (Fase 6). A hospedagem deixou de ser 7 cartoes fixos
+// e virou lista de opcoes por cidade, e o Leo marca a que fechou.
+//
+// O RISCO QUE ISSO ABRE, e o motivo de `chosen` existir: a versao antiga
+// somava TODAS as linhas de `stay` sem olhar situacao nenhuma. No dia em
+// que existirem tres opcoes em Madrid com diaria lancada, as tres
+// entrariam no total da viagem — e ele veria um numero errado sem nada
+// na tela indicando erro. So a MARCADA conta.
+
+/** As opcoes de uma cidade, na ordem que ele arrumou. */
+export const staysOf = (s: Snapshot, city: string) =>
+  s.stayOptions.filter((o) => o.city === city).sort(porPosicao);
+
+/** A que ele marcou como "e essa". Nao existe duas na mesma cidade. */
+export const stayChosen = (s: Snapshot, city: string) =>
+  s.stayOptions.find((o) => o.city === city && o.chosen);
+
+/** total_eur se preenchido e > 0, SENAO nightly_eur x nights (regra 5.7). */
+export function stayValor(o: { total_eur: number | null; nightly_eur: number | null; nights: number | null }): number {
+  const t = num(o.total_eur);
   if (t) return t;
-  return num(st.nightly_eur) * num(st.nights);
+  return num(o.nightly_eur) * num(o.nights);
+}
+
+/** O que a cidade custa: SO a opcao marcada. */
+export function stayTotal(s: Snapshot, city: string): number {
+  const o = stayChosen(s, city);
+  return o ? stayValor(o) : 0;
 }
 export function stayTotalAll(s: Snapshot, cities: string[]): number {
   return cities.reduce((a, c) => a + stayTotal(s, c), 0);
 }
+/**
+ * Quantas BASES estao fechadas — nao quantas opcoes tem endereco.
+ *
+ * O denominador continua sendo as 7 bases. Se isto passasse a contar
+ * opcoes, o Painel diria coisas como "18 de 21 hospedagens sem reserva":
+ * tecnicamente derivado, e completamente sem sentido para quem le.
+ */
 export function stayCount(s: Snapshot, cities: string[]): number {
-  return cities.filter((c) => (s.stays[c]?.address ?? '').trim()).length;
+  return cities.filter((c) => (stayChosen(s, c)?.address ?? '').trim()).length;
+}
+/** Ja pago em hospedagem: so a marcada, e so se a caixinha estiver marcada. */
+export function stayPagoEur(s: Snapshot, cities: string[]): number {
+  return cities.reduce((a, c) => {
+    const o = stayChosen(s, c);
+    return o && o.paid ? a + stayValor(o) : a;
+  }, 0);
 }
 
 // ---------------- 11.6 transporte e burocracia ----------------
@@ -277,9 +313,26 @@ export const extraBrl = (s: Snapshot) =>
 // ---------------- 11.7 os dois totais do dinheiro ----------------
 export const rate = (s: Snapshot) => num(s.settings.eur_rate);
 
-/** Ja saiu do bolso: o voo, mais a burocracia marcada, mais o trecho comprado. */
-export function pagoBrl(s: Snapshot): number {
-  return VOO + bookingBrl(s, 'pago') + legBrl(s, 'pago');
+/** So o que esta no roteiro E com a caixinha marcada (Fase 5, 05/09). */
+export const attrEurPago = (s: Snapshot) =>
+  s.attractions.reduce((a, x) => (noRoteiro(x) && x.paid ? a + num(x.price_eur) : a), 0);
+
+/**
+ * Ja saiu do bolso: o voo, a burocracia marcada, o trecho comprado — e,
+ * desde 05/09, a atracao e a hospedagem marcadas.
+ *
+ * Ate a Fase 5 so existiam DOIS marcadores de pago no app inteiro
+ * (`leg.bought` e `booking.done`), entao mesmo depois de ele pagar o
+ * Palacio da Pena ele nunca entrava aqui — e o "valor pago x valor
+ * esperado" que ele pediu nao existia de verdade.
+ */
+export function pagoBrl(s: Snapshot, cities: string[]): number {
+  return (
+    VOO +
+    bookingBrl(s, 'pago') +
+    legBrl(s, 'pago') +
+    (attrEurPago(s) + stayPagoEur(s, cities)) * rate(s)
+  );
 }
 
 /**
@@ -306,7 +359,7 @@ export function totalBrl(s: Snapshot, cities: string[]): number {
 
 /** totalReal - jaPago (secao 11.7). */
 export function aindaPorGastar(s: Snapshot, cities: string[]): number {
-  return totalBrl(s, cities) - pagoBrl(s);
+  return totalBrl(s, cities) - pagoBrl(s, cities);
 }
 
 // ---------------- 11.8 Caixa ----------------

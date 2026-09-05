@@ -81,6 +81,8 @@ function snapshotDoLeo() {
 
   return {
     days, attractions, foods, legs, bookings, stays,
+    // A `stay` ficou aposentada na Fase 6; quem manda e esta lista.
+    stayOptions: [],
     extras: [],
     settings: { id: 1, eur_rate: num(S.rate), flight_paid_brl: VOO },
     killed: Object.keys(S.killed ?? {}),
@@ -111,8 +113,8 @@ test('12.3 — as 8 marcadas na fixture sao de Lisboa, e NENHUMA conta mais', ()
 });
 
 test('12.3 — total ja pago = R$ 5.337 (voo + passaporte)', () => {
-  assert.equal(brl(C.pagoBrl(S)), 'R$ 5.337');
-  assert.equal(Math.round(C.pagoBrl(S) * 100) / 100, 5337.02);
+  assert.equal(brl(C.pagoBrl(S, CIDADES_STAY)), 'R$ 5.337');
+  assert.equal(Math.round(C.pagoBrl(S, CIDADES_STAY) * 100) / 100, 5337.02);
 });
 
 test('12.3 — cambio 6,20', () => {
@@ -247,17 +249,23 @@ test('11.4 — ordenacao velha (mantida so para o dia do roteiro)', () => {
 });
 
 // ---------------- 11.5 hospedagem ----------------
+const opcao = (city, extra = {}) => ({
+  id: `o-${city}-${extra.name ?? '1'}`, city, name: extra.name ?? 'opção', note: '',
+  nightly_eur: null, nights: null, total_eur: null,
+  address: '', check_in: '', check_out: '', link: '',
+  chosen: false, paid: false, position: 0, seed_id: null, ...extra,
+});
+
 test('11.5 — total lancado ignora diaria x noites (regra 5.7)', () => {
   const s = structuredClone(S);
-  s.stays.lisboa.nightly_eur = 68;
-  s.stays.lisboa.nights = 4;
+  s.stayOptions = [opcao('lisboa', { chosen: true, nightly_eur: 68, nights: 4 })];
   assert.equal(C.stayTotal(s, 'lisboa'), 272);
-  s.stays.lisboa.total_eur = 250;
+  s.stayOptions[0].total_eur = 250;
   assert.equal(C.stayTotal(s, 'lisboa'), 250, 'total preenchido manda');
-  s.stays.lisboa.total_eur = 0;
+  s.stayOptions[0].total_eur = 0;
   assert.equal(C.stayTotal(s, 'lisboa'), 272, 'total zero volta para a diaria');
   assert.equal(C.stayCount(s, CIDADES_STAY), 0, 'conta endereco, nao valor');
-  s.stays.lisboa.address = 'Rua X, 1';
+  s.stayOptions[0].address = 'Rua X, 1';
   assert.equal(C.stayCount(s, CIDADES_STAY), 1);
   assert.equal(CIDADES_STAY.length, 7);
 });
@@ -275,11 +283,53 @@ test('5.11 — moeda padrao: transporte em EURO, burocracia em REAL', () => {
   assert.ok(S.legs.every((l) => l.currency === 'eur'));
 });
 
+test('Fase 6 — SO a opcao marcada entra no custo', () => {
+  // O risco real desta fase: a versao antiga somava TODAS as linhas de
+  // hospedagem sem olhar situacao. Com tres opcoes em Madrid com diaria
+  // lancada, as tres entrariam no total e ele veria um numero errado sem
+  // nada na tela indicando erro.
+  const s = structuredClone(S);
+  s.stayOptions = [
+    opcao('madrid', { name: 'Chamberí', chosen: true, total_eur: 300 }),
+    opcao('madrid', { name: 'Argüelles', total_eur: 400 }),
+    opcao('madrid', { name: 'Tetuán', total_eur: 500 }),
+  ];
+  assert.equal(C.stayTotal(s, 'madrid'), 300, 'so a marcada');
+  assert.equal(C.stayTotalAll(s, CIDADES_STAY), 300, 'as outras duas ficam de fora');
+  assert.equal(C.staysOf(s, 'madrid').length, 3, 'mas as tres continuam na tela');
+});
+
+test('Fase 5 — a caixinha "ja paguei" so vale para o que esta no roteiro', () => {
+  const s = structuredClone(S);
+  const a = s.attractions.find((x) => x.status === 'backlog');
+  a.price_eur = 20;
+  a.paid = true;
+  const base = C.pagoBrl(s, CIDADES_STAY);
+
+  // marcada como paga mas FORA do roteiro: nao entra, porque tambem nao
+  // entra no total. Pago maior que esperado seria incoerente.
+  a.day_iso = null;
+  assert.equal(C.pagoBrl(s, CIDADES_STAY), base);
+
+  a.day_iso = '2026-12-12';
+  assert.equal(Math.round(C.pagoBrl(s, CIDADES_STAY) - base), 124, '€ 20 x 6,20');
+  assert.equal(C.aindaPorGastar(s, CIDADES_STAY), C.aindaPorGastar(S, CIDADES_STAY),
+    'pagar nao muda o quanto falta: so muda de lado');
+});
+
+test('Fase 5 — hospedagem marcada como paga entra no ja pago', () => {
+  const s = structuredClone(S);
+  s.stayOptions = [opcao('lisboa', { chosen: true, total_eur: 100 })];
+  const antes = C.pagoBrl(s, CIDADES_STAY);
+  s.stayOptions[0].paid = true;
+  assert.equal(Math.round(C.pagoBrl(s, CIDADES_STAY) - antes), 620, '€ 100 x 6,20');
+});
+
 test('5.10 — a caixinha comprado so move o dinheiro de lado', () => {
   const s = structuredClone(S);
   s.legs[0].amount = 120;                    // € 120
   const total = C.totalBrl(s, CIDADES_STAY);
-  const pagoAntes = C.pagoBrl(s);
+  const pagoAntes = C.pagoBrl(s, CIDADES_STAY);
   assert.equal(Math.round(C.legBrl(s, 'falta')), Math.round(120 * 6.2), 'entra em previsto');
   assert.equal(C.legBrl(s, 'pago'), 0);
 
@@ -287,7 +337,7 @@ test('5.10 — a caixinha comprado so move o dinheiro de lado', () => {
   assert.equal(C.totalBrl(s, CIDADES_STAY), total, 'o total real NAO muda');
   assert.equal(Math.round(C.legBrl(s, 'pago')), Math.round(120 * 6.2), 'move para ja pago');
   assert.equal(C.legBrl(s, 'falta'), 0);
-  assert.ok(C.pagoBrl(s) > pagoAntes);
+  assert.ok(C.pagoBrl(s, CIDADES_STAY) > pagoAntes);
 
   s.legs[0].bought = false;                  // desmarcar devolve
   assert.equal(C.legBrl(s, 'pago'), 0);
@@ -300,7 +350,7 @@ test('11.7 — ainda por gastar = total real - ja pago', () => {
   s.legs[0].amount = 120;
   assert.equal(
     Math.round(C.aindaPorGastar(s, CIDADES_STAY)),
-    Math.round(C.totalBrl(s, CIDADES_STAY) - C.pagoBrl(s)),
+    Math.round(C.totalBrl(s, CIDADES_STAY) - C.pagoBrl(s, CIDADES_STAY)),
   );
 });
 

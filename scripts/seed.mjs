@@ -17,6 +17,7 @@ const comidasDele = lerJson('dados/comidas-dele.json');
 const reservas    = lerJson('dados/reservas-dele.json');
 const transportes = lerJson('dados/transportes.json');
 const hospedagem  = lerJson('dados/hospedagem.json');
+const hospSug     = lerJson('dados/hospedagens-sugeridas.json');
 
 const log = [];
 const conta = (t, n) => { if (n) log.push(`  ${String(n).padStart(4)} ${t}`); };
@@ -131,7 +132,11 @@ async function seedIdsDe(tabela) {
   conta('reservas', novos.length);
 }
 
-// ============ 6. hospedagem: 7 linhas vazias, uma por base ============
+// ============ 6. hospedagem ============
+//
+// A tabela `stay` continua sendo semeada porque ela nao foi apagada — so
+// APOSENTADA na Fase 6 (05/09). Nenhuma tela le e nenhuma conta soma.
+// Quem manda agora e `stay_option`.
 {
   const existentes = new Set(
     (await precisa(await db.from('stay').select('city'), 'ler stay')).map((r) => r.city),
@@ -140,7 +145,36 @@ async function seedIdsDe(tabela) {
     .filter((s) => !existentes.has(s.c))
     .map((s) => ({ city: s.c }));
   if (novas.length) await precisa(await db.from('stay').insert(novas), 'inserir stay');
-  conta('hospedagens', novas.length);
+  conta('hospedagens (tabela aposentada)', novas.length);
+}
+
+// ============ 6b. as opcoes de hospedagem, por cidade ============
+//
+// Molde do bloco 2 (atracoes): casa por `seed_id`, respeita `killed_seed`,
+// e semear de novo nao duplica. Prefixo `h:<cidade>:<indice>`, seguindo a
+// convencao da ESPECIFICACAO.md:889-896.
+//
+// A PRIMEIRA opcao de cada cidade nasce marcada como "e essa" — senao a
+// hospedagem some do custo total no dia em que isto subir, e o numero
+// muda sem ele ter mexido em nada. Ele troca a marcacao na tela.
+{
+  const have = await seedIdsDe('stay_option');
+  const novas = [];
+  for (const [city, itens] of Object.entries(hospSug)) {
+    if (city.startsWith('_')) continue;   // a linha de documentacao do JSON
+    itens.forEach(([name, diaria, nota], i) => {
+      const seed_id = `h:${city}:${i}`;
+      if (have.has(seed_id) || mortos.has(seed_id)) return;
+      novas.push({
+        city, name, note: nota ?? '',
+        nightly_eur: valOrNull(diaria),
+        chosen: i === 0,
+        position: i, seed_id,
+      });
+    });
+  }
+  if (novas.length) await precisa(await db.from('stay_option').insert(novas), 'inserir stay_option');
+  conta('opcoes de hospedagem', novas.length);
 }
 
 // ============ 7. Caixa: uma linha por pessoa, vazia ============

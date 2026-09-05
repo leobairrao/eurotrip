@@ -11,7 +11,7 @@
 // O <b> das minhas notas vira *asterisco* aqui: a partir do banco, o
 // corpo do aviso e TEXTO PURO.
 // ============================================================
-import { CITYNOTE, DAYNOTE, FOOD } from '@/content';
+import { CITYNOTE, DAYNOTE, FOOD, STAYS } from '@/content';
 import { deHtml } from './fmt';
 import { planoDasDicas } from './dicas-destino';
 import type { Aviso, Tone } from './types';
@@ -54,6 +54,17 @@ export function avisosSemeados(): AvisoSemente[] {
       body: d?.body ?? deHtml(a[2]),
       position: d?.position ?? 0,
       seed_id: `av:dia:${iso}`,
+    });
+  }
+
+  // O `warn` de cada base virou aviso DELE (Fase 6), como ja tinha
+  // acontecido em Atracoes e Comidas em 05/09.
+  for (const sp of STAYS) {
+    if (!sp.warn) continue;
+    out.push({
+      spot: `stay:${sp.c}`, tone: 'warn',
+      title: 'onde não ficar', body: deHtml(sp.warn),
+      position: 0, seed_id: `av:stay:${sp.c}`,
     });
   }
 

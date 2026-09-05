@@ -42,7 +42,7 @@ export default function Custos() {
       <div className="bigsum">
         <div><b>{brl(tb)}</b><span>total real até agora</span></div>
         <div><b>{eur(somaEur)}</b><span>em euros</span></div>
-        <div><b>{brl(C.pagoBrl(s))}</b><span>total já pago</span></div>
+        <div><b>{brl(C.pagoBrl(s, CIDADES))}</b><span>total já pago</span></div>
         {/* O artefato pinta brl(tb - VOO) na primeira vez e o refreshSums conserta
             depois. A secao 11.7 manda totalReal - jaPago, e e isso que fica. */}
         <div><b>{brl(C.aindaPorGastar(s, CIDADES))}</b><span>ainda por gastar</span></div>

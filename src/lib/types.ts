@@ -21,9 +21,58 @@ export interface Attraction {
   name: string;
   price_eur: number;
   note: string;
+  /**
+   * A ORIGEM da linha, desde 05/09 — nao mais a situacao (5.2 revista).
+   * 'sugerida' = a camada que eu pesquisei; o resto = a lista dele.
+   * Quem decide dinheiro e etiqueta agora e `day_iso`.
+   */
   status: Status;
   kind: AttrKind;
   day_iso: string | null;
+  /**
+   * OBRIGATORIO de proposito, nao opcional.
+   *
+   * `load.ts` normaliza cada linha por LISTA BRANCA: campo que o
+   * normalizador nao conhece nao e copiado. Uma coluna nova declarada
+   * como `paid?: boolean` falharia do pior jeito possivel — a caixinha
+   * marcaria, gravaria no banco, apareceria marcada no outro navegador,
+   * e sumiria no primeiro F5. Sendo obrigatorio, o `tsc` acusa sozinho
+   * todo lugar que esqueceu de preencher.
+   */
+  paid: boolean;
+  seed_id: string | null;
+}
+
+/**
+ * Uma opcao de hospedagem numa cidade (Fase 6, 05/09/2026).
+ *
+ * A tabela `stay` tem `city` como chave primaria: so cabia UMA por
+ * cidade. Esta nasceu ao lado em vez de trocar a chave da outra, o que
+ * arrastaria `Snapshot.stays` de dicionario para lista e com ele
+ * load.ts, calc.ts, Painel, Custos, Caixa, check.mjs e dois testes.
+ * A `stay` ficou aposentada: continua no banco, ninguem a le.
+ *
+ * SEM CAMPO DE PAIS: o pais sai da cidade (`CT[city].co`), como em
+ * Atracoes. Guardar aqui duplicaria a verdade.
+ */
+export interface StayOption {
+  id: string;
+  city: string;
+  name: string;
+  note: string;
+  /** A diaria CHEIA do anuncio, nao a parte dele (regra 5.7). */
+  nightly_eur: number | null;
+  nights: number | null;
+  /** Se > 0, ignora diaria x noites. */
+  total_eur: number | null;
+  address: string;
+  check_in: string;
+  check_out: string;
+  link: string;
+  /** "e essa". SO a marcada entra no custo da viagem. */
+  chosen: boolean;
+  paid: boolean;
+  position: number;
   seed_id: string | null;
 }
 export interface Food {
@@ -131,7 +180,14 @@ export interface Snapshot {
   foods: Food[];
   legs: Leg[];
   bookings: Booking[];
+  /**
+   * APOSENTADA em 05/09 (Fase 6). Continua carregada do banco para nao
+   * perder nada, mas nenhuma tela le e nenhuma conta soma. Quem manda e
+   * `stayOptions`. Apagar a tabela e decisao de outra rodada.
+   */
   stays: Record<string, Stay>;
+  /** As opcoes de hospedagem de todas as cidades. Filtre com C.staysOf. */
+  stayOptions: StayOption[];
   extras: Extra[];
   settings: Settings;
   killed: string[];

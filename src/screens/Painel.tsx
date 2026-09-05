@@ -68,7 +68,7 @@ export default function Painel() {
       {/* ---- os cinco numeros de dinheiro, nesta ordem (foi pedida) ---- */}
       <div className="bigsum b5">
         <div>
-          <b>{brl(C.pagoBrl(s))}</b>
+          <b>{brl(C.pagoBrl(s, CIDADES))}</b>
           <span>total já pago</span>
           <i>{bookPago ? `o voo + ${brl(bookPago)} de burocracia` : 'o voo internacional'}</i>
         </div>

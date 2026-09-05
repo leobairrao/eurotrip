@@ -716,10 +716,34 @@ simplesmente ficam sem dia.
 
 ### 10.6 — Hospedagem
 
-Um cartão por base (7). Cada um tem, de cima para baixo: o bairro recomendado, a justificativa
-(`res`), a ressalva de segurança (`warn`, em ocre), o resumo do que já está fechado (se tem
-endereço salvo), e o formulário: endereço, check-in, check-out, **diária cheia €**, noites,
-total € (que ignora a diária quando preenchido), link e anotações.
+> **Reescrita em 05/09/2026 (Fase 6).** A regra dizia: *"um cartão por base (7)"*, e os
+> bairros que a pesquisa achou moravam em **prosa**, escondidos numa frase — Madrid tinha
+> três (Chamberí, Argüelles, Tetuán) empacotados numa linha só. O Leo pediu *"na parte de
+> hospedagem, vamos colocar assim como em atrações e restaurantes, vamos fazer opções por
+> país"*, e escolheu a leitura de **escolher**, não a de consultar.
+
+**Sub-abas por país**, iguais às de Atrações e Comidas (o mesmo `selCO`). Dentro de cada
+país, um cartão por base, e dentro do cartão uma **lista de opções**: nome, diária cheia,
+noites, o total calculado, o botão **"é esta"**, a caixinha **já paguei** e o `×`.
+
+**Só a opção marcada entra no custo da viagem.** As outras ficam guardadas como plano B.
+Sem isso, três opções em Madrid com diária lançada entrariam as três no total, e ele veria
+um número errado sem nada na tela indicando erro.
+
+O formulário da reserva — endereço, check-in, check-out, total lançado, link — **só aparece
+depois de ele marcar uma**. Antes disso não há o que preencher.
+
+**Luxemburgo e Alemanha não têm base**, e as abas dizem isso: *"aqui é bate-volta de Metz"*.
+Aba vazia parece defeito, e não é — é decisão dele.
+
+A ressalva de segurança (`warn`) de cada base **virou aviso dele**, editável e apagável,
+como já tinha acontecido em Atrações e Comidas.
+
+A tabela `stay` ficou **aposentada**: continua no banco, ninguém a apaga, e nenhuma tela lê.
+Quem manda é `stay_option`. Trocar a chave primária da `stay` arrastaria `Snapshot.stays`
+de dicionário para lista, e com ele `load.ts`, `calc.ts`, Painel, Custos, Caixa,
+`check.mjs` e dois testes — e não havia dado para migrar: as 7 linhas estavam todas
+vazias.
 
 Uma linha de cálculo ao vivo abaixo dos três números: `"diária × noites: € X · R$ Y"`, ou
 `"total lançado: ..."` quando o total foi preenchido.
@@ -853,6 +877,21 @@ somaBurocracia(modo)  idem, usando  done  em vez de  bought
 virou R$ 1.595 uma vez.
 
 ### 11.7 — Os dois totais do dinheiro
+
+> **Reescrita em 05/09/2026 (Fases 3 e 5).** Duas mudanças: o custo de **atração** passou a
+> seguir `day_iso` em vez de `status` (regra 5.2 revista), e **atração e hospedagem
+> ganharam a caixinha "já paguei"**.
+>
+> Até aqui existiam **dois** marcadores de pago no app inteiro, e os dois booleanos:
+> `leg.bought` e `booking.done`. Atração e hospedagem não tinham como ser marcadas — então
+> mesmo depois de ele pagar o Palácio da Pena, ele nunca entrava no "já pago", e o
+> *"valor pago × valor esperado"* que ele pediu não existia de verdade.
+>
+> **Caixinha e não campo de valor**, para ser igual ao resto do app: *esperado* = tudo que
+> conta; *pago* = o que está com a caixinha marcada.
+>
+> E a caixinha de atração **só existe para o que está no roteiro**: fora dele o item não
+> entra no total, e "pago maior que esperado" seria incoerente.
 ```
 VOO = 5079.77
 

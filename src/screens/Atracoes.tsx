@@ -243,7 +243,10 @@ function Linha({ it }: { it: Attraction }) {
   const dentro = C.noRoteiro(it);
 
   return (
-    <div className={`mrow at5 st-${dentro ? 'esc' : 'bac'}`}>
+    // `at6` e a grade de `at5` com uma coluna a mais para a caixinha
+    // "ja paguei" (Fase 5). Definida em extras.css: o estilo-atual.css
+    // continua byte a byte igual a referencia.
+    <div className={`mrow at6 st-${dentro ? 'esc' : 'bac'}${it.paid ? ' pgo' : ''}`}>
       <TextField
         fk={`attraction|${it.id}|name`}
         value={it.name}
@@ -254,6 +257,19 @@ function Linha({ it }: { it: Attraction }) {
       <span className={`sttag ${dentro ? 'st-dentro' : 'st-fora'}`}>
         {dentro ? 'no roteiro' : 'backlog'}
       </span>
+      {/* So faz sentido marcar como pago o que esta no roteiro: fora dele
+          o item nao entra no total, e pago maior que esperado seria
+          incoerente. `calc.attrEurPago` ja exige as duas coisas. */}
+      {dentro ? (
+        <input
+          className="ck"
+          type="checkbox"
+          title="já paguei"
+          aria-label="já paguei"
+          checked={it.paid}
+          onChange={(e) => now('attraction', it.id, 'paid', e.currentTarget.checked)}
+        />
+      ) : <span className="ck" aria-hidden="true" />}
       {/* v28: passeio (rua/centro) ou tour (visitar um lugar). O emoji vai para o dia. */}
       <select
         className="sv kv"
