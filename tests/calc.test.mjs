@@ -1,7 +1,20 @@
 // ============================================================
 // Prova as formulas da secao 11 contra os numeros que o usuario
-// espera ver — rodando o codigo de producao (src/lib/calc.ts),
-// sobre o estado real de dados/estado-atual-do-leo.json.
+// espera ver — rodando o codigo de producao (src/lib/calc.ts).
+//
+// A BASE DESTE ARQUIVO E HISTORICA, e isso importa (decidido em 05/09).
+// `dados/estado-atual-do-leo.json` e um RETRATO de 04/09, nao o banco.
+// Enquanto ninguem tinha dito isso em voz alta, os dois portoes de
+// aceite discordavam em silencio: `npm test` verde e `npm run check`
+// vermelho com 5 falhas, e "os testes passam" nao provava nada sobre
+// producao.
+//
+// Divisao a partir de agora:
+//   `npm test`      -> as FORMULAS, sobre uma fixture congelada. Se
+//                      quebrar, foi o codigo. Nao siga o banco.
+//   `npm run check` -> o BANCO DE VERDADE. E o unico que fala de
+//                      producao. Os numeros dele mudam quando o Leo usa
+//                      o app, e sao atualizados la, nao aqui.
 // ============================================================
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

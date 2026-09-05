@@ -22,7 +22,7 @@ import { DateField, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, daysTo, dtLabel, hojeLocal, isData, num, parseNum, plMesAte, stripTags } from '@/lib/fmt';
+import { brl, daysTo, dtLabel, hojeLocal, isData, num, parseNum, plMesAte } from '@/lib/fmt';
 import type { Who } from '@/lib/types';
 
 const CIDADES = STAYS.map((x) => x.c);
@@ -314,7 +314,7 @@ function Aportar({ w }: { w: Who | null }) {
     void insert('contribution', {
       who,
       on_date: isData(d) ? d : hojeLocal(),
-      label: stripTags(nome.get()),
+      label: nome.get(),
       amount: v,
     });
     nome.limpar();

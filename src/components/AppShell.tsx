@@ -54,11 +54,15 @@ function Dentro({ demo }: { demo: boolean }) {
   const Tela = TELAS[tab] ?? Painel;
 
   const dot = estado === 'ok' ? 'cloud' : estado === 'salvando' ? 'dirty' : '';
+  // 'erro' e 'falhou' sao coisas diferentes e nao podem dizer a mesma frase:
+  // em 'erro' eu ainda estou tentando; em 'falhou' eu ja desisti, e ele
+  // precisa saber que o que esta na tela pode nao estar no banco.
   const txt =
     demo ? 'demonstração — nada salva'
     : estado === 'ok' ? 'salvo'
     : estado === 'salvando' ? (pendentes > 1 ? `salvando ${pendentes} campos` : 'salvando')
-    : 'sem conexão — vou tentar de novo';
+    : estado === 'erro' ? 'sem conexão — vou tentar de novo'
+    : 'não consegui salvar — recarregue a página para ver o que está no banco';
 
   const outro = online.filter((w) => w !== me?.who);
 

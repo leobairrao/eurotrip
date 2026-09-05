@@ -124,6 +124,18 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 npm run seed
 
 # 3. o que o Leo já preencheu — dado real, não pode ser perdido
+#
+#    ⚠️  SÓ NA PRIMEIRA CARGA. NUNCA COMO MANUTENÇÃO.
+#
+#    Num banco que já está em uso, este passo DESTRÓI trabalho dele:
+#      - reescreve `base` e `plan` dos 34 dias  -> apaga o texto que ele escreveu
+#      - reescreve status, preço, nota e day_iso das atrações casadas por seed_id
+#        -> as escolhidas voltam para backlog, e quem estava num dia perde o dia
+#      - casa BUROCRACIA POR NOME, e nunca consulta `killed_seed`:
+#        item apagado ressuscita, e renomear "Passaporte" cria uma segunda
+#        linha com os mesmos R$ 257,25 — duplicados no total e no "já pago"
+#
+#    Se o banco já tem uso, PULE o passo 3 e vá para o 4.
 npm run import
 
 # 4. os números de aceite. Se algum não bater, pare aqui.

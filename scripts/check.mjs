@@ -1,6 +1,18 @@
 // ============================================================
 // npm run check — os numeros de aceite, lidos DO BANCO (secao 12.3 e 15).
 // Se algum destes nao bater, nao siga para as telas.
+//
+// ESTE E O UNICO QUE FALA DA PRODUCAO. `npm test` roda sobre
+// `dados/estado-atual-do-leo.json`, que e um retrato de 04/09 e passou a
+// ser declarado HISTORICO em 05/09 — fixture de teste, nao o banco. Em
+// 05/09 os dois discordavam: 85/85 verde aqui e 5 vermelhos ali.
+//
+// Os numeros que o LEO mexe (escolhidas, backlog) mudam quando ele usa o
+// app; os que descrevem a VIAGEM (34 dias, 31 noites, 12 trechos) nao.
+// Um vermelho da primeira familia costuma ser ele decidindo algo; da
+// segunda, e bug. Atualizados em 05/09 depois da limpeza da Fase 0.6:
+// 8 -> 13 escolhidas e 27 -> 22 no backlog (ele promoveu os cinco de
+// Sintra; os 35 "dele" continuam 35).
 // ============================================================
 import { db, brl, eur, num, precisa } from './_db.mjs';
 
@@ -70,7 +82,7 @@ const noites = bases.reduce((a, b) => a + b.nt, 0);
 const emTerra = bases.reduce((a, b) => a + b.d, 0);
 
 console.log('\n  ================ NUMEROS DE ACEITE (secao 12.3) ================\n');
-linha(escolhidas.length === 8, 'atracoes escolhidas', 8, escolhidas.length);
+linha(escolhidas.length === 13, 'atracoes escolhidas', 13, escolhidas.length);
 linha(
   escolhidas.every((a) => a.city === 'lisboa'),
   '  ... todas de Lisboa', 'lisboa',
@@ -92,8 +104,8 @@ linha(
   attraction.filter((a) => a.status === 'sugerida').length,
 );
 linha(
-  attraction.filter((a) => a.status === 'backlog').length === 27,
-  '  ... no backlog (35 - 8 escolhidas)', 27,
+  attraction.filter((a) => a.status === 'backlog').length === 22,
+  '  ... no backlog (35 - 13 escolhidas)', 22,
   attraction.filter((a) => a.status === 'backlog').length,
 );
 linha(leg.length === 12, 'trechos de transporte', 12, leg.length);

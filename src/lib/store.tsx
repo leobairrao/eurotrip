@@ -21,10 +21,16 @@ import type { AppUser, Snapshot } from './types';
 import {
   PK, aplicarRemoto, chave, inserirLocal, mesclar, removerLocal, type Tabela,
 } from './merge';
+import { apagar, daExcecao, daResposta, decidir, type Falha } from './escrita';
 
 export type { Tabela };
 
-type Estado = 'ok' | 'salvando' | 'erro';
+/**
+ * 'erro'   = nao consegui agora, estou tentando de novo (rede).
+ * 'falhou' = desisti. O banco recusou, ou a rede nao voltou a tempo.
+ *            Sao coisas diferentes e o rodape diz coisas diferentes.
+ */
+type Estado = 'ok' | 'salvando' | 'erro' | 'falhou';
 
 interface Ctx {
   s: Snapshot;
@@ -36,7 +42,7 @@ interface Ctx {
   /** Varias colunas de uma linha ao mesmo tempo (ex.: por num dia = escolher). */
   nowMany: (t: Tabela, pk: string, cols: Record<string, unknown>) => void;
   insert: (t: Tabela, row: Record<string, unknown>) => Promise<void>;
-  /** O x. Se o item tem seed_id, grava em killed_seed antes (regra 5.14). */
+  /** O x. Se o item tem seed_id, grava em killed_seed DEPOIS do DELETE (regra 5.14). */
   remove: (t: Tabela, pk: string, seedId?: string | null) => Promise<void>;
   estado: Estado;
   pendentes: number;
@@ -144,25 +150,39 @@ export function Provider({
       };
       if (me && COM_AUTOR.includes(t as string)) payload.updated_by = me.id;
 
-      let erro: string | null = null;
+      let falha: Falha | null = null;
       try {
         const r = await db.from(t as string).update(payload).eq(PK[t as string], pk);
-        erro = r.error?.message ?? null;
+        falha = daResposta(r.error);
       } catch (e) {
-        erro = e instanceof Error ? e.message : String(e);
+        falha = daExcecao(e);
       }
 
-      if (!erro) {
+      if (!falha) {
         for (const k of chaves) pend.current.delete(k);
         setPendentes(pend.current.size);
         setEstado(pend.current.size ? 'salvando' : 'ok');
         return;
       }
 
-      // Nunca descarta o que ele digitou. Enfileira e tenta de novo (secao 8).
-      setEstado('erro');
-      const espera = Math.min(30000, 800 * Math.pow(2, tentativa));
-      setTimeout(() => void enviar(t, pk, cols, tentativa + 1), espera);
+      const d = decidir(falha, tentativa);
+      if (d.acao === 'repetir') {
+        // Nunca descarta o que ele digitou. Enfileira e tenta de novo (secao 8).
+        setEstado('erro');
+        setTimeout(() => void enviar(t, pk, cols, tentativa + 1), d.espera);
+        return;
+      }
+
+      // Desistiu. As chaves TEM que sair da fila: enquanto elas estao la,
+      // `aplicarRemoto` preserva essas colunas contra o que a outra pessoa
+      // escrever (merge.ts:118-121), e a linha congela para os dois.
+      // O valor que ele digitou continua na tela; o que acaba e o escudo.
+      for (const k of chaves) pend.current.delete(k);
+      setPendentes(pend.current.size);
+      setEstado('falhou');
+      console.error(
+        `[eurotrip] nao salvei ${t}.${Object.keys(cols).join(',')} de ${pk}: ${falha.msg}`,
+      );
     },
     [db, me],
   );
@@ -224,10 +244,22 @@ export function Provider({
     async (t: Tabela, pk: string, seedId?: string | null) => {
       setS((v) => removerLocal(v, t, pk));
       if (!db) return;
-      // O item apagado nao ressuscita na proxima semeadura (regra 5.14)
-      if (seedId) await db.from('killed_seed').upsert({ seed_id: seedId }, { onConflict: 'seed_id' });
-      const { error } = await db.from(t as string).delete().eq(PK[t as string], pk);
-      if (error) setEstado('erro');
+      // A ordem e o conteudo: killed_seed SO depois de o banco confirmar
+      // o DELETE. Ao contrario, um DELETE que falha deixava o seed_id
+      // para sempre em "nunca mais traga de volta" (regra 5.14), com o
+      // item ainda no banco. Ver src/lib/escrita.ts.
+      const r = await apagar(
+        {
+          deletar: () => db.from(t as string).delete().eq(PK[t as string], pk),
+          marcarMorto: () =>
+            db.from('killed_seed').upsert({ seed_id: seedId }, { onConflict: 'seed_id' }),
+        },
+        seedId,
+      );
+      if (!r.ok) {
+        setEstado('falhou');
+        console.error(`[eurotrip] nao apaguei ${t} ${pk}: ${r.falha?.msg}`);
+      }
     },
     [db],
   );
