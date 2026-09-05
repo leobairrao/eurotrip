@@ -120,6 +120,15 @@ npm run check
 
 # 5. a allowlist: cria as duas contas e as duas linhas de app_user
 npm run usuarios
+
+# 6. a entrada e por NOME DE USUARIO (04/09/2026), nao mais por link no
+#    e-mail. Para isso o servidor precisa de ENTRAR_SENHA:
+#      . poe a MESMA senha nas duas contas (Supabase > Authentication >
+#        Users > ... > Reset password), e
+#      . poe esse valor em ENTRAR_SENHA no .env.local E nas variaveis de
+#        ambiente da Vercel (Settings > Environment Variables).
+#    Sem a variavel a tela de entrada avisa e ninguem entra.
+#    Quem digita: `leobairrao` e `luananda` (mapa em src/app/auth/entrar/route.ts)
 ```
 
 `npm run check` tem que imprimir:

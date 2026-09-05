@@ -1,57 +1,48 @@
 'use client';
 // ============================================================
 // A tela de entrada (secao 9).
-// Um campo de e-mail e um botao. Nada mais: sem cadastro, sem senha,
-// sem "entrar com", sem texto de marketing.
+//
+// Era um campo de e-mail e um link magico. Em 04/09/2026 o Leo pediu
+// para trocar por nome de usuario, sem verificacao nenhuma: a Lu nao
+// conseguia entrar pelo e-mail e ele nao quis mais depender disso.
+//
+// Um campo e um botao. O que decide tudo e a rota /auth/entrar, no
+// servidor — o navegador nunca ve credencial nenhuma.
 // ============================================================
 import { useState } from 'react';
-import { supabaseBrowser } from '@/lib/supabase/client';
+
+type Estado = 'parado' | 'indo' | 'negado' | 'semconfig' | 'falhou';
 
 export default function Login({ erro }: { erro?: string }) {
-  const [email, setEmail] = useState('');
-  const [estado, setEstado] = useState<'parado' | 'indo' | 'enviado' | 'negado' | 'falhou'>('parado');
+  const [usuario, setUsuario] = useState('');
+  const [estado, setEstado] = useState<Estado>('parado');
   const [detalhe, setDetalhe] = useState('');
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
-    const alvo = email.trim().toLowerCase();
-    if (!alvo) return;
+    const nome = usuario.trim();
+    if (!nome) return;
     setEstado('indo');
-    const db = supabaseBrowser();
-    if (!db) {
-      // so acontece se faltar variavel de ambiente na Vercel
+    try {
+      const r = await fetch('/auth/entrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: nome }),
+      });
+      if (r.ok) {
+        // recarrega do servidor: a sessao acabou de nascer no cookie
+        window.location.href = '/';
+        return;
+      }
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 503 || j.erro === 'sem-configuracao') { setEstado('semconfig'); return; }
+      if (r.status === 401 && j.erro === 'nao-e-da-casa') { setEstado('negado'); return; }
       setEstado('falhou');
-      setDetalhe('o app não está configurado');
-      return;
-    }
-
-    // A allowlist vive em app_user (secao 9.5). A funcao devolve so
-    // true/false — nunca diz se a conta existe (secao 9.2).
-    const { data: permitido, error: erroRpc } = await db.rpc('email_permitido', { e: alvo });
-    if (erroRpc) {
+      setDetalhe(String(j.erro ?? ''));
+    } catch {
       setEstado('falhou');
-      setDetalhe(erroRpc.message);
-      return;
+      setDetalhe('sem conexão');
     }
-    if (!permitido) {
-      setEstado('negado');
-      return;
-    }
-
-    const { error } = await db.auth.signInWithOtp({
-      email: alvo,
-      options: {
-        // ninguem de fora cria conta pedindo link
-        shouldCreateUser: false,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) {
-      setEstado('falhou');
-      setDetalhe(error.message);
-      return;
-    }
-    setEstado('enviado');
   }
 
   return (
@@ -61,42 +52,44 @@ export default function Login({ erro }: { erro?: string }) {
 
       <form onSubmit={entrar}>
         <input
-          type="email"
-          value={email}
-          onChange={(ev) => setEmail(ev.target.value)}
-          placeholder="seu e-mail"
-          autoComplete="email"
-          aria-label="e-mail"
+          type="text"
+          value={usuario}
+          onChange={(ev) => setUsuario(ev.target.value)}
+          placeholder="seu usuário"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-label="usuário"
           required
+          autoFocus
         />
-        <button type="submit" disabled={estado === 'indo' || estado === 'enviado'}>
-          {estado === 'indo' ? 'enviando' : estado === 'enviado' ? 'enviado' : 'me manda o link'}
+        <button type="submit" disabled={estado === 'indo'}>
+          {estado === 'indo' ? 'entrando' : 'entrar'}
         </button>
       </form>
 
-      {estado === 'enviado' && (
-        <p className="msg ok">
-          Olhe o seu e-mail. O link entra direto — não tem senha.
-          <br />
-          Se não chegar em um minuto, veja o spam.
-        </p>
-      )}
       {estado === 'negado' && (
         <p className="msg no">
           Este app é privado. Ele foi feito para duas pessoas, e o acesso é só por
           convite direto.
         </p>
       )}
+      {estado === 'semconfig' && (
+        <p className="msg no">
+          O site está sem a variável <b>ENTRAR_SENHA</b>. Ponha ela nas variáveis de
+          ambiente do projeto na Vercel e publique de novo — sem ela o servidor não
+          consegue abrir a sessão.
+        </p>
+      )}
       {estado === 'falhou' && (
         <p className="msg no">
-          Não deu para enviar agora. Tente de novo em um instante.
+          Não deu para entrar agora. Tente de novo em um instante.
           {detalhe ? <><br />{detalhe}</> : null}
         </p>
       )}
       {erro && estado === 'parado' && (
-        <p className="msg no">
-          O link não funcionou — provavelmente expirou. Peça outro.
-        </p>
+        <p className="msg no">A sessão anterior expirou. Entre de novo.</p>
       )}
 
       <p className="rodape">O PLANO É SEU — EU GUARDO, PESQUISO E FAÇO AS CONTAS</p>

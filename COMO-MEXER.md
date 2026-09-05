@@ -400,6 +400,33 @@ Duas coisas que parecem detalhe e não são:
   com `city = ''` ela some de todos e não há como achá-la de novo pela tela. O select não
   tem como devolver vazio, mas a trava custa uma linha e está lá.
 
+### A entrada é só o nome — e isso foi uma escolha, não um descuido
+
+Em 04/09 a Lu não conseguia entrar pelo link mágico e o Leo pediu: digitar `luananda` ou
+`leobairrao` e entrar, **sem verificação nenhuma**. Foi dito a ele, em texto, o que isso
+custa — o site é público, e quem digitar o nome entra, vê quanto os dois já guardaram e
+pode editar tudo. Ele decidiu assim mesmo. Está aqui para que ninguém depois pense que
+foi esquecimento.
+
+**Como a sessão nasce.** O Supabase precisa de alguma credencial para emitir sessão, e a
+sessão é o que faz a RLS funcionar (as políticas olham `auth.uid()`). Então existe uma
+senha de servidor, **igual para as duas contas**, que mora só em `ENTRAR_SENHA` e nunca
+chega ao navegador. Ela não protege nada: o nome é a porta. Ela é só o jeito de pedir a
+sessão.
+
+**O repositório é público**, então essa senha não pode entrar em arquivo nenhum daqui.
+Ela vive em dois lugares: `.env.local` (a máquina dele) e as variáveis de ambiente da
+Vercel. Sem ela, `/auth/entrar` devolve 503 e a tela de entrada diz exatamente isso, em
+vez de um "não deu certo" genérico.
+
+**Para fechar o site de novo** — se um dia ele quiser — o caminho mais curto é acrescentar
+um campo de senha na tela, mandar o que foi digitado no corpo do POST e usar isso no
+`signInWithPassword` em vez de `ENTRAR_SENHA`. Aí a variável some, a senha passa a ser dos
+dois, e nada mais muda: nem a RLS, nem o `app_user`, nem o Realtime.
+
+O login por e-mail continua existindo no banco (`email_permitido`, `/auth/callback`); só
+não tem mais tela. Serve de porta dos fundos se a variável sumir.
+
 ### Nota virou texto do usuário — e isso quebrou duas telas que nem foram tocadas
 
 O erro mais caro desta mudança não estava em nenhuma das quatro telas que eu editei.
@@ -523,7 +550,7 @@ Para você não gastar tempo nas mesmas.
 | Vercel | projeto `eurotrip`, team `leobairrao's projects`. Só as duas variáveis `NEXT_PUBLIC_`, ambiente **Production** |
 | Supabase | projeto `eurotrip`, ref `qwwmjibqlgysjembhbxs`, região `sa-east-1` (São Paulo) |
 | chaves | formato novo: `sb_publishable_…` (navegador, pública por desenho) e `sb_secret_…` (só no `.env.local`, que está no `.gitignore`) |
-| quem entra | `leobairrao05@gmail.com` (leo) e `luisaanandamelo@gmail.com` (lu), na tabela `app_user` |
+| quem entra | usuário `leobairrao` (leo) e `luananda` (lu) — o mapa está em `src/app/auth/entrar/route.ts` |
 | cadastro aberto | **desligado** em Authentication → Sign In / Providers |
 
 **A variável de ambiente Preview não foi configurada** — só Production. Se abrir um

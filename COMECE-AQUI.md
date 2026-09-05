@@ -12,7 +12,7 @@ Duas coisas que só você pode fazer:
 **Crie uma conta no Supabase** (supabase.com, plano free serve). Guarde o link do projeto. (ja tenho conta, use o chrome para acessar)
 
 **Decida os dois e-mails.** São os únicos que vão conseguir entrar no site. O seu e o da Lu —
-e tem que ser um e-mail que ela acessa de verdade, porque o login é por link enviado no e-mail. (leobairrao05@gmail.com e luisaanandamelo@gmail.com)
+hoje o login é só o nome de usuário: `leobairrao` e `luananda`. Não vai e-mail nenhum. (As contas por trás continuam sendo leobairrao05@gmail.com e luisaanandamelo@gmail.com.)
 
 ---
 
