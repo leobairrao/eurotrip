@@ -201,10 +201,10 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
   const campo = useLocal();
   const nota = useLocal();
 
-  const por = () => {
+  const por = async () => {
     const nome = campo.get();
     if (!nome) return;
-    void insert('food', {
+    const r = insert('food', {
       country: selCO,
       name: nome,
       note: nota.get(),
@@ -212,6 +212,10 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
       day_iso: null,
       seed_id: null,
     });
+    // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
+    // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
+    // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
+    if (!(await r).ok) return;
     campo.limpar();
     nota.limpar();
   };
@@ -230,7 +234,7 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
         placeholder="uma nota (opcional)"
         aria-label="nota"
       />
-      <button onClick={por}>pôr em {FKPL[kind]}</button>
+      <button onClick={() => void por()}>pôr em {FKPL[kind]}</button>
     </div>
   );
 }

@@ -270,11 +270,15 @@ function Acrescentar() {
   const valor = useLocal();
   const moeda = useRef<HTMLSelectElement>(null);
 
-  const acrescentar = () => {
+  const acrescentar = async () => {
     const n = nome.get();
     if (!n) return;
     const m: Currency = moeda.current?.value === 'brl' ? 'brl' : 'eur';
-    void insert('extra', { name: n, amount: parseNum(valor.get()), currency: m });
+    const r = insert('extra', { name: n, amount: parseNum(valor.get()), currency: m });
+    // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
+    // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
+    // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
+    if (!(await r).ok) return;
     nome.limpar();
     valor.limpar();
     if (moeda.current) moeda.current.value = 'eur';
@@ -300,7 +304,7 @@ function Acrescentar() {
         <option value="eur">€</option>
         <option value="brl">R$</option>
       </select>
-      <button type="button" onClick={acrescentar}>adicionar</button>
+      <button type="button" onClick={() => void acrescentar()}>adicionar</button>
     </div>
   );
 }

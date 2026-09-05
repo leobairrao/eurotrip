@@ -62,7 +62,7 @@ function Dentro({ demo }: { demo: boolean }) {
     : estado === 'ok' ? 'salvo'
     : estado === 'salvando' ? (pendentes > 1 ? `salvando ${pendentes} campos` : 'salvando')
     : estado === 'erro' ? 'sem conexão — vou tentar de novo'
-    : 'não consegui salvar — recarregue a página para ver o que está no banco';
+    : 'não consegui salvar — o que está na tela pode não estar no banco';
 
   const outro = online.filter((w) => w !== me?.who);
 

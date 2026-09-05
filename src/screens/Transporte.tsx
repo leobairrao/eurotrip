@@ -236,8 +236,9 @@ function Acrescentar() {
   const tipo = useRef<HTMLSelectElement>(null);
   const moeda = useRef<HTMLSelectElement>(null);
 
-  const juntar = () => {
-    // o que ele digita e texto puro: arranca tag antes de salvar (secao 10.0)
+  const juntar = async () => {
+    // o que ele digita vai INTEIRO para o banco: `stripTags` APAGA o trecho
+    // entre "<" e ">". Quem escapa e a saida, nao a entrada.
     const n = nome.get();
     if (!n) return;
     const kv = tipo.current?.value ?? 'trem';
@@ -245,7 +246,7 @@ function Acrescentar() {
     const moe: Currency = moeda.current?.value === 'brl' ? 'brl' : 'eur';
     // trecho novo entra no fim da sequencia do roteiro (10.5)
     const pos = s.legs.reduce((a, t) => Math.max(a, t.position), 0) + 1;
-    void insert('leg', {
+    const r = insert('leg', {
       position: pos,
       name: n,
       note: nota.get(),
@@ -253,6 +254,10 @@ function Acrescentar() {
       amount: parseNum(valor.get()),
       currency: moe,
     });
+    // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
+    // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
+    // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
+    if (!(await r).ok) return;
     nome.limpar();
     nota.limpar();
     valor.limpar();
@@ -297,7 +302,7 @@ function Acrescentar() {
         <option value="eur">€</option>
         <option value="brl">R$</option>
       </select>
-      <button onClick={juntar}>adicionar trecho</button>
+      <button onClick={() => void juntar()}>adicionar trecho</button>
     </div>
   );
 }

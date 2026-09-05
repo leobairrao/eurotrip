@@ -205,3 +205,15 @@
 /* O corpo do aviso é um textarea: a quebra de linha que ele digita tem
    que aparecer no cartão. Sem isto, dois parágrafos viravam um. */
 .n .avcorpo { white-space: pre-wrap; display: block; }
+
+/* ============================================================
+   Fase 1 (05/09). O aviso de que o acrescentar nao foi.
+   Ate aqui, insert que falhava sumia sem uma palavra: o item nao
+   entrava na lista e a unica pista era "sem conexao" no topo.
+   ============================================================ */
+.avisofalha {
+  color: var(--rust);
+  border-left: 3px solid var(--rust);
+  padding-left: 9px;
+  margin-top: 8px;
+}

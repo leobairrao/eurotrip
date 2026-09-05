@@ -41,7 +41,13 @@ interface Ctx {
   now: (t: Tabela, pk: string, col: string, v: unknown) => void;
   /** Varias colunas de uma linha ao mesmo tempo (ex.: por num dia = escolher). */
   nowMany: (t: Tabela, pk: string, cols: Record<string, unknown>) => void;
-  insert: (t: Tabela, row: Record<string, unknown>) => Promise<void>;
+  /**
+   * Acrescentar linha. DEVOLVE se deu certo — a tela so pode limpar o
+   * campo depois de `ok`, senao o que ele digitou some quando falha
+   * (a terceira promessa da secao 8). O `insert` nao tem fila de
+   * repeticao como o `patch`: item novo que falha esta perdido.
+   */
+  insert: (t: Tabela, row: Record<string, unknown>) => Promise<{ ok: boolean }>;
   /** O x. Se o item tem seed_id, grava em killed_seed DEPOIS do DELETE (regra 5.14). */
   remove: (t: Tabela, pk: string, seedId?: string | null) => Promise<void>;
   estado: Estado;
@@ -227,15 +233,28 @@ export function Provider({
   );
 
   const insert = useCallback(
-    async (t: Tabela, row: Record<string, unknown>) => {
+    async (t: Tabela, row: Record<string, unknown>): Promise<{ ok: boolean }> => {
       if (!db) {
         // demonstracao: id de mentira, so para a tela reagir
         setS((v) => inserirLocal(v, t, { id: `demo-${Math.random().toString(36).slice(2)}`, ...row }));
-        return;
+        return { ok: true };
       }
-      const { data, error } = await db.from(t as string).insert(row).select().single();
-      if (error) { setEstado('erro'); return; }
+      let falha: Falha | null = null;
+      let data: Record<string, unknown> | null = null;
+      try {
+        const r = await db.from(t as string).insert(row).select().single();
+        falha = daResposta(r.error);
+        data = r.data as Record<string, unknown> | null;
+      } catch (e) {
+        falha = daExcecao(e);
+      }
+      if (falha) {
+        setEstado('falhou');
+        console.error(`[eurotrip] nao acrescentei em ${t}: ${falha.msg}`);
+        return { ok: false };
+      }
       if (data) setS((v) => inserirLocal(v, t, data));
+      return { ok: true };
     },
     [db],
   );

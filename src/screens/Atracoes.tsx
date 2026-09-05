@@ -281,10 +281,10 @@ function AddRow({ city }: { city: string }) {
   const nota = useLocal();
   const preco = useLocal();
 
-  const por = () => {
+  const por = async () => {
     const nm = nome.get().trim();
     if (!nm) return;
-    void insert('attraction', {
+    const r = insert('attraction', {
       city,
       name: nm,
       price_eur: parseNum(preco.get()) ?? 0,
@@ -294,6 +294,10 @@ function AddRow({ city }: { city: string }) {
       day_iso: null,
       seed_id: null,
     });
+    // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
+    // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
+    // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
+    if (!(await r).ok) return;
     nome.limpar();
     nota.limpar();
     preco.limpar();
@@ -321,7 +325,7 @@ function AddRow({ city }: { city: string }) {
         placeholder="€"
         aria-label="preço em euros"
       />
-      <button onClick={por}>pôr no backlog</button>
+      <button onClick={() => void por()}>pôr no backlog</button>
     </div>
   );
 }

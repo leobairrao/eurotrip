@@ -5,7 +5,7 @@
 // caixinha aqui apaga a linha la e move o valor para "ja pago"
 // (regra 5.10 — o valor conta sempre, a caixinha so decide o lado).
 // ============================================================
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { SUGGRES } from '@/content';
 import { Nota, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp, useOrdemEstavel } from '@/lib/store';
@@ -153,12 +153,17 @@ export default function Reservas() {
         ))}
       </div>
 
+      {/* O formulario fica COLADO na lista, como em Transporte, Atracoes e
+          Comidas. Ate 05/09 ele vinha depois do rodape em fonte mono, num
+          cartao separado — era a ordem do artefato (secao 10.7), mas o Leo
+          nao achava e pediu "poder adicionar novos itens" numa aba onde ja
+          dava. Mudanca de ordem registrada de proposito. */}
+      <Acrescentar proximaPos={proximaPos} />
+
       <p className="mono foot">
         A moeda começa em R$ porque passaporte, seguro e cartão são pagos aqui. Chip e coisas
         compradas lá, troque para €.
       </p>
-
-      <Acrescentar proximaPos={proximaPos} />
 
       {/* ---- as 13 sugestoes: so entram na lista dele no + (regra 5.13) ---- */}
       <div className="sg">
@@ -212,19 +217,28 @@ function Acrescentar({ proximaPos }: { proximaPos: () => number }) {
   const detalhe = useLocal();
   const valor = useLocal();
   const moeda = useRef<HTMLSelectElement | null>(null);
+  const [aviso, setAviso] = useState('');
+  const [indo, setIndo] = useState(false);
 
-  const acrescentar = () => {
+  const acrescentar = async () => {
     const nm = nome.get();
-    if (!nm) return;
-    void insert('booking', {
+    if (!nm) { setAviso('escreva o que é, primeiro'); return; }
+    setAviso('');
+    setIndo(true);
+    const r = await insert('booking', {
       position: proximaPos(),
       name: nm,
-      // o detalhe e mostrado como HTML na lista, entao arranca as tags (secao 10.0)
+      // NAO se arranca tag do que entra: `stripTags` APAGA o trecho entre
+      // "<" e ">" e o texto sumia do banco. Quem escapa e a saida.
       note: detalhe.get(),
       amount: parseNum(valor.get()),
       currency: moeda.current?.value === 'eur' ? 'eur' : 'brl',
       done: false,
     });
+    setIndo(false);
+    // So limpa depois de o banco confirmar. Antes de 05/09 o campo era
+    // limpo sempre, e um insert que falhava comia o que ele digitou.
+    if (!r.ok) { setAviso('não consegui acrescentar. O que você escreveu está aqui — tente de novo.'); return; }
     nome.limpar();
     detalhe.limpar();
     valor.limpar();
@@ -275,8 +289,11 @@ function Acrescentar({ proximaPos }: { proximaPos: () => number }) {
           </div>
         </div>
         <div className="addrow one">
-          <button onClick={acrescentar}>acrescentar à lista</button>
+          <button onClick={() => void acrescentar()} disabled={indo}>
+            {indo ? 'acrescentando…' : 'acrescentar à lista'}
+          </button>
         </div>
+        {aviso ? <p className="mono foot avisofalha">{aviso}</p> : null}
       </div>
     </div>
   );

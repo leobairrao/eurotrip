@@ -306,17 +306,21 @@ function Aportar({ w }: { w: Who | null }) {
     if (dia.current && dia.current.value === s.hoje) dia.current.value = hojeLocal();
   }, [s.hoje]);
 
-  const aportar = () => {
+  const aportar = async () => {
     const v = parseNum(valor.get());
     if (v === null || v <= 0) { valor.ref.current?.focus(); return; }
     const d = dia.current?.value ?? '';
     const who: Who = w ?? (quem.current?.value === 'lu' ? 'lu' : 'leo');
-    void insert('contribution', {
+    const r = insert('contribution', {
       who,
       on_date: isData(d) ? d : hojeLocal(),
       label: nome.get(),
       amount: v,
     });
+    // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
+    // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
+    // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
+    if (!(await r).ok) return;
     nome.limpar();
     valor.limpar();
     if (dia.current) dia.current.value = hojeLocal();
@@ -346,7 +350,7 @@ function Aportar({ w }: { w: Who | null }) {
         placeholder="valor"
         aria-label="valor do aporte"
       />
-      <button type="button" onClick={aportar}>aportar</button>
+      <button type="button" onClick={() => void aportar()}>aportar</button>
     </div>
   );
 }
