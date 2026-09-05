@@ -10,7 +10,7 @@ import Avisos from '@/components/Avisos';
 import { useApp, useOrdemEstavel } from '@/lib/store';
 import * as C from '@/lib/calc';
 import { mover } from '@/lib/ordem';
-import { brl, parseNum, shortDt, stripTags } from '@/lib/fmt';
+import { brl, parseNum, shortDt } from '@/lib/fmt';
 import type { Currency, LegKind } from '@/lib/types';
 import { useRef } from 'react';
 

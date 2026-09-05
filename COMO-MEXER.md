@@ -306,15 +306,27 @@ números que o usuário espera ver, calculados do estado real dele.
 ### Conferir se não quebrou nada
 
 ```bash
-npm test          # 82 testes: as fórmulas, a mesclagem e a ordem
+npm test          # 100 testes: as fórmulas, a mesclagem, a ordem e a escrita
 npm run typecheck # TypeScript estrito
 npm run build     # o build da Vercel roda isso
 npm run check     # os 18 números de aceite, lidos DO BANCO
 ```
 
-O `check` é o mais valioso: ele lê o banco de verdade e confere 8 atrações escolhidas,
-R$ 5.337 já pago, câmbio 6,2, 34 dias, 31 noites, 32 em terra + 2 de voo, 104 atrações,
-o passaporte resolvido, e mais. Se um desses parar de bater, algo real quebrou.
+**Os dois medem coisas diferentes, e em 05/09 eles discordavam em silêncio** — `npm test`
+85/85 verde e `npm run check` vermelho com 5 falhas, ao mesmo tempo. A causa: `npm test`
+roda sobre `dados/estado-atual-do-leo.json`, que é um **retrato de 04/09**, e o `check` lê
+o banco. Desde 05/09 a divisão está escrita:
+
+- **`npm test`** prova as **fórmulas**, sobre uma fixture congelada e declarada histórica.
+  Se quebrar, foi o código.
+- **`npm run check`** é **o único que fala de produção**. Ele lê o banco e confere 13
+  atrações escolhidas, R$ 5.337 já pago, câmbio 6,2, 34 dias, 31 noites, 32 em terra + 2
+  de voo, 104 atrações, o passaporte resolvido, e mais.
+
+E dentro do `check` há duas famílias de número: as que **o Leo mexe** (escolhidas,
+backlog) mudam quando ele usa o app — um vermelho ali costuma ser ele decidindo algo, e o
+número se atualiza no `check.mjs`. As que descrevem **a viagem** (34 dias, 31 noites, 12
+trechos) não mudam — um vermelho ali é bug.
 
 ### Testar a entrada sem depender de e-mail
 

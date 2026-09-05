@@ -12,7 +12,7 @@ import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, eur, parseNum, shortDt, stripTags } from '@/lib/fmt';
+import { brl, eur, parseNum, shortDt } from '@/lib/fmt';
 import type { Attraction } from '@/lib/types';
 
 /**
@@ -258,8 +258,9 @@ function Linha({ it }: { it: Attraction }) {
         {it.day_iso ? (
           <span className="dtag">{`${AKE[it.kind]} ${shortDt(it.day_iso)}`}</span>
         ) : null}
-        {/* stripTags no que ENTRA: a nota semeada pode ter <b>, e campo
-            nenhum mostra tag crua. O que ele digitar ja sai puro. */}
+        {/* NAO pode haver poda no que ENTRA: `stripTags` APAGA o trecho
+            entre "<" e ">", e o texto sumia do BANCO. Quem escapa e a
+            SAIDA — `marcado()` em fmt.ts. Ver tests/avisos.test.mjs. */}
         <TextField
           fk={`attraction|${it.id}|note`}
           value={it.note}

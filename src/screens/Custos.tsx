@@ -9,7 +9,7 @@ import { STAYS, VOO } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
-import { brl, eur, parseNum, stripTags } from '@/lib/fmt';
+import { brl, eur, parseNum } from '@/lib/fmt';
 import type { Currency } from '@/lib/types';
 
 const CIDADES = STAYS.map((x) => x.c);
@@ -274,7 +274,7 @@ function Acrescentar() {
     const n = nome.get();
     if (!n) return;
     const m: Currency = moeda.current?.value === 'brl' ? 'brl' : 'eur';
-    void insert('extra', { name: stripTags(n), amount: parseNum(valor.get()), currency: m });
+    void insert('extra', { name: n, amount: parseNum(valor.get()), currency: m });
     nome.limpar();
     valor.limpar();
     if (moeda.current) moeda.current.value = 'eur';

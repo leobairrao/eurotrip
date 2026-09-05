@@ -59,8 +59,11 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     killed, adopted, savings, contribution, aviso,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
-    db.from('attraction').select('*'),
-    db.from('food').select('*'),
+    // `.order('name')`: sem isto a ordem e a que o Postgres devolveu, e ele
+    // reorganiza o heap depois de um UPDATE — a lista dancava entre um F5 e
+    // outro, e entre os dois navegadores. Eram as duas unicas sem ordem.
+    db.from('attraction').select('*').order('name'),
+    db.from('food').select('*').order('name'),
     db.from('leg').select('*').order('position'),
     db.from('booking').select('*').order('position'),
     db.from('stay').select('*'),
