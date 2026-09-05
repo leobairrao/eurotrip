@@ -34,8 +34,19 @@ export function resolve(spec, ctx, next) {
   return next(s, ctx);
 }
 
+/**
+ * So mexe no codigo DESTE projeto.
+ *
+ * Sem isto o gancho reescrevia tambem os .json de node_modules — e o
+ * `require('dotenv/package.json')`, que e CommonJS, recebia um
+ * `export default {` e estourava. Quebrou o `npm run seed` na primeira
+ * vez que ele passou a usar este gancho (05/09/2026).
+ */
+const meu = (p) => p && p.startsWith(ROOT) && !p.includes('node_modules');
+
 export function load(url, ctx, next) {
   const p = url.startsWith('file://') ? fileURLToPath(url) : null;
+  if (!meu(p)) return next(url, ctx);
   if (p && p.endsWith('.json')) {
     return {
       format: 'module',
