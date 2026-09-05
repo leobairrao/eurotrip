@@ -11,17 +11,13 @@ manda. Ela é a fonte; isto é o mapa.
 
 ## 0. Onde eu parei — 05/09/2026
 
-**Falta um passo, e ele é do Leo.** O commit `1650e2c` (avisos editáveis) está no
-repositório local e **não foi publicado**. Na ordem:
+**Tudo o que foi feito está no ar.** A migração `04-avisos.sql` foi rodada pelo Leo,
+`npm run seed` inseriu os 45 avisos, e o push publicou. Não há passo pendente.
 
-1. **O Leo** cola `supabase/04-avisos.sql` no SQL Editor do Supabase e clica em Run.
-   Conferido em 05/09: a tabela `aviso` ainda não existe, e 6 notas de atração ainda
-   guardam `<b>`.
-2. Depois disso, `npm run seed` (insere os 45 avisos) e `git push origin main`.
-
-**Publicar antes da migração faz todos os avisos sumirem da tela.** Não quebra nada —
-`load.ts` não acha a tabela, devolve lista vazia, e as quatro telas ficam sem aviso — mas
-some, e em silêncio.
+Conferido contra o banco depois de rodar: tabela `aviso` com as 9 colunas, RLS ligada (o
+anônimo apanha), 45 linhas na distribuição certa (7 cidade, 18 dia, 4 país, 15 "não vale",
+1 transporte), zero tag crua, 21 com `*negrito*`. Semear de novo não duplica. As notas
+antigas que tinham `<b>` viraram `*asterisco*`: 6 atrações e 3 trechos.
 
 ### O que nunca foi testado
 
@@ -30,8 +26,14 @@ exercitada com duas sessões de gente diferente: nem por mim, nem antes. Há tes
 da mesclagem (`tests/merge.test.mjs`), e isso não é a mesma coisa. Se for mexer em
 Realtime, comece por aí.
 
-Em 05/09 o Leo disse que estava funcionando — mas isso foi sobre o que já estava no ar,
-não sobre os avisos, que ainda não subiram.
+O que testar, com os dois logados na mesma aba: um edita um aviso e o outro tem que ver
+sem recarregar; um apaga e some da tela do outro; os dois digitando em campos diferentes
+não se apagam; e o cursor de quem está digitando não pula quando chega mudança do outro.
+
+**E a renovação de sessão.** O middleware ficou na raiz do repositório desde a primeira
+publicação e por isso nunca rodou — a sessão nunca se renovava, e passada a validade do
+token os dois caíam na tela de entrada. Consertado em 05/09 (é `src/middleware.ts`, não
+`middleware.ts`), mas só o uso ao longo de horas prova que funciona.
 
 ---
 
