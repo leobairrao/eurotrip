@@ -52,7 +52,7 @@ scripts/                 semeadura, importação, allowlist e os números de ace
 src/content/             os JSONs que viram constante no código (seção 6.3)
 src/lib/                 formulas (seção 11), store em tempo real, tipos
 src/screens/             as nove telas
-tests/                   47 testes sobre as formulas e as regras
+tests/                   62 testes sobre as formulas e as regras
 ```
 
 ---

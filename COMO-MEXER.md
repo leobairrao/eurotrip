@@ -38,6 +38,7 @@ src/lib/
   load.ts        221    carga inicial no servidor + modo demonstração
   ui.tsx          76    estado de navegação (aba, dia, país, filtro)
   supabase/      2 arq  cliente do navegador e do servidor
+  ordem.ts        40    subir/descer numa lista ordenada por `position`
 
 src/components/
   Field.tsx      138    OS CAMPOS. Leia a seção 4 antes de tocar.
@@ -74,7 +75,7 @@ scripts/                rodam SÓ na sua máquina, com a chave secreta
   usuarios.mjs          cria as 2 contas e a allowlist
   link.mjs              gera link de entrada sem passar pelo e-mail
 
-tests/                  51 testes sobre o código de produção
+tests/                  62 testes sobre o código de produção
 ```
 
 ---
@@ -261,7 +262,7 @@ números que o usuário espera ver, calculados do estado real dele.
 ### Conferir se não quebrou nada
 
 ```bash
-npm test          # 51 testes: as fórmulas e a mesclagem
+npm test          # 62 testes: as fórmulas, a mesclagem e a ordem
 npm run typecheck # TypeScript estrito
 npm run build     # o build da Vercel roda isso
 npm run check     # os 18 números de aceite, lidos DO BANCO
@@ -380,6 +381,70 @@ Uma coisa que **não** foi feita, de propósito: o aporte **não** tem moeda pr�
 herda a moeda da pessoa (Leo em R$, Lu em €), que é como os dois já pensavam. Se um dia
 alguém receber um bolo na outra moeda, aí vale acrescentar a coluna.
 
+### Os controles novos moram na segunda linha, não numa coluna nova
+
+Quando você pediu "todos os campos editáveis" (04/09), a saída óbvia seria dar uma coluna
+a mais para cada campo novo: cidade em Atrações, ordem em Transporte. Não fiz isso.
+
+Cada linha dessas telas já tinha uma **segunda linha** — a que mostrava a etiqueta do dia
+e a nota, só de leitura. Ela virou a linha dos controles: nota editável, select de
+cidade/país, setas de ordem. Com isso `at5` e `tr5` — as grades principais — **não
+mudaram uma vírgula**, e o celular, que já era apertado com 5 e 6 colunas, não piorou.
+
+Duas coisas que parecem detalhe e não são:
+
+- **O select de cidade fica invisível até você passar o mouse.** Dentro do cartão
+  "Lisboa", vinte linhas repetindo "Lisboa" com borda são vinte ruídos. Ele usa a mesma
+  linguagem do campo de nome: sem borda, sem fundo, acende no hover.
+- **Cidade vazia órfãa a linha.** A atração só aparece dentro do cartão da cidade dela;
+  com `city = ''` ela some de todos e não há como achá-la de novo pela tela. O select não
+  tem como devolver vazio, mas a trava custa uma linha e está lá.
+
+### Nota virou texto do usuário — e isso quebrou duas telas que nem foram tocadas
+
+O erro mais caro desta mudança não estava em nenhuma das quatro telas que eu editei.
+
+Enquanto a nota era só semeada, pintá-la com `dangerouslySetInnerHTML` era seguro: o HTML
+era meu. No instante em que ela virou campo, quatro `<Nota html={...}>` no **Roteiro** e
+uma concatenação no **Painel** passaram a jogar texto dele dentro de innerHTML — e
+`stripTags` **não** protege disso, porque a regex é `/<[^>]*>/g` e só come um `<` que
+tenha `>` depois.
+
+Escreva numa nota `confirmar <ver e-mail da CP`. O campo mostra tudo. O Roteiro mostra
+`confirmar ` e engole o resto, sem erro, sem aviso — exatamente o que a seção 8 promete
+que nunca acontece. Hoje o Roteiro pinta a nota como texto e o Painel escapa com
+`escHtml()`, que existe só para isso.
+
+**A lição, se você mexer nisso de novo:** ao abrir uma coluna para escrita do usuário,
+procure TODOS os lugares que a leem — `grep -n "\.note" src/screens/`. Quem lê pode estar
+numa tela que você nem abriu.
+
+### Reordenar mexe com o foco de quem está digitando
+
+Até as setas existirem, nenhuma lista do app se reordenava sozinha em tempo de execução —
+`position` era imutável pela tela. Com elas, um clique da outra pessoa chega pelo Realtime,
+a lista reordena e o React **move o `<div>` da linha no DOM**; um elemento com foco que é
+reinserido perde o foco. A regra 5.15 protege o **valor** do campo, não a **posição** da
+linha.
+
+`useOrdemEstavel` (em `store.tsx`, ao lado do resto da máquina de foco) congela o
+rearranjo enquanto há um campo daquela lista com o cursor dentro. Item novo entra e item
+apagado sai na hora; só a troca de lugar espera o dedo sair.
+
+E `porPosicao` desempata pelo id. Duas pessoas movendo no mesmo instante são escritas por
+campo, sem transação — dá para acabar com duas linhas no mesmo número. Empatado é feio;
+**divergente é mentira**, e sem desempate cada navegador ordenaria as empatadas do seu
+jeito. A ordem É a sequência da viagem (10.5).
+
+### A ordem se renumera, em vez de trocar dois números
+
+`mover()` em `src/lib/ordem.ts` podia ser três linhas: acha os dois, troca as posições.
+Ele renumera a lista inteira de 0 a n−1 e escreve só quem mudou de lugar. O motivo é que
+apagar do meio deixa buraco (0, 5, 9) e um bug antigo pode ter deixado duas linhas com o
+mesmo número — e duas linhas empatadas, trocando só os números entre si, **nunca mais se
+separam**. Renumerando, a lista se conserta sozinha no primeiro movimento. Há teste para
+os dois casos.
+
 ### "Ainda por gastar" segue a especificação, não o artefato
 
 O artefato tem uma inconsistência: na primeira pintura, `viewCustos` escreve
@@ -474,7 +539,7 @@ Reset database password.
 
 ### Provado
 
-- **51 testes** rodando contra o código de produção (`src/lib/calc.ts` e
+- **62 testes** rodando contra o código de produção (`src/lib/calc.ts` e
   `src/lib/merge.ts`), sobre o estado real de `dados/estado-atual-do-leo.json` — não
   contra uma cópia.
 - **18 números de aceite** lidos do banco por `npm run check`.

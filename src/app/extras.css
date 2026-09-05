@@ -84,3 +84,56 @@
   .mrow.ap .acv { font-size: 12.5px; }
   .addrow.ap, .addrow.ap.apg { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   A segunda linha da lista vira a linha dos controles (04/09).
+   Ela ja existia — era onde a etiqueta do dia e a nota apareciam,
+   so de leitura. Agora abriga tambem a nota EDITAVEL, o select de
+   cidade/pais e as setas de ordem. A grade principal da linha nao
+   mudou: nenhuma das telas ganhou coluna.
+   ============================================================ */
+.mrow .wh.nt, .bkr.rr .rb.nt { display: flex; align-items: center;
+  gap: 6px; flex-wrap: wrap; }
+
+/* a nota: some a borda ate o mouse passar, igual ao campo de nome */
+.mrow .wh.nt .wv, .bkr.rr .rb.nt .wv {
+  flex: 1 1 180px; min-width: 110px; width: auto;
+  font-family: var(--body); font-size: 13.5px; color: var(--muted);
+  background: transparent; border: 1px solid transparent;
+  padding: 4px 6px; line-height: 1.45; }
+.mrow:hover .wh.nt .wv, .bkr.rr:hover .rb.nt .wv { border-color: var(--hairline); }
+.mrow .wh.nt .wv:focus, .bkr.rr .rb.nt .wv:focus {
+  background: var(--surface); border-color: var(--pine);
+  color: var(--ink); outline: none; }
+.mrow .wh.nt .wv::placeholder, .bkr.rr .rb.nt .wv::placeholder {
+  color: var(--muted); opacity: .55; font-style: italic; }
+
+/* O select de cidade / pais fica QUIETO ate voce encostar nele.
+   Dentro do cartao "Lisboa", vinte linhas repetindo "Lisboa" com borda
+   sao vinte ruidos; a mesma linguagem do campo de nome resolve: sem
+   borda, sem fundo, e so acende no hover. */
+.mrow .wh.nt .mv {
+  flex: none; width: auto; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: .05em; padding: 3px 4px; color: var(--muted);
+  background: transparent; border: 1px solid transparent; }
+.mrow:hover .wh.nt .mv { border-color: var(--hairline); color: var(--ink-2); }
+.mrow .wh.nt .mv:focus { background: var(--surface); border-color: var(--pine);
+  color: var(--ink); outline: none; }
+
+/* as setas de ordem, so onde a ordem quer dizer alguma coisa */
+.ordb { flex: none; display: flex; gap: 2px; }
+.ordb button { font-family: var(--mono); font-size: 11px; line-height: 1;
+  padding: 4px 6px; color: var(--muted); background: var(--surface);
+  border: 1px solid var(--hairline-2); width: auto; }
+.ordb button:hover:not(:disabled) { color: var(--pine); border-color: var(--pine); }
+.ordb button:disabled { opacity: .28; cursor: default; }
+
+/* o formulario de acrescentar ganhou o campo de nota */
+.addrow.at3 { grid-template-columns: 1fr 1fr 96px auto; }
+.addrow.fo2 { grid-template-columns: 1fr 1fr auto; }
+.addrow.tr5 { grid-template-columns: 1fr 1fr 116px 96px 62px auto; }
+.addrow.re4 { grid-template-columns: 1fr 1fr 96px 58px auto; }
+@media (max-width: 700px) {
+  .addrow.at3, .addrow.fo2, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  .mrow .wh.nt .wv, .bkr.rr .rb.nt .wv { flex: 1 1 100%; }
+}

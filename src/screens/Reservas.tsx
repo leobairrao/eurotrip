@@ -7,9 +7,10 @@
 // ============================================================
 import { useRef } from 'react';
 import { SUGGRES } from '@/content';
-import { Inline, Nota, NumField, TextField, useLocal } from '@/components/Field';
-import { useApp } from '@/lib/store';
+import { Nota, NumField, TextField, useLocal } from '@/components/Field';
+import { useApp, useOrdemEstavel } from '@/lib/store';
 import * as C from '@/lib/calc';
+import { mover } from '@/lib/ordem';
 import { brl, parseNum, stripTags } from '@/lib/fmt';
 
 export default function Reservas() {
@@ -23,7 +24,14 @@ export default function Reservas() {
   // A posicao e a identidade da ordem (secao 12.2): o item novo vai para o fim.
   const proximaPos = () => s.bookings.reduce((a, r) => Math.max(a, r.position), 0) + 1;
 
-  const lista = [...s.bookings].sort((a, b) => a.position - b.position);
+  // mesma regra do Transporte: desempate estavel e rearranjo congelado
+  // enquanto ele digita nesta lista
+  const lista = useOrdemEstavel([...s.bookings].sort(C.porPosicao), 'booking|');
+
+  /** Sobe ou desce um item. Escreve so as linhas que mudaram de lugar. */
+  const irPara = (id: string, dir: -1 | 1) => {
+    for (const m of mover(lista, id, dir)) now('booking', m.id, 'position', m.position);
+  };
 
   return (
     <>
@@ -69,7 +77,7 @@ export default function Reservas() {
             <div><p style={{ color: 'var(--muted)' }}>Nada aqui ainda.</p></div>
           </div>
         ) : null}
-        {lista.map((r) => (
+        {lista.map((r, ix) => (
           <div key={r.id} className={`bkr rr${r.done ? ' done' : ''}`}>
             <input
               type="checkbox"
@@ -111,8 +119,35 @@ export default function Reservas() {
             >
               ×
             </button>
-            <div className="rb">
-              {r.note ? <p><Inline html={r.note} /></p> : null}
+            <div className="rb nt">
+              <span className="ordb">
+                <button
+                  type="button"
+                  onClick={() => irPara(r.id, -1)}
+                  disabled={ix === 0}
+                  title="subir um lugar"
+                  aria-label="subir um lugar"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => irPara(r.id, 1)}
+                  disabled={ix === lista.length - 1}
+                  title="descer um lugar"
+                  aria-label="descer um lugar"
+                >
+                  ↓
+                </button>
+              </span>
+              <TextField
+                fk={`booking|${r.id}|note`}
+                value={stripTags(r.note)}
+                onCommit={(v) => patch('booking', r.id, 'note', v)}
+                className="wv"
+                placeholder="prazo, preço, onde se faz"
+                aria-label="detalhe"
+              />
             </div>
           </div>
         ))}
@@ -145,7 +180,8 @@ export default function Reservas() {
                     void insert('booking', {
                       position: proximaPos(),
                       name: stripTags(sg[0]),
-                      note: sg[1],
+                      // igual ao + de Comidas: linha dele nunca guarda tag (regra 10.0)
+      note: stripTags(sg[1]),
                       amount: null,
                       currency: 'brl',
                       done: false,

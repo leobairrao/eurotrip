@@ -164,12 +164,32 @@ function Linha({ it }: { it: Food }) {
       >
         ×
       </button>
-      {it.day_iso || it.note ? (
-        <div className="wh">
-          {it.day_iso ? <><span className="dtag">{shortDt(it.day_iso)}</span>{' '}</> : null}
-          <Inline html={it.note} />
-        </div>
-      ) : null}
+      {/* a segunda linha agora edita: o pais e a nota */}
+      <div className="wh nt">
+        <select
+          className="mv"
+          aria-label="país"
+          value={it.country}
+          /* mesma trava da cidade em Atracoes: pais vazio orfanaria a linha */
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            if (v) now('food', it.id, 'country', v);
+          }}
+        >
+          {CO.map((c) => (
+            <option key={c.k} value={c.k}>{c.n}</option>
+          ))}
+        </select>
+        {it.day_iso ? <span className="dtag">{shortDt(it.day_iso)}</span> : null}
+        <TextField
+          fk={`food|${it.id}|note`}
+          value={stripTags(it.note)}
+          onCommit={(v) => patch('food', it.id, 'note', v)}
+          className="wv"
+          placeholder="uma nota sua"
+          aria-label="nota"
+        />
+      </div>
     </div>
   );
 }
@@ -178,6 +198,7 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
   const { insert } = useApp();
   const { selCO } = useUi();
   const campo = useLocal();
+  const nota = useLocal();
 
   const por = () => {
     const nome = stripTags(campo.get());
@@ -185,21 +206,28 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
     void insert('food', {
       country: selCO,
       name: nome,
-      note: '',
+      note: stripTags(nota.get()),
       kind,
       day_iso: null,
       seed_id: null,
     });
     campo.limpar();
+    nota.limpar();
   };
 
   return (
-    <div className="addrow two">
+    <div className="addrow fo2">
       <input
         type="text"
         ref={(el) => { campo.ref.current = el; }}
         placeholder={PLACEHOLDER[kind]}
         aria-label="nome"
+      />
+      <input
+        type="text"
+        ref={(el) => { nota.ref.current = el; }}
+        placeholder="uma nota (opcional)"
+        aria-label="nota"
       />
       <button onClick={por}>pôr em {FKPL[kind]}</button>
     </div>
@@ -223,7 +251,9 @@ function Sugestoes({ f }: { f: FoodSugg }) {
     await insert('food', {
       country: selCO,
       name: stripTags(f.reg[ix][0]),
-      note: f.reg[ix][1],
+      // texto puro ao entrar: a partir daqui a linha e dele, e linha dele
+      // nunca guarda tag. O negrito fica so no meu painel de sugestao.
+      note: stripTags(f.reg[ix][1]),
       kind: 'prato',
       day_iso: null,
       seed_id: sid,

@@ -117,7 +117,8 @@ export default function Atracoes() {
       </div>
       <p className="mono foot">
         Os preços são de 2026 e servem de ordem de grandeza — confirme no site oficial ao
-        reservar. Tudo é editável: mexa no número que eu chutei.
+        reservar. Tudo é editável, inclusive o que eu sugeri: o nome, a nota, a cidade, o tipo
+        e o número que eu chutei.
       </p>
     </>
   );
@@ -236,16 +237,43 @@ function Linha({ it }: { it: Attraction }) {
       >
         ×
       </button>
-      {it.day_iso || it.note ? (
-        <div className="wh">
-          {it.day_iso ? (
-            <>
-              <span className="dtag">{`${AKE[it.kind]} ${shortDt(it.day_iso)}`}</span>{' '}
-            </>
-          ) : null}
-          {it.note ? <Inline html={it.note} /> : null}
-        </div>
-      ) : null}
+      {/* A segunda linha, que antes era so leitura, agora e onde se edita
+          a cidade e a nota. A grade da linha de cima nao mudou. */}
+      <div className="wh nt">
+        <select
+          className="mv"
+          aria-label="cidade"
+          value={it.city}
+          /* cidade vazia sumiria com a linha de TODOS os cartoes: ela so
+             aparece dentro do cartao da cidade dela. Nao ha como o select
+             devolver vazio pela tela, mas o custo da trava e uma linha. */
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            if (v) now('attraction', it.id, 'city', v);
+          }}
+        >
+          {CO.map((c) => (
+            <optgroup key={c.k} label={c.n}>
+              {c.cities.map((ck) => (
+                <option key={ck} value={ck}>{CT[ck]?.n ?? ck}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        {it.day_iso ? (
+          <span className="dtag">{`${AKE[it.kind]} ${shortDt(it.day_iso)}`}</span>
+        ) : null}
+        {/* stripTags no que ENTRA: a nota semeada pode ter <b>, e campo
+            nenhum mostra tag crua. O que ele digitar ja sai puro. */}
+        <TextField
+          fk={`attraction|${it.id}|note`}
+          value={stripTags(it.note)}
+          onCommit={(v) => patch('attraction', it.id, 'note', v)}
+          className="wv"
+          placeholder="uma nota sua"
+          aria-label="nota"
+        />
+      </div>
     </div>
   );
 }
@@ -254,6 +282,7 @@ function Linha({ it }: { it: Attraction }) {
 function AddRow({ city }: { city: string }) {
   const { insert } = useApp();
   const nome = useLocal();
+  const nota = useLocal();
   const preco = useLocal();
 
   const por = () => {
@@ -263,22 +292,30 @@ function AddRow({ city }: { city: string }) {
       city,
       name: nm,
       price_eur: parseNum(preco.get()) ?? 0,
-      note: '',
+      note: stripTags(nota.get()),
       status: 'backlog',
       kind: 'passeio',
       day_iso: null,
       seed_id: null,
     });
     nome.limpar();
+    nota.limpar();
     preco.limpar();
   };
 
   return (
-    <div className="addrow">
+    <div className="addrow at3">
       <input
         ref={(el) => { nome.ref.current = el; }}
         type="text"
         placeholder={`o que você quer fazer em ${CT[city].n}`}
+        aria-label="nome da atração"
+      />
+      <input
+        ref={(el) => { nota.ref.current = el; }}
+        type="text"
+        placeholder="uma nota (opcional)"
+        aria-label="nota da atração"
       />
       <input
         ref={(el) => { preco.ref.current = el; }}
@@ -286,6 +323,7 @@ function AddRow({ city }: { city: string }) {
         inputMode="decimal"
         className="pv"
         placeholder="€"
+        aria-label="preço em euros"
       />
       <button onClick={por}>pôr no backlog</button>
     </div>

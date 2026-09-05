@@ -59,6 +59,42 @@ const focado = { atual: '' as string };
 export const marcarFoco = (k: string) => { focado.atual = k; };
 export const limparFoco = (k: string) => { if (focado.atual === k) focado.atual = ''; };
 export const estaFocado = (k: string) => focado.atual === k;
+/** Ha algum campo de `leg|...` (ou `booking|...`) com o cursor dentro agora? */
+export const focoEm = (prefixo: string) => focado.atual.startsWith(prefixo);
+
+/**
+ * A ordem da lista, CONGELADA enquanto alguem digita dentro dela.
+ *
+ * Ate as setas de ordem existirem, nenhuma lista do app se reordenava
+ * sozinha. Agora um clique da outra pessoa muda `position`, chega pelo
+ * Realtime, a lista reordena e o React MOVE o <div> da linha no DOM — e
+ * um elemento com foco que e reinserido perde o foco. A regra 5.15
+ * protege o VALOR do campo, nao a posicao da linha; o cursor ia embora no
+ * meio da frase (achado da revisao de 04/09).
+ *
+ * Entao: enquanto ha um campo desta lista com o cursor dentro, a ordem
+ * que esta na tela nao muda. Item novo entra no fim e item apagado sai na
+ * hora — so o REARRANJO espera o dedo sair do campo.
+ */
+export function useOrdemEstavel<T extends { id: string }>(
+  ordenada: T[], prefixoDoFoco: string,
+): T[] {
+  const guardada = useRef<T[]>(ordenada);
+  if (!focoEm(prefixoDoFoco)) {
+    guardada.current = ordenada;
+    return ordenada;
+  }
+  const porId = new Map(ordenada.map((x) => [x.id, x]));
+  const vistos = new Set<string>();
+  const antes: T[] = [];
+  for (const velho of guardada.current) {
+    const atual = porId.get(velho.id);
+    if (atual) { antes.push(atual); vistos.add(atual.id); }   // sumiu = sai da tela
+  }
+  for (const x of ordenada) if (!vistos.has(x.id)) antes.push(x);  // novo entra no fim
+  guardada.current = antes;
+  return antes;
+}
 
 export function Provider({
   inicial, me, children,

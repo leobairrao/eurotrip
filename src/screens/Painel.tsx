@@ -8,7 +8,7 @@ import { DECISOES, ISOS, STAYS } from '@/content';
 import { Inline } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
-import { brl, daysTo, eur, num, plMesAte } from '@/lib/fmt';
+import { brl, daysTo, escHtml, eur, num, plMesAte } from '@/lib/fmt';
 
 const CIDADES = STAYS.map((s) => s.c);
 
@@ -195,7 +195,10 @@ function Pendencias() {
     pend.push({
       k: 'res',
       titulo: r.name,
-      corpo: (v ? `<b>${r.currency === 'eur' ? eur(v) : brl(v)}</b> previstos. ` : '') + (r.note || ''),
+      // `corpo` vira HTML la embaixo (<Inline html=...>). A nota agora e
+      // texto DELE, entao ela entra escapada — senao um "<" solto engole o
+      // resto da frase na tela de abertura do app.
+      corpo: (v ? `<b>${r.currency === 'eur' ? eur(v) : brl(v)}</b> previstos. ` : '') + escHtml(r.note),
     });
   }
 

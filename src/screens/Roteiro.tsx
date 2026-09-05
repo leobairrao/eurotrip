@@ -12,7 +12,7 @@ import {
   ccOf, coOf,
 } from '@/content';
 import type { Aviso, City } from '@/content';
-import { AreaField, Inline, Nota, TextField } from '@/components/Field';
+import { AreaField, Inline, TextField } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
@@ -469,7 +469,7 @@ function CartaoTransporte({ iso }: { iso: string }) {
                     >
                       +
                     </button>
-                    <Nota html={t.note} className="wh" />
+                    {t.note ? <div className="wh">{t.note}</div> : null}
                   </div>
                 );
               })}
@@ -600,7 +600,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                       >
                         +
                       </button>
-                      <Nota html={it.note} className="wh" />
+                      {it.note ? <div className="wh">{it.note}</div> : null}
                     </div>
                   );
                 })}
@@ -671,7 +671,7 @@ function CartaoComidas({ iso }: { iso: string }) {
                 >
                   ×
                 </button>
-                <Nota html={it.note} className="wh" />
+                {it.note ? <div className="wh">{it.note}</div> : null}
               </div>
             ))}
           </div>
@@ -728,7 +728,7 @@ function CartaoComidas({ iso }: { iso: string }) {
                   >
                     +
                   </button>
-                  <Nota html={it.note} className="wh" />
+                  {it.note ? <div className="wh">{it.note}</div> : null}
                 </div>
               ))}
               {other ? (

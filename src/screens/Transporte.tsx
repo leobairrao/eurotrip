@@ -5,9 +5,10 @@
 // embaralha isso. O tipo aparece na barra colorida e na etiqueta.
 // ============================================================
 import { TK, TKE, TKPL } from '@/content';
-import { Inline, NumField, TextField, useLocal } from '@/components/Field';
-import { useApp } from '@/lib/store';
+import { NumField, TextField, useLocal } from '@/components/Field';
+import { useApp, useOrdemEstavel } from '@/lib/store';
 import * as C from '@/lib/calc';
+import { mover } from '@/lib/ordem';
 import { brl, parseNum, shortDt, stripTags } from '@/lib/fmt';
 import type { Currency, LegKind } from '@/lib/types';
 import { useRef } from 'react';
@@ -73,8 +74,9 @@ export default function Transporte() {
         </div>
         <div className="b">
           <p>
-            Os trechos entre as bases já estão aqui. Mude o tipo se eu errei, lance o valor, e
-            marque a caixinha quando comprar.
+            Os trechos entre as bases já estão aqui. Mude o nome ou o tipo se eu errei, lance o
+            valor, escreva a sua nota, e marque a caixinha quando comprar. As setas{' '}
+            <b>↑↓</b> arrumam a sequência da viagem.
           </p>
           <Linhas />
           <Acrescentar />
@@ -116,10 +118,19 @@ function Linhas() {
   if (!s.legs.length) {
     return <div className="empty">Nenhum trecho na lista. Escreva abaixo.</div>;
   }
-  const lista = [...s.legs].sort((a, b) => a.position - b.position);
+  // porPosicao desempata pelo id: duas linhas empatadas nunca saem em
+  // ordem diferente em cada tela. useOrdemEstavel segura o rearranjo
+  // enquanto o dedo esta num campo desta lista (ver store.tsx).
+  const lista = useOrdemEstavel([...s.legs].sort(C.porPosicao), 'leg|');
+
+  /** Sobe ou desce um trecho. Escreve so as linhas que mudaram de lugar. */
+  const irPara = (id: string, dir: -1 | 1) => {
+    for (const m of mover(lista, id, dir)) now('leg', m.id, 'position', m.position);
+  };
+
   return (
     <div className="mt">
-      {lista.map((it) => (
+      {lista.map((it, ix) => (
         <div key={it.id} className={`mrow tr5 tk-${it.kind}${it.bought ? ' pgo' : ''}`}>
           <TextField
             fk={`leg|${it.id}|name`}
@@ -175,15 +186,43 @@ function Linhas() {
           >
             ×
           </button>
-          <div className="wh">
-            <span className={`stg tkc-${it.kind}`}>{TK[it.kind]}</span>{' '}
+          <div className="wh nt">
+            {/* a ordem E a sequencia da viagem (10.5), entao ela se arruma aqui */}
+            <span className="ordb">
+              <button
+                type="button"
+                onClick={() => irPara(it.id, -1)}
+                disabled={ix === 0}
+                title="subir um lugar"
+                aria-label="subir um lugar"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                onClick={() => irPara(it.id, 1)}
+                disabled={ix === lista.length - 1}
+                title="descer um lugar"
+                aria-label="descer um lugar"
+              >
+                ↓
+              </button>
+            </span>
+            <span className={`stg tkc-${it.kind}`}>{TK[it.kind]}</span>
             {it.bought ? (
               <span className="dtag">comprado</span>
             ) : (
               <span className="dtag off">a comprar</span>
             )}
-            {it.day_iso ? <> <span className="dtag">{shortDt(it.day_iso)}</span></> : null}
-            {it.note ? <> <Inline html={it.note} /></> : null}
+            {it.day_iso ? <span className="dtag">{shortDt(it.day_iso)}</span> : null}
+            <TextField
+              fk={`leg|${it.id}|note`}
+              value={stripTags(it.note)}
+              onCommit={(v) => patch('leg', it.id, 'note', v)}
+              className="wv"
+              placeholder="uma nota sua"
+              aria-label="nota"
+            />
           </div>
         </div>
       ))}
@@ -195,6 +234,7 @@ function Linhas() {
 function Acrescentar() {
   const { s, insert } = useApp();
   const nome = useLocal();
+  const nota = useLocal();
   const valor = useLocal();
   const tipo = useRef<HTMLSelectElement>(null);
   const moeda = useRef<HTMLSelectElement>(null);
@@ -211,11 +251,13 @@ function Acrescentar() {
     void insert('leg', {
       position: pos,
       name: n,
+      note: stripTags(nota.get()),
       kind: TIPOS.find((x) => x === kv) ?? 'trem',
       amount: parseNum(valor.get()),
       currency: moe,
     });
     nome.limpar();
+    nota.limpar();
     valor.limpar();
     // o artefato re-renderiza a tela toda depois de acrescentar: o
     // formulario volta a trem e a euro. Os selects nao se re-montam, entao
@@ -225,13 +267,19 @@ function Acrescentar() {
   };
 
   return (
-    <div className="addrow four">
+    <div className="addrow tr5">
       {/* ref por callback: o useLocal aceita input ou textarea, e o JSX quer so o input */}
       <input
         ref={(el) => { nome.ref.current = el; }}
         type="text"
         placeholder="ex. metrô até Barajas"
         aria-label="trecho novo"
+      />
+      <input
+        ref={(el) => { nota.ref.current = el; }}
+        type="text"
+        placeholder="uma nota (opcional)"
+        aria-label="nota do trecho novo"
       />
       <select ref={tipo} defaultValue="trem" aria-label="tipo do trecho novo">
         {TIPOS.map((k) => (

@@ -151,7 +151,24 @@ export function legBrl(s: Snapshot, mode: Mode = ''): number {
 export const legDone   = (s: Snapshot) => s.legs.filter((t) => t.bought).length;
 export const legWithVal = (s: Snapshot) => s.legs.filter((t) => num(t.amount) > 0).length;
 export const legPlaced = (s: Snapshot) => s.legs.filter((t) => t.day_iso).length;
-export const legsOfKind = (s: Snapshot, k: string) => s.legs.filter((t) => t.kind === k);
+/**
+ * A ordem de qualquer lista ordenada por `position`.
+ *
+ * O desempate pelo id NAO e decoracao. Desde que as setas existem, duas
+ * pessoas movendo no mesmo instante podem deixar duas linhas com o MESMO
+ * numero (sao escritas por campo, sem transacao). Sem desempate, cada
+ * navegador ordenaria as empatadas do seu jeito e os dois passariam a ler
+ * sequencias de viagem diferentes — e a regra 10.5 diz que a ordem E a
+ * sequencia. Empatado e feio; divergente e mentira.
+ */
+export function porPosicao<T extends { id: string; position: number }>(a: T, b: T): number {
+  if (a.position !== b.position) return a.position - b.position;
+  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+}
+
+/** Os trechos de um tipo, NA ORDEM DO ROTEIRO (o filtro sozinho nao ordena). */
+export const legsOfKind = (s: Snapshot, k: string) =>
+  s.legs.filter((t) => t.kind === k).sort(porPosicao);
 export function legsOfDay(s: Snapshot, iso: string) {
   return s.legs.filter((t) => t.day_iso === iso).sort((a, b) => TKORD[a.kind] - TKORD[b.kind]);
 }

@@ -157,6 +157,25 @@ export function norm(v: unknown): string {
  * So a nota semeada e renderizada como HTML. Esta funcao arranca as tags
  * antes de salvar, igual ao `strip()` do app atual.
  */
+/**
+ * Escapa para caber DENTRO de uma string que vai virar HTML.
+ *
+ * `stripTags` nao serve para isso: a regex dele e /<[^>]*>/g, entao ela so
+ * come um `<` que TENHA um `>` depois. Uma nota como
+ *   "confirmar <ver e-mail da CP"
+ * atravessa inteira, e ai o innerHTML le `<ver` como tag aberta e engole
+ * tudo dali ate o fim — o texto some sem erro nenhum (achado da revisao de
+ * 04/09). Onde a nota do usuario precisa entrar numa string de HTML, ela
+ * passa por aqui.
+ */
+export function escHtml(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export function stripTags(s: string): string {
   return String(s ?? '')
     .replace(/<[^>]*>/g, '')

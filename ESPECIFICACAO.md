@@ -546,6 +546,26 @@ pedindo para escrever a base ou escolher a cidade na mão.
 uma com **o emoji do seu tipo** e o valor quando tem. No fim, uma etiqueta verde com o total do
 dia (atrações + transporte, em €).
 
+> **Mudou em 04/09/2026 — as três telas de lista.** O Leo pediu que *todos* os campos
+> fossem editáveis, tanto o que ele escreveu quanto o que eu semeei. A **nota** (aquele
+> texto cinza embaixo do nome) era só leitura nas quatro telas de lista; agora é campo.
+> Junto vieram: **cidade** em Atrações, **país** em Comidas e **ordem** (setas ↑↓) em
+> Transporte e Reservas. A grade principal de cada linha não mudou — os controles novos
+> moram na segunda linha, onde a nota já aparecia.
+>
+> Consequência da regra 10.0: nota é **texto puro, em toda tela**. Isso não é só o campo:
+> o Roteiro pintava a nota com `dangerouslySetInnerHTML` em quatro lugares e o Painel
+> concatenava a nota da reserva dentro de uma string de HTML. Enquanto a nota era só
+> semeada isso era seguro; virou perigoso no instante em que ela passou a ser texto dele.
+> **Um `<` sem `>` depois atravessa o `stripTags`** — a regex dele é `/<[^>]*>/g` — e o
+> `innerHTML` engole dali até o fim da frase, sem erro nenhum. O Roteiro agora pinta a
+> nota como texto, e o Painel escapa com `escHtml()`.
+>
+> O negrito das notas semeadas some da tela junto: eram **6 notas de atração**, **3 de
+> trecho** e **4 de sugestão de reserva**. Os **painéis de sugestão** continuam meus e
+> continuam com formatação — e o `+`, tanto em Comidas quanto em Reservas, copia o texto
+> já limpo, para que linha dele nunca guarde tag.
+
 ### 10.3 — Atrações
 
 Sub-abas por país (mostrando o € das escolhidas de cada), e chips de filtro
@@ -565,7 +585,8 @@ No fim da tela: quatro números — o país selecionado, o total escolhido da vi
 R$, e o que o backlog inteiro somaria.
 
 Rodapé: *"Os preços são de 2026 e servem de ordem de grandeza — confirme no site oficial ao
-reservar. Tudo é editável: mexa no número que eu chutei."*
+reservar. Tudo é editável, inclusive o que eu sugeri: o nome, a nota, a cidade, o tipo e o
+número que eu chutei."*
 
 ### 10.4 — Comidas
 
