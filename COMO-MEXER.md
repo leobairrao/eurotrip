@@ -9,6 +9,32 @@ manda. Ela é a fonte; isto é o mapa.
 
 ---
 
+## 0. Onde eu parei — 05/09/2026
+
+**Falta um passo, e ele é do Leo.** O commit `1650e2c` (avisos editáveis) está no
+repositório local e **não foi publicado**. Na ordem:
+
+1. **O Leo** cola `supabase/04-avisos.sql` no SQL Editor do Supabase e clica em Run.
+   Conferido em 05/09: a tabela `aviso` ainda não existe, e 6 notas de atração ainda
+   guardam `<b>`.
+2. Depois disso, `npm run seed` (insere os 45 avisos) e `git push origin main`.
+
+**Publicar antes da migração faz todos os avisos sumirem da tela.** Não quebra nada —
+`load.ts` não acha a tabela, devolve lista vazia, e as quatro telas ficam sem aviso — mas
+some, e em silêncio.
+
+### O que nunca foi testado
+
+**Os dois navegadores ao mesmo tempo.** É a promessa central do projeto e nunca foi
+exercitada com duas sessões de gente diferente: nem por mim, nem antes. Há teste unitário
+da mesclagem (`tests/merge.test.mjs`), e isso não é a mesma coisa. Se for mexer em
+Realtime, comece por aí.
+
+Em 05/09 o Leo disse que estava funcionando — mas isso foi sobre o que já estava no ar,
+não sobre os avisos, que ainda não subiram.
+
+---
+
 ## 1. O mapa
 
 ```
