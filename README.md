@@ -15,12 +15,14 @@ e as pedras em que já se tropeçou.
 
 ## No ar
 
-**https://eurotrip-bice.vercel.app** — só os dois e-mails entram.
+**https://eurotrip-bice.vercel.app** — entra quem digitar `leobairrao` ou `luananda`.
+Sem e-mail, sem senha, sem confirmação: foi a escolha do dono, feita sabendo o que custa.
+O porquê está em `COMO-MEXER.md`, seção 5.
 
 | | |
 |---|---|
 | repositório | `github.com/leobairrao/eurotrip` (deploy automático a cada push em `main`) |
-| Vercel | projeto `eurotrip`, com **só** as duas variáveis `NEXT_PUBLIC_` |
+| Vercel | projeto `eurotrip`, com as duas variáveis `NEXT_PUBLIC_` **e** `ENTRAR_SENHA` |
 | Supabase Auth | Site URL e Redirect URLs apontando para produção e para `localhost:3000` |
 
 ---
@@ -79,8 +81,11 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 > ⚠️ **A chave de service role fica só na sua máquina.** Ela não vai para a Vercel e não
 > vai para o navegador, em hipótese alguma. É usada apenas pelos scripts de
-> `scripts/`, que rodam localmente. As duas variáveis `NEXT_PUBLIC_` são as únicas
-> que o site precisa.
+> `scripts/`, que rodam localmente.
+>
+> O site precisa de **três**: as duas `NEXT_PUBLIC_` e a `ENTRAR_SENHA`. Esta última é a
+> senha de servidor que abre a sessão no Supabase — nunca chega ao navegador, e como o
+> repositório é público ela não pode estar em arquivo nenhum daqui.
 
 ---
 
@@ -152,10 +157,12 @@ Depois, no painel do Supabase:
 ## Publicar na Vercel
 
 1. Suba o repositório e importe o projeto na Vercel.
-2. Variáveis de ambiente: **só** `NEXT_PUBLIC_SUPABASE_URL` e
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+2. Variáveis de ambiente, as **três**: `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `ENTRAR_SENHA` (esta como *Secret*).
+   **Sem a `ENTRAR_SENHA` ninguém entra** — a tela diz isso, e `/auth/entrar` responde 503.
 3. Ponha a URL de produção no Supabase Auth (acima).
-4. Teste o link mágico **nos dois e-mails** antes de mandar o link para a Lu.
+4. Abra o site e entre digitando `leobairrao`. Se aparecer "o site está sem a variável
+   ENTRAR_SENHA", falta o passo 2 — ou falta republicar depois de adicioná-la.
 
 Para testar a entrada sem depender de e-mail (só na sua máquina, precisa da chave
 secreta):

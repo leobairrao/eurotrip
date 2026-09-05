@@ -68,8 +68,8 @@ Não reabra estas; foram escolhidas com o usuário.
 |---|---|
 | hospedagem | **Vercel** |
 | banco | **Supabase** (Postgres + Realtime + Auth) |
-| login | **link mágico por e-mail** (magic link do Supabase Auth) |
-| quem entra | **só dois e-mails autorizados**, numa allowlist |
+| login | **nome de usuário, sem verificação** (mudou em 04/09; ver seção 9) |
+| quem entra | **dois nomes**: `leobairrao` e `luananda`. A allowlist de e-mails continua no banco |
 | visual | **igual ao atual, pixel a pixel** — o CSS vem pronto em `referencia/estilo-atual.css` |
 | idioma | **português do Brasil**, em tudo |
 | framework | livre. Next.js App Router é o caminho natural na Vercel |
@@ -424,7 +424,32 @@ novo; **nunca** descarte o que ele digitou em silêncio. Não invente modo offli
 
 ## 9. Login
 
-Supabase Auth, **magic link**, e uma allowlist de dois e-mails.
+> **Mudou em 04/09/2026 — não é mais link mágico.** A Lu não conseguia entrar pelo e-mail,
+> e o Leo pediu para trocar por **nome de usuário sem verificação nenhuma**: digitar
+> `luananda` ou `leobairrao` e entrar. Foi dito a ele, por escrito, o que isso custa — o
+> site é público, e quem digitar o nome vê tudo e edita tudo. Ele decidiu assim. Está
+> registrado aqui e em `COMO-MEXER.md` para ninguém depois achar que foi descuido, e para
+> ninguém "consertar" de volta.
+>
+> O que vale hoje:
+>
+> 1. Tela de entrada com **um campo de usuário** e um botão. Nada mais.
+> 2. `POST /auth/entrar` traduz o nome em e-mail (`src/lib/entrar.ts`) e abre a sessão com
+>    `signInWithPassword`, usando uma senha de servidor igual para as duas contas que mora
+>    só em `ENTRAR_SENHA` e **nunca chega ao navegador**. Ela não protege nada: o nome é a
+>    porta. É só o jeito de pedir a sessão ao Supabase, que é o que faz a RLS funcionar.
+> 3. Nome fora da lista, corpo estranho, qualquer coisa: **sempre** a mesma resposta,
+>    401 `nao-e-da-casa`, e a tela diz que o app é privado. Nunca diz se existe ou não, e
+>    nunca mostra mensagem crua do Supabase.
+> 4. Sem `ENTRAR_SENHA`: 503, e a tela diz exatamente isso.
+>
+> O item 5 abaixo (renovação de sessão) **continua valendo** — e note que o middleware tem
+> que ficar em `src/middleware.ts`, não na raiz. Ver `COMO-MEXER.md`.
+>
+> O texto original fica abaixo, riscado, porque descreve o que o banco ainda sabe fazer:
+> `email_permitido` e `/auth/callback` continuam de pé, só sem tela.
+
+~~Supabase Auth, **magic link**, e uma allowlist de dois e-mails.~~
 
 1. Tela de entrada com um campo de e-mail e um botão. Nada mais — sem cadastro, sem senha, sem
    "entrar com", sem texto de marketing.
@@ -1005,12 +1030,15 @@ nome). É a razão de os tipos existirem: bater o olho no dia e saber o que é c
 2. Semeie (seção 12.1), depois importe o estado do Leo (seção 12.3). **Confira os três números
    de aceite** antes de seguir.
 3. Insira os dois e-mails em `app_user` com o `who` certo.
-4. Projeto na Vercel ligado ao repositório. Variáveis: a URL e a chave anônima do Supabase.
-   **A chave de service role não vai para o cliente, em hipótese alguma** — só nos scripts de
-   semeadura/importação, rodando localmente.
-5. No Supabase Auth, ponha a URL de produção da Vercel em Site URL e nas Redirect URLs, senão o
-   link mágico chega quebrado.
-6. Teste o link mágico nos dois e-mails **antes** de mandar o link para a Lu.
+4. Projeto na Vercel ligado ao repositório. Variáveis: a URL e a chave anônima do Supabase,
+   **e a `ENTRAR_SENHA`** (seção 9). **A chave de service role não vai para o cliente, em
+   hipótese alguma** — só nos scripts de semeadura/importação, rodando localmente.
+5. No Supabase Auth, ponha a URL de produção da Vercel em Site URL e nas Redirect URLs. Isso
+   importa menos desde 04/09 (não há mais link mágico na tela), mas mantém a porta dos fundos
+   de pé.
+6. Ponha `ENTRAR_SENHA` nas variáveis da Vercel (Secret) e a mesma senha nas duas contas do
+   Supabase. Depois entre digitando `leobairrao` — se a tela disser que falta a variável,
+   é este passo. (Era "teste o link mágico"; mudou em 04/09, ver seção 9.)
 
 **Um `README.md` no repositório** com: como rodar local, como semear, como importar, e como
 acrescentar conteúdo novo aos JSONs sem quebrar os `seed_id`.
@@ -1048,7 +1076,8 @@ Não considere pronto sem passar por todos.
 - [ ] Os dois digitando **ao mesmo tempo em campos diferentes**: nenhum perde o que digitou
 - [ ] A Lu está com o cursor num campo e chega uma mudança do Leo: **o campo dela não é
       sobrescrito e o foco não é roubado**
-- [ ] Um e-mail fora da allowlist **não entra**
+- [ ] Um **nome** fora da lista não entra, e a tela diz só que o app é privado (seção 9)
+- [ ] Depois do build, o relatório imprime `ƒ Middleware` — senão a sessão não se renova
 
 ### Aparência
 - [ ] Lado a lado com `referencia/artefato-v28.html`: cores, fontes e espaçamentos batem

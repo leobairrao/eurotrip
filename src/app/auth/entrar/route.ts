@@ -18,32 +18,15 @@
 // ============================================================
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
-
-/** minusculo, sem acento, sem espaco nem ponto — "Leo Bairrão" vira "leobairrao". */
-function chave(v: unknown): string {
-  return String(v ?? '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9@]/g, '');
-}
-
-/**
- * Os apelidos que cada um pode digitar. Os e-mails ja estao no
- * repositorio publico desde sempre (scripts/usuarios.mjs), entao nao ha
- * nada aqui que nao fosse publico antes.
- */
-const QUEM: Record<string, string> = {};
-const por = (email: string, apelidos: string[]) => {
-  for (const a of apelidos) QUEM[chave(a)] = email;
-  QUEM[chave(email)] = email;
-};
-por('leobairrao05@gmail.com', ['leobairrao', 'leo', 'leonardo', 'leobairrao05']);
-por('luisaanandamelo@gmail.com', ['luananda', 'lu', 'luisa', 'luisaananda', 'ananda', 'luisaanandamelo']);
+import { emailDe } from '@/lib/entrar';
 
 export async function POST(request: NextRequest) {
-  const corpo = await request.json().catch(() => ({}));
-  const email = QUEM[chave((corpo as { usuario?: string }).usuario)];
+  // `.catch` so cobre a promessa REJEITADA (corpo vazio, corpo que nao e
+  // JSON). O corpo literal `null` e JSON valido: resolve com null, o catch
+  // nao roda, e ler .usuario de null derrubava a rota em 500.
+  const cru: unknown = await request.json().catch(() => null);
+  const corpo = (cru && typeof cru === 'object' ? cru : {}) as { usuario?: unknown };
+  const email = emailDe(corpo.usuario);
 
   const senha = process.env.ENTRAR_SENHA;
   if (!senha) {
@@ -53,12 +36,15 @@ export async function POST(request: NextRequest) {
   }
 
   // Nome que nao esta na lista: a mesma resposta de sempre, sem dizer
-  // se existe ou nao (secao 9.2).
-  if (!email) return NextResponse.json({ erro: 'nao-e-da-casa' }, { status: 401 });
+  // se existe ou nao (secao 9.2). Confere o TIPO, nao so se e truthy —
+  // e o que garante que nada alem de um e-mail meu chegue la embaixo.
+  if (email === null) return NextResponse.json({ erro: 'nao-e-da-casa' }, { status: 401 });
 
   const db = await supabaseServer();
   const { error } = await db.auth.signInWithPassword({ email, password: senha });
-  if (error) return NextResponse.json({ erro: error.message }, { status: 401 });
+  // A mensagem crua do Supabase nao vai para a tela: ela fala de e-mail e
+  // de senha, coisas que quem digita um nome nao deveria nem ver.
+  if (error) return NextResponse.json({ erro: 'nao-entrou' }, { status: 401 });
 
   return NextResponse.json({ ok: true });
 }

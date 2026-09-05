@@ -400,6 +400,20 @@ Duas coisas que parecem detalhe e não são:
   com `city = ''` ela some de todos e não há como achá-la de novo pela tela. O select não
   tem como devolver vazio, mas a trava custa uma linha e está lá.
 
+### O middleware nunca rodou — e ninguém tinha percebido
+
+Achado na revisão de 05/09, e é anterior a tudo: `middleware.ts` estava na **raiz** do
+repositório. Como o app vive em `src/app`, o Next procura em `src/middleware.ts` — então o
+arquivo nunca foi compilado. O `middleware-manifest.json` saía com `"middleware": {}` e o
+relatório do build não imprimia a linha `ƒ Middleware`.
+
+O efeito: **a sessão nunca era renovada**. Passada a validade do token, quem estivesse
+logado caía na tela de entrada sem entender por quê. É bem provável que boa parte do
+"não consigo entrar" viesse daqui, e não do e-mail.
+
+Se mexer nisso, o teste é objetivo: depois de `npm run build`, o relatório tem que
+imprimir `ƒ Middleware` e `.next/server/middleware-manifest.json` tem que listar `/`.
+
 ### A entrada é só o nome — e isso foi uma escolha, não um descuido
 
 Em 04/09 a Lu não conseguia entrar pelo link mágico e o Leo pediu: digitar `luananda` ou
@@ -547,14 +561,15 @@ Para você não gastar tempo nas mesmas.
 |---|---|
 | no ar | **https://eurotrip-bice.vercel.app** |
 | repositório | `github.com/leobairrao/eurotrip` — push em `main` publica sozinho |
-| Vercel | projeto `eurotrip`, team `leobairrao's projects`. Só as duas variáveis `NEXT_PUBLIC_`, ambiente **Production** |
+| Vercel | projeto `eurotrip`, team `leobairrao's projects`. Três variáveis em **Production**: as duas `NEXT_PUBLIC_` e `ENTRAR_SENHA` (Secret) |
 | Supabase | projeto `eurotrip`, ref `qwwmjibqlgysjembhbxs`, região `sa-east-1` (São Paulo) |
 | chaves | formato novo: `sb_publishable_…` (navegador, pública por desenho) e `sb_secret_…` (só no `.env.local`, que está no `.gitignore`) |
-| quem entra | usuário `leobairrao` (leo) e `luananda` (lu) — o mapa está em `src/app/auth/entrar/route.ts` |
+| quem entra | usuário `leobairrao` (leo) e `luananda` (lu) — o mapa está em `src/lib/entrar.ts` |
 | cadastro aberto | **desligado** em Authentication → Sign In / Providers |
 
-**A variável de ambiente Preview não foi configurada** — só Production. Se abrir um
-branch e quiser o deploy de preview funcionando, duplique as duas variáveis para Preview.
+**As variáveis de Preview não foram configuradas** — só Production. Se abrir um branch e
+quiser o deploy de preview funcionando, duplique as **três** para Preview. Com só as duas
+`NEXT_PUBLIC_`, o preview sobe, mostra a tela de entrada e recusa todo mundo com 503.
 
 **A senha do Postgres** foi gerada na criação do projeto e não foi anotada. O app não usa
 ela (só as chaves). Se precisar de `psql` direto, redefina em Settings → Database →

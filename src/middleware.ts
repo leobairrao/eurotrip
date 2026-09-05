@@ -1,7 +1,20 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-/** Renova a sessao a cada navegacao — ninguem quer logar de novo toda semana (secao 9.3). */
+/**
+ * Renova a sessao a cada navegacao — ninguem quer logar de novo toda
+ * semana (secao 9.3).
+ *
+ * ESTE ARQUIVO TEM QUE FICAR EM src/, NAO NA RAIZ. O app vive em
+ * src/app, entao o Next procura o middleware em src/middleware.ts. Da
+ * primeira publicacao ate 05/09/2026 ele esteve na raiz, e por isso
+ * NUNCA rodou: o middleware-manifest.json saia com `"middleware": {}`.
+ * A sessao nao se renovava, e passada a validade do token os dois caiam
+ * na tela de entrada sem entender por que. Se um dia mexer aqui, confira
+ * `.next/server/middleware-manifest.json` depois do build — ele tem que
+ * listar a entrada, e o relatorio do build tem que imprimir uma linha
+ * "ƒ Middleware".
+ */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
