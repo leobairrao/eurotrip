@@ -452,7 +452,7 @@ function Linha({ it }: { it: Attraction }) {
 
 /** O formulario de acrescentar. Entra sempre como backlog — quem escolhe e ele. */
 function AddRow({ city }: { city: string }) {
-  const { insert } = useApp();
+  const { s, insert } = useApp();
   const nome = useLocal();
   const nota = useLocal();
   const preco = useLocal();
@@ -484,7 +484,7 @@ function AddRow({ city }: { city: string }) {
       <input
         ref={(el) => { nome.ref.current = el; }}
         type="text"
-        placeholder={`o que você quer fazer em ${CT[city].n}`}
+        placeholder={`o que você quer fazer em ${C.nomeCidade(s, city)}`}
         aria-label="nome da atração"
       />
       <input

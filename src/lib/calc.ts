@@ -102,6 +102,24 @@ export function paisDaCidade(s: Snapshot, k: string): string {
   return CT[k]?.co ?? s.cities.find((c) => c.k === k)?.co ?? '';
 }
 
+/**
+ * A cidade EXISTE? Fixa ou criada por ele.
+ *
+ * Quem pergunta so a `CT` — a lista das 11 fixas — responde "nao" para
+ * toda cidade que ele criar. Isso derrubou o app duas vezes em 05/09: uma
+ * cidade chamada "teste" e a tela inteira virava "Application error",
+ * porque `CT[cidade].n` num nome que a `CT` nao tem e TypeError, e o Next
+ * nao tinha rede nenhuma embaixo. Use ISTO, nunca `CT[k]` cru.
+ */
+export const temCidade = (s: Snapshot, k: string): boolean =>
+  !!k && (!!CT[k] || s.cities.some((c) => c.k === k));
+
+/** A variavel CSS de cor de uma cidade, pelo pais dela — fixa ou dele. */
+export function ccCidade(s: Snapshot, k: string): string {
+  const co = paisDaCidade(s, k);
+  return CO.find((x) => x.k === co)?.cc ?? '--pine';
+}
+
 /** So as que ele criou, para o x saber quem pode apagar. */
 export const cidadeDele = (s: Snapshot, k: string) => s.cities.find((c) => c.k === k);
 

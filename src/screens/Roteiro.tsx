@@ -8,10 +8,8 @@
 // ============================================================
 import type { ReactNode } from 'react';
 import {
-  AKE, CO, CT, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL,
-  ccOf, coOf,
+  AKE, CO, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL, coOf,
 } from '@/content';
-import type { City } from '@/content';
 import { AreaField, Inline, TextField } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
@@ -56,7 +54,9 @@ const alertaDe = (s: Snapshot, iso: string) => {
   const av = avisoDe(s, iso);
   return av && av.tone === 'alert' ? av : undefined;
 };
-const cidadeDe = (k: string): City | undefined => CT[k];
+// Cidade aqui passa SEMPRE por `C.temCidade`/`C.nomeCidade`/`C.ccCidade`,
+// nunca por `CT[k]` cru: a `CT` so conhece as 11 fixas, e uma cidade criada
+// por ele derrubava esta tela inteira (05/09).
 
 export default function Roteiro() {
   const { s } = useApp();
@@ -514,7 +514,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
   const { selPick, setSelPick } = useUi();
 
   const bk = C.cityOfBase(s, s.days[iso]?.base ?? '');
-  const pk = selPick && cidadeDe(selPick) ? selPick : bk;
+  const pk = selPick && C.temCidade(s, selPick) ? selPick : bk;
   const mine = C.attrsOfDay(s, iso);
   const tot = C.dayAttrTotal(s, iso);
   const cs = C.pickCities(s, bk);
@@ -562,7 +562,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                     ×
                   </button>
                   <div className="wh">
-                    {cidadeDe(it.city)?.n ?? it.city} ·{' '}
+                    {C.nomeCidade(s, it.city)} ·{' '}
                     <span className={`stg st-${ORIGCLS(it)}`}>{ORIGEM(it)}</span>
                   </div>
                 </div>
@@ -587,10 +587,10 @@ function CartaoAtracoes({ iso }: { iso: string }) {
               key={c}
               className="chip"
               aria-pressed={c === pk}
-              style={{ ['--cc' as string]: `var(${ccOf(c)})` }}
+              style={{ ['--cc' as string]: `var(${C.ccCidade(s, c)})` }}
               onClick={() => setSelPick(c)}
             >
-              {CT[c].n}<span className="cn">{C.freeCount(s, c)}</span>
+              {C.nomeCidade(s, c)}<span className="cn">{C.freeCount(s, c)}</span>
             </button>
           ))}
         </div>
@@ -600,8 +600,8 @@ function CartaoAtracoes({ iso }: { iso: string }) {
             !livres.length ? (
               <div className="empty">
                 {other
-                  ? `Tudo de ${CT[pk].n} já está em algum dia.`
-                  : `Nada na lista de ${CT[pk].n} ainda — a aba Atrações é onde isso entra.`}
+                  ? `Tudo de ${C.nomeCidade(s, pk)} já está em algum dia.`
+                  : `Nada na lista de ${C.nomeCidade(s, pk)} ainda — a aba Atrações é onde isso entra.`}
               </div>
             ) : (
               <>
@@ -651,7 +651,7 @@ function CartaoComidas({ iso }: { iso: string }) {
   const { selCO, selFPick, setSelFPick } = useUi();
 
   const bk = C.cityOfBase(s, s.days[iso]?.base ?? '');
-  const dco = bk && cidadeDe(bk) ? CT[bk].co : '';
+  const dco = C.paisDaCidade(s, bk);
   const pk = selFPick && coOf(selFPick).k === selFPick ? selFPick : (dco || selCO);
   const mine = C.foodsOfDay(s, iso);
 

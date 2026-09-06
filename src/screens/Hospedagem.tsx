@@ -24,7 +24,7 @@
 // Atracoes e Comidas abrindo em Luxemburgo no proximo F5, porque
 // `setSelCO` grava em localStorage.
 // ============================================================
-import { CIDADES_FIXAS, CT, STAYS, coOf } from '@/content';
+import { CIDADES_FIXAS, STAYS, coOf } from '@/content';
 import { AreaField, NumField, IntField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
@@ -120,7 +120,7 @@ function Base({ city, cc }: { city: string; cc: string }) {
   return (
     <div className="card" style={{ ['--cc' as string]: `var(${cc})` }}>
       <div className="h">
-        <h3>{CT[city].n}</h3>
+        <h3>{C.nomeCidade(s, city)}</h3>
         <div className="m">
           {opcoes.length} {opcoes.length === 1 ? 'opção' : 'opções'}
           {marcada ? ` · fechou: ${marcada.name}` : ' · nenhuma marcada ainda'}

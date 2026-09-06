@@ -13,7 +13,38 @@ manda. Ela é a fonte; isto é o mapa.
 
 **Os sete ajustes que ele pediu estão TODOS no ar**, mais a cidade que ele pode criar.
 Desenho em [`docs/superpowers/specs/2026-09-05-ajustes-do-leo-design.md`](docs/superpowers/specs/2026-09-05-ajustes-do-leo-design.md).
-`npm run check` **verde** com os 18 números; `npm test` 119/119; build limpo.
+`npm test` 121/121; typecheck limpo; build limpo com `ƒ Middleware` no relatório.
+
+### O que quebrou de noite, e já está consertado
+
+**A cidade que ele cria derrubava o app inteiro.** Ele criou uma chamada "teste" e viu
+"Application error: a client-side exception has occurred" — duas vezes, porque a linha
+ficava no banco e o tombo se repetia a cada F5. Três telas perguntavam o nome da cidade
+direto à `CT`, a lista das **11 fixas**: `CT['teste'].n` é TypeError, e não havia rede
+nenhuma embaixo do app.
+
+- Trocado por `C.nomeCidade(s, k)` em `Atracoes.tsx` (o formulário de acrescentar),
+  `Roteiro.tsx` (os chips de "pôr neste dia", os dois vazios e a linha da atração) e
+  `Hospedagem.tsx` (que não recebe cidade dele hoje, mas ficava a um `basesDe` de receber).
+- **Segundo defeito no mesmo lugar**, que só apareceu depois de o primeiro sair: o chip de
+  uma cidade dele não selecionava — `pk` conferia a existência pela `CT` e caía de volta na
+  base do dia. Agora é `C.temCidade(s, k)`, que olha as duas listas.
+- Helpers novos em `calc.ts`: **`temCidade`** (existe? fixa ou dele) e **`ccCidade`** (a cor
+  pelo país — a `ccOf` do `content` devolve `--pine` para toda cidade dele).
+- **A rede que faltava:** `src/app/error.tsx` e `src/app/global-error.tsx`. Antes, qualquer
+  tropeço de tela virava a tela preta em inglês. Agora é um cartão em português dizendo que
+  nada se perdeu, com "tentar de novo" e "recarregar".
+- **`tests/telas.test.mjs`**: lê o próprio código e falha se alguma tela voltar a indexar
+  `CT[...]` cru, apontando arquivo e linha. Provei que falha mesmo — repus o defeito e o
+  teste acusou `Atracoes.tsx:487`.
+
+**Provado no navegador, não só no `tsc`:** com a cidade "teste" no banco, abri Atrações de
+Portugal, Roteiro (clicando num dia e no chip "teste") e Dicas. As três desenham, e o chip
+seleciona. A linha de teste foi apagada do banco no fim.
+
+**`npm run check` agora abre com dois X vermelhos, e não é defeito.** Quatro atrações de
+Lisboa foram postas no dia 13/12 — ou seja, o app foi usado. Os números de aceite da seção
+12.3 são o retrato da semeadura; o script não distingue "ele usou" de "o dado quebrou".
 
 ### O PRÓXIMO PASSO, e é só um
 
