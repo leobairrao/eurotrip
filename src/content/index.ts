@@ -11,6 +11,11 @@ import comidasSugeridasJson from './comidas-sugeridas.json';
 import reservasSugeridasJson from './reservas-sugeridas.json';
 import hospedagemJson from './hospedagem.json';
 import hospSugeridasJson from './hospedagens-sugeridas.json';
+// Os dois abaixo entraram em 06/09, quando a pesquisa saiu das tabelas dele
+// e passou a viver so em arquivo. Antes disso eram lidos SO pelo seed, do
+// gemeo em `dados/` — o navegador nunca alcancou nenhum dos dois.
+import atracoesSugeridasJson from './atracoes-sugeridas.json';
+import transportesJson from './transportes.json';
 
 export type CountryKey = 'es' | 'pt' | 'fr' | 'lu' | 'de' | 'nl' | 'it';
 export type NoteKind = 'free' | 'warn' | 'alert';
@@ -83,7 +88,16 @@ export const STAYS = hospedagemJson as StaySpec[];
  * nao se inventa.
  */
 export type HospSugg = [string, number | null, string];
-export const HOSP_SUG = hospSugeridasJson as unknown as Record<string, HospSugg[]>;
+/**
+ * O `_` NAO entra: e a chave de comentario que explica o arquivo, e o valor
+ * dela e uma FRASE, nao uma lista. Sem este filtro, todo laco que varre as
+ * cidades tropeca num `.map` de string — foi exatamente assim que a aba
+ * Sugestoes caiu na primeira vez que a abri, em 06/09. `atracoes-sugeridas`
+ * nao tem `_`; este tem. Ver o teste em tests/telas.test.mjs.
+ */
+export const HOSP_SUG = Object.fromEntries(
+  Object.entries(hospSugeridasJson as Record<string, unknown>).filter(([k]) => k !== '_'),
+) as unknown as Record<string, HospSugg[]>;
 
 // ---------- camada de pesquisa: o + copia para a tabela dele (regra 5.13) ----------
 export interface FoodSugg {
@@ -200,8 +214,50 @@ export const TABS = [
   // vieram para ca, por cidade. Fica ao lado de Reservas porque as duas
   // sao "coisas para lembrar", nao dinheiro.
   ['dicas', 'Dicas'],
+  // Sugestoes nasceu em 06/09: TUDO que eu pesquisei mora aqui, e so vira
+  // linha dele pelo +. Fica ao lado de Dicas porque as duas sao as unicas
+  // que nao sao lista dele nem dinheiro.
+  ['sugestoes', 'Sugestões'],
   ['caixa', 'Caixa'],
   ['custos', 'Custos'],
 ] as const;
 
 export type TabKey = (typeof TABS)[number][0];
+
+// ============================================================
+// A PESQUISA MINHA, a partir de 06/09/2026.
+//
+// A regra que ele deu: "tudo que for sugerido por voce, absolutamente
+// tudo. As minhas abas devem ficar apenas com os meus dados".
+//
+// Antes disso eu semeava a pesquisa DENTRO das tabelas dele. Parecia
+// dado dele, e o x mandava o seed_id para `killed_seed` — de onde nem
+// `npm run seed` traz de volta. Ele perdeu 17 opcoes de hospedagem e 35
+// atracoes assim, em dois dias.
+//
+// Agora sugestao minha e ARQUIVO, e so vira linha dele pelo +. Apagar
+// deixou de ser definitivo: o + esta la para puxar de novo.
+// ============================================================
+
+/** Uma atracao que eu pesquisei: [nome, preco em euro, nota]. */
+export type AtracaoSugerida = [string, number, string];
+/** Por cidade, na ordem em que eu pesquisei. O indice e a identidade (`s:<cidade>:<i>`). */
+export const ATR_SUG = Object.fromEntries(
+  Object.entries(atracoesSugeridasJson as Record<string, unknown>)
+    .filter(([k]) => k !== '_'),
+) as Record<string, AtracaoSugerida[]>;
+
+/** Um trecho que eu pesquisei. O indice no array e a identidade (`t:<i>`). */
+export interface TrechoSugerido { n: string; w: string; k: string }
+export const TRANSP_SUG = transportesJson as TrechoSugerido[];
+
+/** As seis sub-abas de Sugestoes, na ordem em que ele as usa. */
+export const SUGTABS = [
+  ['atracoes', 'Atrações'],
+  ['comidas', 'Comidas'],
+  ['reservas', 'Reservas'],
+  ['stay', 'Hospedagem'],
+  ['transporte', 'Transporte'],
+  ['dicas', 'Dicas'],
+] as const;
+export type SugKey = (typeof SUGTABS)[number][0];

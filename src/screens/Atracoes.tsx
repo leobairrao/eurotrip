@@ -12,6 +12,7 @@ import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
+import { useApagarLinha } from '@/lib/apagar';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import { brl, eur, norm, parseNum, shortDt } from '@/lib/fmt';
@@ -55,10 +56,10 @@ export default function Atracoes() {
       <div className="panelhead">
         <h2>Atrações</h2>
         <p>
-          Tudo que você tem vontade de fazer, num lugar só. O que eu pesquisei fica no
-          painel de sugestões de cada cidade, e só entra na sua lista quando você clica
-          no <b>+</b>. <b>O que entra no custo é o que está num dia do Roteiro</b> — a
-          etiqueta é automática, e tirar do dia diminui o total na hora.
+          Tudo que você tem vontade de fazer, num lugar só — e aqui é <b>só o seu</b>. O
+          que eu pesquisei mora na aba <b>Sugestões</b>, e só entra nesta lista quando você
+          clica no <b>+</b> de lá. <b>O que entra no custo é o que está num dia do
+          Roteiro</b> — a etiqueta é automática, e tirar do dia diminui o total na hora.
         </p>
       </div>
 
@@ -201,7 +202,8 @@ function AcrescentarCidade({ co }: { co: string }) {
 
 /** Um cartao por cidade: o aviso da cidade em cima, a lista, o formulario, o resumo. */
 function Cidade({ city, cc }: { city: string; cc: string }) {
-  const { s, remove } = useApp();
+  const { s } = useApp();
+  const apagar = useApagarLinha();
   const te = C.attrEur(s, city, 'roteiro');
   const tb = C.attrEur(s, city, 'fora');
   // So as que ELE criou tem x. As 11 fixas sao a estrutura da viagem.
@@ -224,8 +226,8 @@ function Cidade({ city, cc }: { city: string; cc: string }) {
     if (!dele) return;
     if (quantas) return;
     for (const av of [...C.avisosDe(s, `atracoes:${city}`), ...C.avisosDe(s, `dicas:${city}`)])
-      await remove('aviso', av.id, av.seed_id);
-    await remove('city', dele.id);
+      await apagar('aviso', av.id, av.seed_id);
+    await apagar('city', dele.id);
   };
 
   return (
@@ -257,7 +259,6 @@ function Cidade({ city, cc }: { city: string; cc: string }) {
         <Avisos spot={`atracoes:${city}`} rotulo="aviso" />
         <Lista city={city} />
         <AddRow city={city} />
-        <Sugestoes city={city} />
         {te || tb ? (
           <div className="atsum">
             no roteiro: <b>{eur(te)}</b>
@@ -265,51 +266,6 @@ function Cidade({ city, cc }: { city: string; cc: string }) {
           </div>
         ) : null}
       </div>
-    </div>
-  );
-}
-
-/**
- * A camada de pesquisa desta cidade — o que EU achei, separado do que e dele.
- *
- * Ate 05/09 as 69 sugeridas moravam na mesma lista, separadas so pela palavra
- * "sugerida" no seletor. Com a etiqueta virando automatica elas virariam itens
- * dele sem ele ter clicado em nada — que e exatamente o que a regra 5.13
- * proibe. Entao ganharam painel proprio, como em Comidas.
- *
- * A DIFERENCA para Comidas, e ela importa: la a sugestao mora em ARQUIVO e o +
- * faz `insert`. Aqui as 69 ja SAO linhas da tabela (semeadas em seed.mjs:73),
- * entao o + e um UPDATE de `status`. Copiar o de Comidas criaria linha
- * duplicada.
- *
- * Oito das 11 cidades sao hoje 100% pesquisa: Roma, Metz, Amsterda, Reims,
- * Caceres, Estrasburgo, Paris e Trier.
- */
-function Sugestoes({ city }: { city: string }) {
-  const { s, now } = useApp();
-  const linhas = C.attrsPesquisa(s, city);
-  if (!linhas.length) return null;
-
-  return (
-    <div className="sg">
-      <div className="sgh">sugestões que eu pesquisei</div>
-      {linhas.map((it) => (
-        <div key={it.id} className="sgr">
-          <div className="nm">
-            {AKE[it.kind]} {it.name}
-            {it.note ? <span className="wh"> — {it.note}</span> : null}
-          </div>
-          <div className="vl">{it.price_eur ? eur(it.price_eur) : 'grátis'}</div>
-          <button
-            className="pb"
-            title="pôr na minha lista"
-            aria-label={`pôr ${it.name} na minha lista`}
-            onClick={() => now('attraction', it.id, 'status', 'backlog')}
-          >
-            +
-          </button>
-        </div>
-      ))}
     </div>
   );
 }
@@ -354,7 +310,8 @@ function Lista({ city }: { city: string }) {
  * sem uma linha de mudanca no CSS original.
  */
 function Linha({ it }: { it: Attraction }) {
-  const { s, patch, now, remove } = useApp();
+  const { s, patch, now } = useApp();
+  const apagar = useApagarLinha();
   const dentro = C.noRoteiro(it);
 
   return (
@@ -411,7 +368,7 @@ function Linha({ it }: { it: Attraction }) {
         className="xb"
         title="tirar da lista"
         aria-label="tirar da lista"
-        onClick={() => void remove('attraction', it.id, it.seed_id)}
+        onClick={() => void apagar('attraction', it.id, it.seed_id)}
       >
         ×
       </button>

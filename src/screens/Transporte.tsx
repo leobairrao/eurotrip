@@ -8,6 +8,7 @@ import { TK, TKE, TKPL } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import { useApp, useOrdemEstavel } from '@/lib/store';
+import { useApagarLinha } from '@/lib/apagar';
 import * as C from '@/lib/calc';
 import { mover } from '@/lib/ordem';
 import { brl, parseNum, shortDt } from '@/lib/fmt';
@@ -111,7 +112,8 @@ export default function Transporte() {
 
 /** A lista. Uma so, ordenada por position (10.5) — nunca por tipo nem por nome. */
 function Linhas() {
-  const { s, patch, now, remove } = useApp();
+  const { s, patch, now } = useApp();
+  const apagar = useApagarLinha();
   if (!s.legs.length) {
     return <div className="empty">Nenhum trecho na lista. Escreva abaixo.</div>;
   }
@@ -177,7 +179,7 @@ function Linhas() {
           />
           <button
             className="xb"
-            onClick={() => void remove('leg', it.id, it.seed_id)}
+            onClick={() => void apagar('leg', it.id, it.seed_id)}
             title="tirar o trecho"
             aria-label="tirar"
           >

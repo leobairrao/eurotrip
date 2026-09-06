@@ -17,6 +17,7 @@ import Transporte from '@/screens/Transporte';
 import Hospedagem from '@/screens/Hospedagem';
 import Reservas from '@/screens/Reservas';
 import Dicas from '@/screens/Dicas';
+import Sugestoes from '@/screens/Sugestoes';
 import Caixa from '@/screens/Caixa';
 import Custos from '@/screens/Custos';
 
@@ -29,6 +30,7 @@ const TELAS: Record<TabKey, () => React.JSX.Element> = {
   stay: Hospedagem,
   reservas: Reservas,
   dicas: Dicas,
+  sugestoes: Sugestoes,
   caixa: Caixa,
   custos: Custos,
 };

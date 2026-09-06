@@ -19,7 +19,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { TK, TKPL, TKE, TKORD } from '@/content/index.ts';
+import { TK, TKPL, TKE, TKORD, ATR_SUG, HOSP_SUG, TRANSP_SUG, SUGGRES, FOOD } from '@/content/index.ts';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -155,4 +155,26 @@ test('todo tipo de transporte tem os oito lugares preenchidos', () => {
     if (!emTodas) faltando.push(`${k}: o banco RECUSA — falta em leg_kind_check (supabase/01-schema.sql e 00-tudo.sql)`);
   }
   assert.deepEqual(faltando, [], `Tipo de transporte pela metade:\n${faltando.join('\n')}`);
+});
+
+/**
+ * Nenhuma lista de sugestao pode ter chave que nao seja lista.
+ *
+ * Os JSONs de pesquisa carregam uma chave `_` no topo, com a PROSA que
+ * explica o arquivo. `hospedagens-sugeridas.json` tem; `atracoes-sugeridas`
+ * nao. Quem varre as cidades e faz `.map` na chave `_` recebe uma string e
+ * quebra a tela inteira — aconteceu em 06/09, no primeiro minuto da aba
+ * Sugestoes, e a rede do error.tsx foi quem segurou.
+ */
+test('as listas de sugestao nao escondem chave de comentario', () => {
+  const ruins = [];
+  for (const [nome, mapa] of [['ATR_SUG', ATR_SUG], ['HOSP_SUG', HOSP_SUG]]) {
+    for (const [k, v] of Object.entries(mapa)) {
+      if (!Array.isArray(v)) ruins.push(`${nome}['${k}'] nao e lista, e ${typeof v}`);
+    }
+  }
+  for (const [nome, lista] of [['TRANSP_SUG', TRANSP_SUG], ['SUGGRES', SUGGRES], ['FOOD', FOOD]]) {
+    if (!Array.isArray(lista)) ruins.push(`${nome} devia ser lista`);
+  }
+  assert.deepEqual(ruins, [], `Sugestao com chave que nao e lista:\n${ruins.join('\n')}`);
 });

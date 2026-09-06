@@ -10,3 +10,7 @@ next-env.d.ts
 
 # copias de trabalho temporarias (worktrees de agente). Nao vao para o repositorio.
 .claude/
+
+# a copia das 128 linhas de pesquisa que sairam do banco em 06/09.
+# Fica so nesta maquina: e recuperavel pelo + da aba Sugestoes.
+.backup-pesquisa-*.json

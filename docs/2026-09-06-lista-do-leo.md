@@ -39,7 +39,7 @@ quatro grupos. Passa a vir fechada, com um liga/desliga em cima; ligou, abre a s
 - **Banco:** nada.
 - **Tamanho:** pequeno.
 
-## 3. A aba Sugestões — 🔨 **REDESENHADA em 06/09: agora é TUDO que é meu**
+## 3. A aba Sugestões — ✅ **PRONTA em 06/09, esperando ele olhar** (localhost:3000)
 
 **Ele disse:** *"coloque todas as suas sugestões em uma aba chamada Sugestões e separe por
 seguimento (comida, atração...), quando eu te pedir ajuda você coloca por lá, pode fazer

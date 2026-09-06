@@ -17,6 +17,7 @@
 import { useRef, useState } from 'react';
 import { AreaField, Inline, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
+import { useApagarLinha } from '@/lib/apagar';
 import * as C from '@/lib/calc';
 import { marcado } from '@/lib/fmt';
 import type { Aviso, Tone } from '@/lib/types';
@@ -61,7 +62,8 @@ export default function Avisos({
 
 /** O cartao colorido. Clicar em "mexer" troca o texto pelos campos. */
 function Cartao({ a }: { a: Aviso }) {
-  const { patch, now, remove } = useApp();
+  const { patch, now } = useApp();
+  const apagar = useApagarLinha();
   const [abrindo, setAbrindo] = useState(false);
 
   if (!abrindo) {
@@ -109,7 +111,7 @@ function Cartao({ a }: { a: Aviso }) {
           type="button"
           className="xb"
           aria-label="tirar o aviso"
-          onClick={() => void remove('aviso', a.id, a.seed_id)}
+          onClick={() => void apagar('aviso', a.id, a.seed_id)}
         >
           ×
         </button>
@@ -120,7 +122,8 @@ function Cartao({ a }: { a: Aviso }) {
 
 /** A variante em lista, do "o que eu acho que nao vale". */
 function LinhaLista({ a }: { a: Aviso }) {
-  const { patch, remove } = useApp();
+  const { patch } = useApp();
+  const apagar = useApagarLinha();
   return (
     <div className="sgr av">
       <TextField
@@ -135,7 +138,7 @@ function LinhaLista({ a }: { a: Aviso }) {
         type="button"
         className="xb"
         aria-label="tirar"
-        onClick={() => void remove('aviso', a.id, a.seed_id)}
+        onClick={() => void apagar('aviso', a.id, a.seed_id)}
       >
         ×
       </button>

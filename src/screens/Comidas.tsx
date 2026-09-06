@@ -10,16 +10,16 @@
 // Comida NAO tem campo de valor — nenhum (regra 5.9). O que se come
 // vive na estimativa e na Caixa, nunca no custo real.
 // ============================================================
-import { CO, FK, FKCLS, FKE, FKPL, FOOD, coOf } from '@/content';
-import type { FoodSugg } from '@/content';
+import { CO, FK, FKCLS, FKE, FKPL, coOf } from '@/content';
 import { useState } from 'react';
-import { Nota, TextField, useLocal } from '@/components/Field';
+import { TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
+import { useApagarLinha } from '@/lib/apagar';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { deHtml, shortDt } from '@/lib/fmt';
+import { shortDt } from '@/lib/fmt';
 import type { Food, FoodKind } from '@/lib/types';
 
 /** A ordem do select e a dos cartoes. E a mesma do artefato. */
@@ -46,7 +46,6 @@ export default function Comidas() {
   const { selCO, setSelCO } = useUi();
 
   const co = coOf(selCO);
-  const f = FOOD.find((x) => x.pais === selCO) ?? null;
 
   /**
    * A etiqueta mora AQUI, e nao dentro do formulario, por causa do
@@ -86,7 +85,20 @@ export default function Comidas() {
         <Cartao key={`${selCO}|${k}`} kind={k} cor={k === 'prato' ? co.cc : k === 'restaurante' ? '--c-nl' : '--ochre'} />
       ))}
 
-      {f ? <Sugestoes f={f} /> : null}
+      {/* Os avisos ficam AQUI, fora do painel de sugestao que saiu em 06/09.
+          Sem isto, um aviso que ele adota na aba Sugestoes nao teria tela
+          nenhuma para aparecer — ficaria no banco, invisivel. Enquanto ele
+          nao adotar nenhum, os dois blocos desenham so o "+ aviso". */}
+      <div className="card">
+        <div className="h">
+          <h3>Avisos de {co.n}</h3>
+          <div className="m">o que você anotou, ou puxou da aba Sugestões</div>
+        </div>
+        <div className="b">
+          <Avisos spot={`comidas:${selCO}:naovale`} lista />
+          <Avisos spot={`comidas:${selCO}`} rotulo="aviso do país" />
+        </div>
+      </div>
     </>
   );
 }
@@ -147,7 +159,8 @@ function Vazio({ kind }: { kind: FoodKind }) {
 
 /** nome | tipo | x — e nada mais: comida nao tem preco (regra 5.9). */
 function Linha({ it }: { it: Food }) {
-  const { patch, now, nowMany, remove } = useApp();
+  const { patch, now, nowMany } = useApp();
+  const apagar = useApagarLinha();
 
   return (
     <div className={`mrow fk-${FKCLS[it.kind]}`}>
@@ -177,7 +190,7 @@ function Linha({ it }: { it: Food }) {
       <button
         className="xb"
         aria-label="tirar"
-        onClick={() => void remove('food', it.id, it.seed_id)}
+        onClick={() => void apagar('food', it.id, it.seed_id)}
       >
         ×
       </button>
@@ -299,68 +312,6 @@ function Acrescentar({
             {indo ? 'pondo…' : `pôr em ${FKPL[kind]}`}
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * A camada de pesquisa. Nada daqui entra na lista dele sozinho:
- * so o + copia (regra 5.13). "o que eu acho que nao vale" nao tem +.
- */
-function Sugestoes({ f }: { f: FoodSugg }) {
-  const { s, insert } = useApp();
-  const { selCO } = useUi();
-  const co = coOf(selCO);
-
-  const puxar = async (ix: number) => {
-    const sid = `F${selCO}|${ix}`;
-    // Copia como prato tipico. O seed_id da linha e o da semente ('Fpt|3', secao 11 do
-    // 01-schema.sql): e o que faz o + virar "na sua lista" na hora e o x gravar
-    // killed_seed (regra 5.14).
-    await insert('food', {
-      country: selCO,
-      name: deHtml(f.reg[ix][0]),
-      // texto puro ao entrar: a partir daqui a linha e dele, e linha dele
-      // nunca guarda tag. O negrito fica so no meu painel de sugestao.
-      note: deHtml(f.reg[ix][1]),
-      kind: 'prato',
-      day_iso: null,
-      seed_id: sid,
-    });
-    await insert('adopted', { seed_id: sid });
-  };
-
-  return (
-    <div className="card">
-      <div className="h">
-        <h3>Minhas sugestões de {co.n}</h3>
-        <div className="m">pratos típicos · o + põe na sua lista de pratos</div>
-      </div>
-      <div className="b">
-        <div className="sg" style={{ marginTop: 0, borderTop: 0, paddingTop: 0 }}>
-          <div className="sgh">vale provar</div>
-          {f.reg.map((r, ix) => {
-            const sid = `F${selCO}|${ix}`;
-            // adotada = ja gravei em `adopted`, ou a linha semeada ja esta na lista dele
-            const tk = s.adopted.includes(sid) || s.foods.some((x) => x.seed_id === sid);
-            return (
-              <div key={sid} className={tk ? 'sgr taken' : 'sgr'}>
-                <Nota html={r[0]} className="nm" />
-                {tk ? (
-                  <div className="vl">na sua lista</div>
-                ) : (
-                  <button className="plus" aria-label="pôr na minha lista" onClick={() => void puxar(ix)}>+</button>
-                )}
-                <Nota html={r[1]} className="wh" />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* as duas coisas abaixo eram minhas e viraram dele em 05/09 */}
-        <Avisos spot={`comidas:${selCO}:naovale`} lista />
-        <Avisos spot={`comidas:${selCO}`} rotulo="aviso do país" />
       </div>
     </div>
   );

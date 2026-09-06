@@ -7,17 +7,38 @@
 //   senao                            -> insere
 //
 // E assim que pesquisa nova entra sem duplicar nada (secao 12.4).
+//
+// ------------------------------------------------------------
+// O QUE SAIU DAQUI EM 06/09/2026, E POR QUE
+//
+// Ele pediu: "tudo que for sugerido por voce, absolutamente tudo. As
+// minhas abas devem ficar apenas com os meus dados".
+//
+// Ate 06/09 esta semeadura plantava a MINHA pesquisa dentro das tabelas
+// DELE: as 69 atracoes 'sugerida', os 12 trechos, as 19 opcoes de
+// hospedagem e os 51 avisos. Parecia dado dele — e o `x` mandava o
+// seed_id para `killed_seed`, de onde nem esta semeadura traz de volta.
+// Foi assim que ele perdeu 17 opcoes de hospedagem e 35 atracoes.
+//
+// Agora sugestao minha vive SO em src/content, e a aba Sugestoes a
+// oferece com um +. Esta semeadura planta apenas o que e DELE:
+//   os 34 dias · as 35 atracoes dele (m:) · as comidas dele (f:)
+//   a burocracia (b:) · as duas linhas da Caixa · settings
+//
+// Religar um dos blocos que sairam tem sintoma SILENCIOSO: a aba dele
+// volta a nascer cheia de coisa minha, e o x dela volta a ser definitivo.
+// ------------------------------------------------------------
 // ============================================================
 import { db, lerJson, precisa, valOrNull } from './_db.mjs';
 
 const diasBases   = lerJson('dados/dias-bases.json');
 const atrDele     = lerJson('dados/atracoes-dele.json');
-const atrSug      = lerJson('dados/atracoes-sugeridas.json');
 const comidasDele = lerJson('dados/comidas-dele.json');
 const reservas    = lerJson('dados/reservas-dele.json');
-const transportes = lerJson('dados/transportes.json');
-const hospedagem  = lerJson('dados/hospedagem.json');
-const hospSug     = lerJson('dados/hospedagens-sugeridas.json');
+// transportes.json, hospedagem.json, hospedagens-sugeridas.json e
+// atracoes-sugeridas.json NAO sao mais lidos aqui: viraram sugestao, e
+// sugestao nao se semeia (06/09). Quem os le agora e a tela, pela copia
+// de src/content — ver a nota no cabecalho.
 
 const log = [];
 const conta = (t, n) => { if (n) log.push(`  ${String(n).padStart(4)} ${t}`); };
@@ -71,7 +92,7 @@ async function seedIdsDe(tabela) {
     }
   };
   add('m', atrDele, 'backlog');    // 35 -> backlog
-  add('s', atrSug, 'sugerida');    // 69 -> sugerida
+  // as 69 'sugerida' saíram em 06/09: viraram arquivo, ver a nota no fim
   if (novas.length) await precisa(await db.from('attraction').insert(novas), 'inserir attraction');
   conta('atracoes', novas.length);
 }
@@ -89,28 +110,6 @@ async function seedIdsDe(tabela) {
   }
   if (novas.length) await precisa(await db.from('food').insert(novas), 'inserir food');
   conta('comidas', novas.length);
-}
-
-// ============ 4. transporte ============
-// position = a ordem do arquivo. A posicao E a identidade (secao 12.2).
-{
-  const have = await seedIdsDe('leg');
-  const novos = transportes
-    .map((t, i) => ({ t, i }))
-    .filter(({ i }) => !have.has(`t:${i}`) && !mortos.has(`t:${i}`))
-    .map(({ t, i }) => ({
-      position: i,
-      name: t.n,
-      note: t.w ?? '',
-      kind: t.k ?? 'trem',
-      amount: null,          // sem valor ate ele lancar
-      currency: 'eur',       // regra 5.11: transporte comeca em euro
-      bought: false,
-      day_iso: null,
-      seed_id: `t:${i}`,
-    }));
-  if (novos.length) await precisa(await db.from('leg').insert(novos), 'inserir leg');
-  conta('trechos', novos.length);
 }
 
 // ============ 5. burocracia ============
@@ -132,51 +131,6 @@ async function seedIdsDe(tabela) {
   conta('reservas', novos.length);
 }
 
-// ============ 6. hospedagem ============
-//
-// A tabela `stay` continua sendo semeada porque ela nao foi apagada — so
-// APOSENTADA na Fase 6 (05/09). Nenhuma tela le e nenhuma conta soma.
-// Quem manda agora e `stay_option`.
-{
-  const existentes = new Set(
-    (await precisa(await db.from('stay').select('city'), 'ler stay')).map((r) => r.city),
-  );
-  const novas = hospedagem
-    .filter((s) => !existentes.has(s.c))
-    .map((s) => ({ city: s.c }));
-  if (novas.length) await precisa(await db.from('stay').insert(novas), 'inserir stay');
-  conta('hospedagens (tabela aposentada)', novas.length);
-}
-
-// ============ 6b. as opcoes de hospedagem, por cidade ============
-//
-// Molde do bloco 2 (atracoes): casa por `seed_id`, respeita `killed_seed`,
-// e semear de novo nao duplica. Prefixo `h:<cidade>:<indice>`, seguindo a
-// convencao da ESPECIFICACAO.md:889-896.
-//
-// A PRIMEIRA opcao de cada cidade nasce marcada como "e essa" — senao a
-// hospedagem some do custo total no dia em que isto subir, e o numero
-// muda sem ele ter mexido em nada. Ele troca a marcacao na tela.
-{
-  const have = await seedIdsDe('stay_option');
-  const novas = [];
-  for (const [city, itens] of Object.entries(hospSug)) {
-    if (city.startsWith('_')) continue;   // a linha de documentacao do JSON
-    itens.forEach(([name, diaria, nota], i) => {
-      const seed_id = `h:${city}:${i}`;
-      if (have.has(seed_id) || mortos.has(seed_id)) return;
-      novas.push({
-        city, name, note: nota ?? '',
-        nightly_eur: valOrNull(diaria),
-        chosen: i === 0,
-        position: i, seed_id,
-      });
-    });
-  }
-  if (novas.length) await precisa(await db.from('stay_option').insert(novas), 'inserir stay_option');
-  conta('opcoes de hospedagem', novas.length);
-}
-
 // ============ 7. Caixa: uma linha por pessoa, vazia ============
 {
   const existentes = new Set(
@@ -187,31 +141,6 @@ async function seedIdsDe(tabela) {
     .map((who) => ({ who, goal: null, currency: who === 'lu' ? 'eur' : 'brl' }));
   if (novas.length) await precisa(await db.from('savings').insert(novas), 'inserir savings');
   conta('linhas de caixa', novas.length);
-}
-
-// ============ 7b. avisos ============
-// Eram meus e moravam em arquivo (regra 5.6). Desde 05/09 sao linhas
-// dele. A lista sai da MESMA funcao que o modo demonstracao usa, para as
-// duas nao divergirem: src/lib/avisos-semente.ts.
-//
-// Regra 5.14: aviso que ele apagou nao volta. Por isso a semeadura pula
-// o que estiver em killed_seed, e pula tambem o que ja existe.
-{
-  const { avisosSemeados } = await import('../src/lib/avisos-semente.ts');
-  const mortos = new Set(
-    (await precisa(await db.from('killed_seed').select('seed_id'), 'ler killed_seed'))
-      .map((r) => r.seed_id),
-  );
-  const existentes = new Set(
-    (await precisa(await db.from('aviso').select('seed_id'), 'ler avisos'))
-      .map((r) => r.seed_id)
-      .filter(Boolean),
-  );
-  const novos = avisosSemeados().filter(
-    (a) => !mortos.has(a.seed_id) && !existentes.has(a.seed_id),
-  );
-  if (novos.length) await precisa(await db.from('aviso').insert(novos), 'inserir avisos');
-  conta('avisos', novos.length);
 }
 
 // ============ 8. settings ============

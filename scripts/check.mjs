@@ -14,7 +14,18 @@
 // 8 -> 13 escolhidas e 27 -> 22 no backlog (ele promoveu os cinco de
 // Sintra; os 35 "dele" continuam 35).
 // ============================================================
-import { db, brl, eur, num, precisa } from './_db.mjs';
+import { db, brl, eur, num, lerJson, precisa } from './_db.mjs';
+
+// A pesquisa saiu do banco em 06/09 e virou arquivo. Quem vigiava as 69
+// atracoes, os 12 trechos e as 19 hospedagens era este script, contando
+// LINHAS DA TABELA — e depois da mudanca ele contaria zero e diria que
+// esta tudo bem. Entao ele passa a contar os ARQUIVOS: e la que a
+// pesquisa mora agora, e sumir de la continua sendo estrago.
+const atrSugArq   = lerJson('dados/atracoes-sugeridas.json');
+const transpArq   = lerJson('dados/transportes.json');
+const hospSugArq  = lerJson('dados/hospedagens-sugeridas.json');
+const soma = (o) => Object.entries(o).filter(([k]) => k !== '_')
+  .reduce((n, [, v]) => n + (Array.isArray(v) ? v.length : 0), 0);
 
 const VOO = 5079.77;
 const T = (b) => (b ? '  ok  ' : '  X   ');
@@ -101,13 +112,15 @@ const noites = bases.reduce((a, b) => a + b.nt, 0);
 const emTerra = bases.reduce((a, b) => a + b.d, 0);
 
 console.log('\n  ================ NUMEROS DE ACEITE (secao 12.3) ================\n');
-linha(noRoteiro.length === 0, 'atracoes no roteiro', 0, noRoteiro.length);
-linha(
-  foraDoRoteiro.length === 35,
-  '  ... na lista dele, sem dia', 35, foraDoRoteiro.length,
-);
+// O QUE ELE MEXE NAO E ACEITE. Ate 06/09 este bloco cravava "0 no roteiro"
+// e "35 na lista": os numeros do dia da semeadura. No instante em que ele
+// pos quatro atracoes de Lisboa no dia 13/12 — que e exatamente para o que
+// o app serve — o check ficou vermelho e disse "nao siga para as telas",
+// com as mesmas palavras que usaria se algo tivesse quebrado de verdade.
+// Agora esses dois viram RETRATO, e o aceite ficou so com o que nao muda.
 linha(Math.round(jaPago) === 5337, 'total ja pago', 'R$ 5.337', brl(jaPago));
 linha(rate === 6.2, 'cambio', '6,2', String(rate));
+console.log(`       retrato de hoje: ${noRoteiro.length} atracoes num dia do roteiro, ${foraDoRoteiro.length} na lista sem dia`);
 
 console.log('\n  ================ O RESTO DO CHECKLIST (secao 15) ================\n');
 linha(days.length === 34, 'dias no banco', 34, days.length);
@@ -115,16 +128,18 @@ linha(noites === 31, 'noites', 31, noites);
 linha(emTerra === 32, 'dias em terra', 32, emTerra);
 linha(isos.length - emTerra === 2, 'dias so de voo', 2, isos.length - emTerra);
 linha(bases.length === 8, 'bases (linhas da tabela do roteiro)', 8, bases.length);
-linha(attraction.length === 104, 'atracoes no total', 104, attraction.length);
-linha(pesquisa.length === 69, '  ... sugeridas por mim (pesquisa)', 69, pesquisa.length);
-linha(
-  noRoteiro.length + foraDoRoteiro.length + pesquisa.length === attraction.length,
-  '  ... as tres familias cobrem tudo', attraction.length,
-  noRoteiro.length + foraDoRoteiro.length + pesquisa.length,
-);
-linha(leg.length === 12, 'trechos de transporte', 12, leg.length);
+linha(attraction.length >= 35, 'atracoes na lista DELE', '>= 35', attraction.length);
+// A PROVA DE QUE A MUDANCA DE 06/09 CONTINUA VALENDO: sugestao minha nao
+// mora mais na tabela dele. Se isto ficar vermelho, alguem religou um
+// bloco da semeadura — e a aba dele voltou a nascer cheia de coisa minha.
+linha(pesquisa.length === 0, '  ... nenhuma sugestao minha aqui dentro', 0, pesquisa.length);
 linha(stay.length === 7, 'bases de hospedagem (tabela aposentada)', 7, stay.length);
-linha(stayOpt.length >= 18, 'opcoes de hospedagem', '>= 18', stayOpt.length);
+console.log(`       retrato de hoje: ${leg.length} trechos e ${stayOpt.length} opcoes de hospedagem que ELE puxou`);
+
+console.log('\n  ================ A PESQUISA, QUE AGORA VIVE EM ARQUIVO ================\n');
+linha(soma(atrSugArq) === 69, 'atracoes que eu pesquisei', 69, soma(atrSugArq));
+linha(transpArq.length === 12, 'trechos que eu pesquisei', 12, transpArq.length);
+linha(soma(hospSugArq) === 19, 'opcoes de hospedagem que eu pesquisei', 19, soma(hospSugArq));
 linha(
   cidades.length === new Set(cidades.map((c) => c.k)).size,
   'cidades dele sem chave repetida', 'sem repetida',

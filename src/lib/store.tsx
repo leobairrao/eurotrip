@@ -50,6 +50,24 @@ interface Ctx {
   insert: (t: Tabela, row: Record<string, unknown>) => Promise<{ ok: boolean }>;
   /** O x. Se o item tem seed_id, grava em killed_seed DEPOIS do DELETE (regra 5.14). */
   remove: (t: Tabela, pk: string, seedId?: string | null) => Promise<void>;
+  /**
+   * O x de uma linha ADOTADA de uma sugestao minha (06/09/2026).
+   *
+   * Faz o contrario do `remove`: apaga a linha dele, TIRA o seed_id de
+   * `adopted`, e NAO escreve em `killed_seed`. A sugestao volta a ser
+   * oferecida, com o + de novo.
+   *
+   * Por que existe: ate hoje o unico caminho era o `remove`, que grava
+   * killed_seed e nunca limpa `adopted`. O resultado era o pior dos dois
+   * mundos — a sugestao sumia da lista dele E ficava presa na aba de
+   * sugestoes, marcada "na sua lista", sem botao. Foi assim que ele
+   * perdeu 17 opcoes de hospedagem e 35 atracoes: apagou, e nem a
+   * semeadura trazia de volta.
+   *
+   * Desde 06/09 sugestao minha vive em ARQUIVO, nunca na tabela dele.
+   * Entao nao ha o que "matar": killed_seed nao tem papel aqui.
+   */
+  devolver: (t: Tabela, pk: string, seedId: string) => Promise<void>;
   estado: Estado;
   pendentes: number;
   online: string[];
@@ -283,6 +301,35 @@ export function Provider({
     [db],
   );
 
+  /**
+   * Devolver uma sugestao adotada para a lista de sugestoes.
+   *
+   * DUAS escritas, e a ordem importa: primeiro a linha dele, depois a
+   * marca de adotado. Se a segunda falhar, ele fica com a sugestao
+   * marcada "na sua lista" sem a linha — chato, mas visivel e
+   * corrigivel. Na ordem inversa, um erro no meio deixaria a linha dele
+   * de pe e a sugestao oferecida de novo: dois itens iguais na lista.
+   */
+  const devolver = useCallback(
+    async (t: Tabela, pk: string, seedId: string) => {
+      setS((v) => removerLocal(v, t, pk));
+      setS((v) => ({ ...v, adopted: v.adopted.filter((x) => x !== seedId) }));
+      if (!db) return;
+      const r1 = await db.from(t as string).delete().eq(PK[t as string], pk);
+      if (r1.error) {
+        setEstado('falhou');
+        console.error(`[eurotrip] nao devolvi ${t} ${pk}: ${r1.error.message}`);
+        return;
+      }
+      const r2 = await db.from('adopted').delete().eq('seed_id', seedId);
+      if (r2.error) {
+        setEstado('falhou');
+        console.error(`[eurotrip] apaguei ${t} ${pk} mas nao tirei ${seedId} de adopted: ${r2.error.message}`);
+      }
+    },
+    [db],
+  );
+
   // ---------------- Realtime (secao 8) ----------------
   useEffect(() => {
     if (!db || !me) return;
@@ -327,8 +374,8 @@ export function Provider({
   }, [db]);
 
   const valor = useMemo<Ctx>(
-    () => ({ s, me, patch, now, nowMany, insert, remove, estado, pendentes, online }),
-    [s, me, patch, now, nowMany, insert, remove, estado, pendentes, online],
+    () => ({ s, me, patch, now, nowMany, insert, remove, devolver, estado, pendentes, online }),
+    [s, me, patch, now, nowMany, insert, remove, devolver, estado, pendentes, online],
   );
   return <C.Provider value={valor}>{children}</C.Provider>;
 }

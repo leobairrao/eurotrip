@@ -29,6 +29,7 @@ import { AreaField, NumField, IntField, TextField, useLocal } from '@/components
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
+import { useApagarLinha } from '@/lib/apagar';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import { brl, eur, parseNum } from '@/lib/fmt';
@@ -148,7 +149,8 @@ function Base({ city, cc }: { city: string; cc: string }) {
 
 /** nome | diária | noites | total | "é essa" | ✓pago | × */
 function Opcao({ o }: { o: StayOption }) {
-  const { s, patch, now, remove } = useApp();
+  const { s, patch, now } = useApp();
+  const apagar = useApagarLinha();
   const v = C.stayValor(o);
 
   /** Marcar uma DESMARCA a anterior: nao existe duas fechadas na mesma cidade. */
@@ -207,7 +209,7 @@ function Opcao({ o }: { o: StayOption }) {
         className="xb"
         title="apagar esta opção"
         aria-label={`apagar ${o.name}`}
-        onClick={() => void remove('stay_option', o.id, o.seed_id)}
+        onClick={() => void apagar('stay_option', o.id, o.seed_id)}
       >
         ×
       </button>

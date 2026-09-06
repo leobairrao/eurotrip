@@ -6,15 +6,16 @@
 // (regra 5.10 — o valor conta sempre, a caixinha so decide o lado).
 // ============================================================
 import { useRef, useState } from 'react';
-import { SUGGRES } from '@/content';
-import { Nota, NumField, TextField, useLocal } from '@/components/Field';
+import { NumField, TextField, useLocal } from '@/components/Field';
 import { useApp, useOrdemEstavel } from '@/lib/store';
+import { useApagarLinha } from '@/lib/apagar';
 import * as C from '@/lib/calc';
 import { mover } from '@/lib/ordem';
-import { brl, deHtml, parseNum } from '@/lib/fmt';
+import { brl, parseNum } from '@/lib/fmt';
 
 export default function Reservas() {
-  const { s, patch, now, insert, remove } = useApp();
+  const { s, patch, now, insert } = useApp();
+  const apagar = useApagarLinha();
 
   const dn = C.bookingDone(s);
   const pg = C.bookingBrl(s, 'pago');
@@ -114,7 +115,7 @@ export default function Reservas() {
             </select>
             <button
               className="xb"
-              onClick={() => void remove('booking', r.id, r.seed_id)}
+              onClick={() => void apagar('booking', r.id, r.seed_id)}
               aria-label="tirar"
             >
               ×
@@ -165,44 +166,6 @@ export default function Reservas() {
         compradas lá, troque para €.
       </p>
 
-      {/* ---- as 13 sugestoes: so entram na lista dele no + (regra 5.13) ---- */}
-      <div className="sg">
-        <div className="sgh">sugestões minhas</div>
-        {SUGGRES.map((sg, j) => {
-          const sid = `R|${j}`;
-          // adotada = ja gravei em `adopted`, ou o item semeado ja esta na lista
-          const tk = s.adopted.includes(sid) || s.bookings.some((r) => r.seed_id === sid);
-          return (
-            <div key={sid} className={`sgr${tk ? ' taken' : ''}`}>
-              {/* o nome semeado pode trazer <b> (o CSS tem .sgr .nm b) — vai como HTML */}
-              <Nota html={sg[0]} className="nm" />
-              {tk ? (
-                <div className="vl">na sua lista</div>
-              ) : (
-                <button
-                  className="plus"
-                  onClick={() => {
-                    void insert('booking', {
-                      position: proximaPos(),
-                      name: deHtml(sg[0]),
-                      // igual ao + de Comidas: linha dele nunca guarda tag (regra 10.0)
-      note: deHtml(sg[1]),
-                      amount: null,
-                      currency: 'brl',
-                      done: false,
-                      seed_id: sid,
-                    });
-                    void insert('adopted', { seed_id: sid });
-                  }}
-                >
-                  +
-                </button>
-              )}
-              <Nota html={sg[1]} className="wh" />
-            </div>
-          );
-        })}
-      </div>
     </>
   );
 }
