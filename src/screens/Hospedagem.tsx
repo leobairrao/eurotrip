@@ -58,9 +58,10 @@ export default function Hospedagem() {
       <div className="panelhead">
         <h2>Hospedagem</h2>
         <p>
-          As opções que eu pesquisei em cada base, e você marca <b>a que fechou</b>. Só a
-          marcada entra no custo da viagem — as outras ficam guardadas como plano B. A
-          diária é a <b>diária cheia do anúncio</b>, sem dividir.
+          As opções <b>que você guardar aqui</b>, e você marca <b>a que fechou</b>. Só a
+          marcada entra no custo da viagem — as outras ficam como plano B. A diária é a
+          <b> diária cheia do anúncio</b>, sem dividir. Os bairros que eu pesquisei estão na
+          aba <b>Sugestões</b>: o + de lá traz para cá.
         </p>
       </div>
 
@@ -132,7 +133,10 @@ function Base({ city, cc }: { city: string; cc: string }) {
         <Avisos spot={`stay:${city}`} rotulo="aviso" />
 
         {opcoes.length === 0 ? (
-          <div className="empty">Nenhuma opção aqui ainda. Escreve abaixo.</div>
+          <div className="empty">
+            Nenhuma opção aqui ainda. Escreva abaixo, ou puxe um bairro meu com o{' '}
+            <b>+</b> da aba <b>Sugestões</b>.
+          </div>
         ) : (
           <div className="mt">
             {opcoes.map((o) => <Opcao key={o.id} o={o} />)}
@@ -141,13 +145,31 @@ function Base({ city, cc }: { city: string; cc: string }) {
 
         <Acrescentar city={city} proximaPos={opcoes.length} />
 
-        {marcada ? <Reserva o={marcada} /> : null}
       </div>
     </div>
   );
 }
 
-/** nome | diária | noites | total | "é essa" | ✓pago | × */
+/**
+ * Uma opcao de hospedagem, REESCRITA em 06/09 a pedido dele:
+ * "eu quero a estrutura que tinhamos antes para preencher: nome da
+ * cidade, localizacao do airbnb, link para a reserva, custo por noite,
+ * quantos dias... do jeito que esta agora esta tudo jogado e mal
+ * formatado".
+ *
+ * O QUE ESTAVA ERRADO. Os campos que ele pede EXISTEM desde a Fase 6 —
+ * endereco, link, check-in, check-out, total. So que estavam escondidos
+ * atras do "e esta": apareciam num formulario separado, e SO depois de
+ * ele marcar a opcao fechada. Diaria e noites ficavam espremidas na
+ * linha, com rotulo nenhum, e a nota era uma `textarea` solta dentro de
+ * uma `.mrow` — a unica do app — que nascia BRANCA no tema escuro,
+ * porque `.mrow` nunca deu fundo a `textarea`.
+ *
+ * Agora cada opcao e um bloco com rotulo em cima de cada campo, usando
+ * `.form`/`.fld`/`.frow`, que o projeto ja tinha e que dao o fundo certo
+ * de graca. O formulario separado do "e esta" deixou de existir: nao ha
+ * mais campo que so aparece depois de marcar.
+ */
 function Opcao({ o }: { o: StayOption }) {
   const { s, patch, now } = useApp();
   const apagar = useApagarLinha();
@@ -162,121 +184,125 @@ function Opcao({ o }: { o: StayOption }) {
   };
 
   return (
-    <div className={`mrow ho6${o.chosen ? ' pgo' : ''}`}>
-      <TextField
-        fk={`stay_option|${o.id}|name`}
-        value={o.name}
-        onCommit={(x) => patch('stay_option', o.id, 'name', x)}
-        className="nv"
-        aria-label="nome da opção"
-      />
-      <NumField
-        fk={`stay_option|${o.id}|nightly_eur`}
-        value={o.nightly_eur}
-        onCommit={(x) => patch('stay_option', o.id, 'nightly_eur', x)}
-        className="pv"
-        placeholder="quanto custa"
-        aria-label="diária cheia em euros"
-      />
-      <IntField
-        fk={`stay_option|${o.id}|nights`}
-        value={o.nights}
-        onCommit={(x) => patch('stay_option', o.id, 'nights', x)}
-        className="pv nt"
-        placeholder="noites"
-        aria-label="noites"
-      />
-      <span className="vl" title="diária × noites, ou o total se você lançou">
-        {v ? eur(v) : '—'}
-      </span>
-      <button
-        className={`esta${o.chosen ? ' on' : ''}`}
-        title={o.chosen ? 'desmarcar' : 'é esta que eu fechei'}
-        aria-pressed={o.chosen}
-        onClick={marcar}
-      >
-        é esta
-      </button>
-      <input
-        className="ck"
-        type="checkbox"
-        title="já paguei"
-        aria-label="já paguei"
-        checked={o.paid}
-        onChange={(e) => now('stay_option', o.id, 'paid', e.currentTarget.checked)}
-      />
-      <button
-        className="xb"
-        title="apagar esta opção"
-        aria-label={`apagar ${o.name}`}
-        onClick={() => void apagar('stay_option', o.id, o.seed_id)}
-      >
-        ×
-      </button>
-      <AreaField
-        fk={`stay_option|${o.id}|note`}
-        value={o.note}
-        onCommit={(x) => patch('stay_option', o.id, 'note', x)}
-        className="wh"
-        placeholder="uma nota sua"
-      />
-    </div>
-  );
-}
-
-/** O formulario da reserva fechada: so aparece depois de ele marcar uma. */
-function Reserva({ o }: { o: StayOption }) {
-  const { patch } = useApp();
-  return (
-    <div className="form resv">
-      <div className="fld">
-        <label>Endereço de {o.name}</label>
+    <div className={`hopc${o.chosen ? ' on' : ''}`}>
+      <div className="hopc-h">
         <TextField
-          fk={`stay_option|${o.id}|address`}
-          value={o.address}
-          onCommit={(v: string) => patch('stay_option', o.id, 'address', v)}
-          placeholder="rua, número, bairro"
+          fk={`stay_option|${o.id}|name`}
+          value={o.name}
+          onCommit={(x) => patch('stay_option', o.id, 'name', x)}
+          className="nv"
+          aria-label="nome da opção"
         />
+        <span className="hopc-tt" title="diária × noites, ou o total se você lançou">
+          {v ? eur(v) : '—'}
+        </span>
+        <button
+          className={`esta${o.chosen ? ' on' : ''}`}
+          title={o.chosen ? 'desmarcar' : 'é esta que eu fechei'}
+          aria-pressed={o.chosen}
+          onClick={marcar}
+        >
+          é esta
+        </button>
+        <input
+          className="ck"
+          type="checkbox"
+          title="já paguei"
+          aria-label="já paguei"
+          checked={o.paid}
+          onChange={(e) => now('stay_option', o.id, 'paid', e.currentTarget.checked)}
+        />
+        <button
+          className="xb"
+          title="apagar esta opção"
+          aria-label={`apagar ${o.name}`}
+          onClick={() => void apagar('stay_option', o.id, o.seed_id)}
+        >
+          ×
+        </button>
       </div>
-      <div className="frow">
+
+      <div className="form">
         <div className="fld">
-          <label>Check-in</label>
+          <label>Localização</label>
           <TextField
-            fk={`stay_option|${o.id}|check_in`}
-            value={o.check_in}
-            onCommit={(v: string) => patch('stay_option', o.id, 'check_in', v)}
-            placeholder="ex. dia 12 - 15h"
+            fk={`stay_option|${o.id}|address`}
+            value={o.address}
+            onCommit={(x: string) => patch('stay_option', o.id, 'address', x)}
+            placeholder="rua, número, bairro"
           />
         </div>
         <div className="fld">
-          <label>Check-out</label>
+          <label>Link da reserva</label>
           <TextField
-            fk={`stay_option|${o.id}|check_out`}
-            value={o.check_out}
-            onCommit={(v: string) => patch('stay_option', o.id, 'check_out', v)}
-            placeholder="ex. dia 16 - 11h"
+            fk={`stay_option|${o.id}|link`}
+            value={o.link}
+            onCommit={(x: string) => patch('stay_option', o.id, 'link', x)}
+            placeholder="cole o link do anúncio"
           />
         </div>
-      </div>
-      <div className="frow">
+        <div className="frow">
+          <div className="fld">
+            <label>Custo por noite</label>
+            <NumField
+              fk={`stay_option|${o.id}|nightly_eur`}
+              value={o.nightly_eur}
+              onCommit={(x) => patch('stay_option', o.id, 'nightly_eur', x)}
+              className="pv"
+              placeholder="€ por noite"
+              aria-label="diária cheia em euros"
+            />
+          </div>
+          <div className="fld">
+            <label>Quantas noites</label>
+            <IntField
+              fk={`stay_option|${o.id}|nights`}
+              value={o.nights}
+              onCommit={(x) => patch('stay_option', o.id, 'nights', x)}
+              className="pv"
+              placeholder="noites"
+              aria-label="noites"
+            />
+          </div>
+        </div>
+        <div className="frow">
+          <div className="fld">
+            <label>Check-in</label>
+            <TextField
+              fk={`stay_option|${o.id}|check_in`}
+              value={o.check_in}
+              onCommit={(x: string) => patch('stay_option', o.id, 'check_in', x)}
+              placeholder="ex. dia 12 - 15h"
+            />
+          </div>
+          <div className="fld">
+            <label>Check-out</label>
+            <TextField
+              fk={`stay_option|${o.id}|check_out`}
+              value={o.check_out}
+              onCommit={(x: string) => patch('stay_option', o.id, 'check_out', x)}
+              placeholder="ex. dia 16 - 11h"
+            />
+          </div>
+        </div>
         <div className="fld">
           <label>Total lançado, se souber</label>
           <NumField
             fk={`stay_option|${o.id}|total_eur`}
             value={o.total_eur}
-            onCommit={(v: number | null) => patch('stay_option', o.id, 'total_eur', v)}
+            onCommit={(x: number | null) => patch('stay_option', o.id, 'total_eur', x)}
             className="pv"
-            placeholder="total, se souber"
+            placeholder="ignora diária × noites"
             aria-label="total em euros"
           />
         </div>
         <div className="fld">
-          <label>Link do anúncio</label>
-          <TextField
-            fk={`stay_option|${o.id}|link`}
-            value={o.link}
-            onCommit={(v: string) => patch('stay_option', o.id, 'link', v)}
-            placeholder="cole aqui"
+          <label>Nota</label>
+          <AreaField
+            fk={`stay_option|${o.id}|note`}
+            value={o.note}
+            onCommit={(x) => patch('stay_option', o.id, 'note', x)}
+            placeholder="o que você quer lembrar desta opção"
           />
         </div>
       </div>
@@ -304,8 +330,12 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
     diaria.limpar();
   };
 
+  // `.addrow` puro, nao `.three`: sao TRES campos, e `.three` declara QUATRO
+  // colunas (1fr 96px 62px auto). O botao caia na faixa de 62px precisando de
+  // 177px, e o texto vazava para fora do cartao — foi o que ele fotografou em
+  // 06/09. Sobra de quando havia um seletor de moeda ali.
   return (
-    <div className="addrow three">
+    <div className="addrow">
       <input
         ref={(el) => { nome.ref.current = el; }}
         type="text"

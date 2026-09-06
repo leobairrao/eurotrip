@@ -148,7 +148,7 @@ observação, e um seletor de **país ou "geral"**.
 - **A decidir:** a dica "geral" aparece só na aba Dicas, ou também no topo das outras?
 - **Tamanho:** médio.
 
-## 8 (novo). Hospedagem: a estrutura de preencher de volta, e dois defeitos
+## 8 (novo). Hospedagem: a estrutura de preencher de volta, e dois defeitos — ✅ **FEITO em 06/09**
 
 **Ele disse:** *"na aba hospedagem eu quero a estrutura que tínhamos antes para preencher:
 nome da cidade, localização do airbnb, link para a reserva, custo por noite, quantos
@@ -180,7 +180,7 @@ verbo que ele usou.
 
 ## A ordem que eu sugiro
 
-**1 (feito) → 4 (feito) → 2 (feito) → 5 (feito) → 8 → 7 → 3 → 6.**
+**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → falta 7 e 6.**
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.

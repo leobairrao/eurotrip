@@ -309,7 +309,8 @@
    "ja paguei". As areas tem que existir dos dois lados da grade: um
    nome errado e a linha desmonta calada, sem erro nenhum.
 
-   `ho6` = a linha de uma opcao de hospedagem.
+   `ho6` era a linha de uma opcao de hospedagem, e saiu em 06/09: a opcao
+   virou BLOCO com rotulo em cada campo (`.hopc`, no fim deste arquivo).
    ============================================================ */
 .mrow.at6 {
   grid-template-columns: 1fr 104px 116px 84px 30px 34px;
@@ -318,13 +319,6 @@
 .mrow.at6 .kv { color: var(--ink-2); }
 .mrow.at6.st-esc .kv { border-color: var(--pine); }
 
-.mrow.ho6 {
-  grid-template-columns: 1fr 92px 64px 84px 62px 30px 34px;
-  grid-template-areas: "nm pr nt tt es ok x" "wh wh wh wh wh wh wh";
-}
-.mrow.ho6 .nt { grid-area: nt; }
-.mrow.ho6 .vl { grid-area: tt; text-align: right; font-family: var(--mono);
-  font-variant-numeric: tabular-nums; align-self: center; color: var(--ink-2); }
 
 /* "e esta": o botao que decide o que entra no custo da viagem */
 .esta {
@@ -352,13 +346,8 @@
   }
   .mrow.at6 .sv, .mrow.at6 .kv { font-size: 10px; padding: 6px 2px; }
   .mrow.at6 .pv { font-size: 13px; padding: 7px 4px; max-width: none; }
-  .mrow.ho6 {
-    grid-template-columns: 1fr 56px 62px 30px 32px;
-    grid-template-areas: "nm nm nm nm x" "pr nt tt es ok" "wh wh wh wh wh";
-  }
-  .mrow.ho6 .pv { max-width: none; font-size: 13px; }
   /* WCAG 2.2 pede 24px de alvo; a caixinha herdada tem 18. */
-  .mrow.at6 .ck, .mrow.ho6 .ck { width: 24px; height: 24px; }
+  .mrow.at6 .ck { width: 24px; height: 24px; }
 }
 
 /* ---------------------------------------------------------------
@@ -413,4 +402,49 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .liga .sw, .liga .sw::after { transition: none; }
+}
+
+/* ---------------------------------------------------------------
+   HOSPEDAGEM: a opcao vira BLOCO, nao linha (06/09/2026).
+
+   Ele disse: "do jeito que esta agora esta tudo jogado e mal formatado".
+   Tinha razao em tres frentes, e as tres morreram aqui:
+
+   1. os campos que ele queria preencher (endereco, link, check-in) so
+      apareciam DEPOIS de marcar "e esta" — agora estao sempre a vista,
+      com rotulo em cima, dentro de `.form`/`.fld` que o projeto ja tinha;
+   2. a nota era a UNICA `textarea` do app dentro de uma `.mrow`, e nascia
+      BRANCA no tema escuro, porque `.mrow` nunca deu fundo a `textarea`.
+      Dentro de `.fld` ela herda `--ground`, como todo o resto;
+   3. o botao de acrescentar vazava do cartao — grade errada, ver
+      Hospedagem.tsx.
+
+   `ho6` some junto: nenhuma tela mais usa aquela grade de sete colunas.
+   --------------------------------------------------------------- */
+.hopc {
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--raio-2);
+  background: var(--surface);
+  padding: var(--e4) var(--e4) var(--e4);
+  margin-bottom: var(--e3);
+}
+.hopc.on { border-color: var(--pine); background: var(--pine-wash); }
+.hopc-h {
+  display: grid;
+  grid-template-columns: 1fr auto auto 30px 34px;
+  align-items: center;
+  gap: var(--e2);
+}
+.hopc-h .nv { font-size: 16px; font-weight: 600; }
+.hopc-tt {
+  font-family: var(--mono); font-size: 13px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* o "e esta" fora da grade antiga: `.esta` tinha `grid-area: es`, que so
+   existia na `.mrow.ho6` — sem isto o botao procura uma area que sumiu */
+.hopc-h .esta { grid-area: auto; }
+.hopc .form { margin-top: var(--e3); }
+@media (max-width: 700px) {
+  .hopc-h { grid-template-columns: 1fr auto auto; row-gap: var(--e2); }
+  .hopc-h .nv { grid-column: 1 / -1; }
 }
