@@ -278,6 +278,29 @@ export function stayTotalAll(s: Snapshot, cities: string[]): number {
 export function stayCount(s: Snapshot, cities: string[]): number {
   return cities.filter((c) => (stayChosen(s, c)?.address ?? '').trim()).length;
 }
+/**
+ * As noites que o ROTEIRO tem nesta cidade, UMA POR PASSAGEM.
+ *
+ * Devolve lista, e nao soma, por causa de MADRID: ele dorme la 3 noites no
+ * comeco e mais 1 no fim, com um mes de viagem no meio. A primeira versao
+ * desta funcao somava e a dica dizia "o roteiro tem 4 noites aqui" — e ele
+ * fecharia UM Airbnb de 4 noites para uma estada que nunca existiu. Numero
+ * certo, conselho errado; achado na revisao adversarial de 06/09.
+ *
+ * Sai de `baseList`, entao ja carrega as duas regras de la: dia "em transito"
+ * nao conta, e a ULTIMA base perde uma noite porque o voo de volta sai 23h35
+ * e ele dorme no aviao (regra 5.1). E por isso que a segunda passagem por
+ * Madrid vale 1 noite, e nao 2.
+ *
+ * A base de um dia e texto livre — "Haarlem (Amsterda)" e uma delas — entao o
+ * casamento com a cidade passa por `cityOfBase`, nunca por string crua.
+ * Cidade sem dia nenhum devolve lista vazia, e a tela nao desenha dica.
+ */
+export function noitesEm(s: Snapshot, city: string): number[] {
+  if (!city) return [];
+  return baseList(s).filter((b) => cityOfBase(s, b.base) === city).map((b) => b.nt);
+}
+
 /** Ja pago em hospedagem: so a marcada, e so se a caixinha estiver marcada. */
 export function stayPagoEur(s: Snapshot, cities: string[]): number {
   return cities.reduce((a, c) => {

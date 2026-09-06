@@ -35,12 +35,63 @@ export function inputInt(v: number | null | undefined): string {
   return v === null || v === undefined ? '' : String(v);
 }
 
-/** Texto de campo de valor -> numero ou null. Vazio vira null, nao 0. */
+/**
+ * Texto de campo de valor -> numero ou null. Vazio vira null, nao 0.
+ *
+ * REESCRITA EM 06/09, e a razao e um erro de MIL VEZES que acontecia calado.
+ *
+ * A versao antiga era `parseFloat(t.replace(',', '.'))`. Num app em portugues,
+ * sobre dinheiro, isso quer dizer:
+ *
+ *   "1.250,00"  ->  1.25     (o total de uma hospedagem virava um euro e vinte)
+ *   "2.400"     ->  2.4
+ *   "€ 90"      ->  null     (some inteiro, sem uma palavra na tela)
+ *   "2,400.50"  ->  2.4      (o formato que o anuncio em ingles mostra)
+ *
+ * Nada disso dava erro. O numero errado entrava no banco, somava no Painel e
+ * na Caixa, e so apareceria como "por que o total esta tao baixo?" semanas
+ * depois. Achado pela revisao adversarial de 06/09, ao montar o formulario de
+ * hospedagem — que e justamente onde ele COLA valor de anuncio.
+ *
+ * As regras, nesta ordem:
+ *  1. tudo que nao e digito, ponto, virgula ou menos sai fora — o simbolo da
+ *     moeda deixa de anular o numero;
+ *  2. ponto E virgula juntos: o ULTIMO dos dois e o decimal, o outro e milhar.
+ *     Cobre "1.250,00" (pt) e "2,400.50" (en) sem precisar saber qual e qual;
+ *  3. so virgula: decimal, sempre. E portugues;
+ *  4. so ponto: e milhar quando ha mais de um ("1.250.000"), ou quando o unico
+ *     vem seguido de EXATAMENTE tres digitos ("2.400" = 2400). Fora disso e
+ *     decimal, que e como "90.50" e "1.5" chegam de teclado numerico.
+ *
+ * O que ja funcionava continua igual: "90", "90,50", "90.50", "" e "abc" dao
+ * exatamente o mesmo de antes. So mudou o que estava errado.
+ */
 export function parseNum(s: string): number | null {
   const t = s.trim();
   if (!t) return null;
-  const n = parseFloat(t.replace(',', '.'));
-  return isNaN(n) ? null : n;
+
+  const negativo = /^\s*-/.test(t);
+  let n = t.replace(/[^\d.,]/g, '');
+  if (!/\d/.test(n)) return null;
+
+  const ptDot = n.lastIndexOf('.');
+  const ptCom = n.lastIndexOf(',');
+  const semSeparador = (x: string) => x.replace(/[.,]/g, '');
+
+  if (ptDot >= 0 && ptCom >= 0) {
+    const dec = Math.max(ptDot, ptCom);
+    n = `${semSeparador(n.slice(0, dec))}.${semSeparador(n.slice(dec + 1))}`;
+  } else if (ptCom >= 0) {
+    n = `${semSeparador(n.slice(0, ptCom))}.${semSeparador(n.slice(ptCom + 1))}`;
+  } else if (ptDot >= 0) {
+    const depois = n.slice(ptDot + 1);
+    const milhar = n.indexOf('.') !== ptDot || /^\d{3}$/.test(depois);
+    n = milhar ? semSeparador(n) : `${semSeparador(n.slice(0, ptDot))}.${semSeparador(depois)}`;
+  }
+
+  const v = parseFloat(n);
+  if (isNaN(v)) return null;
+  return negativo ? -v : v;
 }
 
 export function parseInt10(s: string): number | null {

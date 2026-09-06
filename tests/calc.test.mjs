@@ -137,6 +137,43 @@ test('11.2 — 8 bases, 31 noites, 32 dias em terra + 2 de voo = 34', () => {
   assert.equal(ult.nt, 1);
 });
 
+/**
+ * `noitesEm` — a dica embaixo de "quantas noites" na Hospedagem.
+ *
+ * Ela devolve UMA ENTRADA POR PASSAGEM, e este teste existe por causa de
+ * Madrid. Somar as duas estadas dava "4 noites aqui", e ele fecharia um Airbnb
+ * de 4 noites para uma estada que nunca existiu: sao 3 no comeco da viagem e
+ * 1 no fim, com um mes no meio. Numero certo, conselho errado.
+ *
+ * As tres coisas que este teste tranca:
+ *   1. Madrid devolve DUAS entradas, [3, 1], e nao a soma;
+ *   2. a ULTIMA base ja vem com a noite a menos de `baseList` (voo 23h35) —
+ *      e por isso a segunda passagem por Madrid vale 1, e nao 2;
+ *   3. as 7 bases de STAYS tem dica; cidade sem dia devolve lista vazia, e a
+ *      tela nao desenha nada.
+ */
+test('11.2 — noitesEm devolve uma entrada por passagem, nao a soma', () => {
+  assert.deepEqual(C.noitesEm(S, 'madrid'), [3, 1], '3 noites no comeco, 1 no fim');
+  assert.deepEqual(C.noitesEm(S, 'lisboa'), [4]);
+  assert.deepEqual(C.noitesEm(S, 'caceres'), [1]);
+  assert.deepEqual(C.noitesEm(S, 'metz'), [7]);
+  assert.deepEqual(C.noitesEm(S, 'reims'), [3]);
+  assert.deepEqual(C.noitesEm(S, 'amsterda'), [4], 'a base do dia diz "Amsterda"');
+  assert.deepEqual(C.noitesEm(S, 'roma'), [8]);
+
+  // nenhuma das 7 bases pode ficar sem dica — seria a unica sem, e ninguem veria
+  for (const c of CIDADES_STAY) {
+    assert.ok(C.noitesEm(S, c).length > 0, `${c} ficou sem dica de noites`);
+  }
+  // e o total tem que fechar com as 31 noites da viagem (Paris nao tem base)
+  const soma = CIDADES_STAY.reduce((a, c) => a + C.noitesEm(S, c).reduce((x, y) => x + y, 0), 0);
+  assert.equal(soma, C.nightsAll(S));
+
+  assert.deepEqual(C.noitesEm(S, 'paris'), [], 'Paris virou bate-volta: nenhuma noite');
+  assert.deepEqual(C.noitesEm(S, ''), [], 'cidade vazia nao explode');
+  assert.deepEqual(C.noitesEm(S, 'cidade-que-nao-existe'), []);
+});
+
 test('11.2 — "em transito" nao e base', () => {
   assert.equal(C.blocks(S).length, 10);      // 8 bases + 2 blocos de transito
   assert.ok(!C.baseList(S).some((b) => /trânsito/i.test(b.base)));
@@ -481,6 +518,52 @@ test('10.0 — campo de valor vazio e vazio, nao zero', () => {
   assert.equal(parseNum(''), null);
   assert.equal(parseNum('12,5'), 12.5);
   assert.equal(parseNum('abc'), null);
+});
+
+/**
+ * O ERRO DE MIL VEZES, e o teste que o tranca (06/09/2026).
+ *
+ * `parseNum` era `parseFloat(t.replace(',', '.'))`. Num app em portugues,
+ * sobre dinheiro, "1.250,00" virava **1,25** — e nada na tela dizia nada. O
+ * numero errado ia para o banco, somava no Painel e na Caixa, e so apareceria
+ * como "por que o total esta tao baixo?" semanas depois.
+ *
+ * O simbolo da moeda era pior: "€ 90" dava `null`, e o campo simplesmente
+ * nao guardava nada. O placeholder do formulario de hospedagem convida a
+ * digitar "€ por noite".
+ *
+ * Este teste vale para o app INTEIRO: `parseNum` serve Hospedagem, Transporte,
+ * Reservas, Custos, Atracoes e a Caixa.
+ */
+test('10.0 — parseNum entende dinheiro escrito como brasileiro escreve', () => {
+  // o que ja funcionava tem que continuar identico
+  assert.equal(parseNum('90'), 90);
+  assert.equal(parseNum('90,50'), 90.5);
+  assert.equal(parseNum('90.50'), 90.5);
+  assert.equal(parseNum('1.5'), 1.5);
+  assert.equal(parseNum('0,5'), 0.5);
+  assert.equal(parseNum(''), null);
+  assert.equal(parseNum('abc'), null);
+
+  // o ponto de MILHAR, que virava decimal e dividia por mil
+  assert.equal(parseNum('2.400'), 2400, '"2.400" e dois mil e quatrocentos');
+  assert.equal(parseNum('1.250,00'), 1250);
+  assert.equal(parseNum('1.250.000'), 1250000);
+
+  // o simbolo da moeda, que anulava o campo inteiro
+  assert.equal(parseNum('€ 90'), 90);
+  assert.equal(parseNum('90 €'), 90);
+  assert.equal(parseNum('R$ 1.250,00'), 1250);
+
+  // o formato que o anuncio em ingles mostra
+  assert.equal(parseNum('2,400.50'), 2400.5);
+  assert.equal(parseNum('12.99'), 12.99);
+
+  // pontas
+  assert.equal(parseNum('-45,5'), -45.5);
+  assert.equal(parseNum('.5'), 0.5);
+  assert.equal(parseNum('90,'), 90);
+  assert.equal(parseNum('R$'), null, 'simbolo sem numero nao vira zero');
 });
 
 test('10.0 — o que o usuario digita e texto puro', () => {
