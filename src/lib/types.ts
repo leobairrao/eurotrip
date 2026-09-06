@@ -166,6 +166,21 @@ export interface Contribution {
   /** De onde veio. Pode ficar vazio. */
   label: string;
   amount: number | null;
+  /**
+   * A moeda EM QUE ESTE APORTE FOI FEITO (06/09/2026).
+   *
+   * OBRIGATORIO de proposito, como o `paid` da atracao: `load.ts`
+   * normaliza por lista branca, e campo opcional que o normalizador
+   * esquece funciona na tela, sincroniza para a outra pessoa e some no
+   * primeiro F5. Sendo obrigatorio, o `tsc` acusa sozinho.
+   *
+   * Ate 06/09 esta coluna nao existia: a moeda de um aporte era lida do
+   * SELETOR da pessoa na hora de mostrar. Trocar o seletor depois de
+   * lancar reescrevia o passado — R$ 20.000 viravam EUR 20.000, que o
+   * Painel mostra como R$ 124.000. Um aporte e um fato do dia em que
+   * aconteceu; a moeda dele tambem.
+   */
+  currency: Currency;
   /** So para desempatar dois aportes do MESMO dia no acumulado. */
   created_at?: string;
 }

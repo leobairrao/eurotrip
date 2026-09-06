@@ -191,7 +191,10 @@ function Aportes({ w }: { w: Who | null }) {
   const acum = new Map<string, number>();
   let ac = 0;
   for (const c of lista) {
-    ac += w ? num(c.amount) : C.cxBrlDe(s, c);
+    // cada aporte convertido pela moeda DELE, nao pela do seletor (06/09):
+    // com aportes em moedas diferentes, somar os numeros crus mistura euro
+    // com real e o acumulado vira um numero que nao existe.
+    ac += w ? C.cxNaMoeda(s, c) : C.cxBrlDe(s, c);
     acum.set(c.id, ac);
   }
   const linhas = lista.slice().reverse();
@@ -244,7 +247,9 @@ function Aportes({ w }: { w: Who | null }) {
                   </select>
                 )}
                 <span className="pw">
-                  <i>{cur(c.who)}</i>
+                  {/* o simbolo e o da moeda DO APORTE, nao o do seletor de
+                      hoje: um aporte lancado em real continua em real. */}
+                  <i>{c.currency === 'eur' ? '€' : 'R$'}</i>
                   <NumField
                     fk={`contribution|${c.id}|amount`}
                     value={c.amount}
@@ -316,6 +321,10 @@ function Aportar({ w }: { w: Who | null }) {
       on_date: isData(d) ? d : hojeLocal(),
       label: nome.get(),
       amount: v,
+      // A MOEDA VAI JUNTO, e e a da pessoa NO MOMENTO do aporte (06/09).
+      // Antes ela nao era gravada: era lida do seletor na hora de mostrar,
+      // e trocar o seletor depois reescrevia o passado.
+      currency: C.cxCur(s, who),
     });
     // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
     // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
@@ -360,8 +369,12 @@ function Botoes() {
   const { s, now } = useApp();
   return (
     <div className="addrow fit">
+      {/* O ROTULO TEM QUE DIZER O QUE O BOTAO GRAVA. Ate 06/09 ele escrevia
+          sempre em reais e gravava `estimNaMoeda`, que respeita a moeda da
+          pessoa: com a moeda do Leo em euro, o botao prometia "pôr R$ 17.329"
+          e a meta aparecia como € 2.795 — 6,2 vezes menos. */}
       <button onClick={() => now('savings', 'leo', 'goal', C.estimNaMoeda(s, 'leo'))}>
-        pôr {brl(ESTIM_EUR * C.rate(s))} na meta do Leo
+        pôr {C.cxMoney(s, C.estimNaMoeda(s, 'leo'), 'leo')} na meta do Leo
       </button>
       <button onClick={() => now('savings', 'lu', 'goal', C.estimNaMoeda(s, 'lu'))}>
         pôr a mesma na meta da Lu

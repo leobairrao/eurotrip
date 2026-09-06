@@ -173,6 +173,7 @@ const normAporte = (r: Record<string, unknown>): Contribution => ({
   id: String(r.id), who: r.who === 'lu' ? 'lu' : 'leo',
   on_date: String(r.on_date ?? ''), label: String(r.label ?? ''),
   amount: n(r.amount),
+  currency: r.currency === 'eur' ? 'eur' : 'brl',
   created_at: r.created_at ? String(r.created_at) : undefined,
 });
 const normStay = (r: Record<string, unknown>): Stay => ({
@@ -267,6 +268,8 @@ export async function carregarDemo(): Promise<Snapshot> {
       s.contributions.push({
         id: `demo-ini-${w}`, who: w, on_date: s.hoje,
         label: 'o que eu já tinha', amount: ini,
+        // a moeda da pessoa: no demo nao ha historia, entao o presente e a verdade
+        currency: s.savings[w].currency,
       });
   }
   for (const [month, o] of Object.entries<Record<string, unknown>>(cx.ap ?? {}))
@@ -276,6 +279,7 @@ export async function carregarDemo(): Promise<Snapshot> {
         s.contributions.push({
           id: `demo-${w}-${month}`, who: w, on_date: `${month}-01`,
           label: 'aporte do mês', amount: v,
+          currency: s.savings[w].currency,
         });
     }
   // Os avisos, montados dos mesmos JSONs que o `npm run seed` usa —

@@ -497,8 +497,18 @@ test('11.8 — meses do mes corrente ate dezembro de 2026', () => {
 });
 
 /** Um aporte de mentira, com id e created_at estaveis para o teste. */
-const ap = (who, on_date, amount, label = '', i = 0) =>
-  ({ id: `${who}-${on_date}-${i}`, who, on_date, label, amount, created_at: `2026-01-0${i + 1}` });
+/**
+ * Um aporte da fixture. A `currency` entrou em 06/09 e e OBRIGATORIA:
+ * desde entao cada aporte guarda a moeda em que foi feito, e somar sem
+ * ela mistura euro com real. O padrao aqui e a moeda de quem lancou —
+ * que e o que a tela grava —, e quem quiser testar moeda cruzada passa
+ * a sexta posicao.
+ */
+const ap = (who, on_date, amount, label = '', i = 0, currency = null) => ({
+  id: `${who}-${on_date}-${i}`, who, on_date, label, amount,
+  currency: currency ?? (who === 'lu' ? 'eur' : 'brl'),
+  created_at: `2026-01-0${i + 1}`,
+});
 
 test('11.8 — a falta se divide pelos meses que faltam ate dezembro', () => {
   const hoje = new Date(2026, 8, 4);            // setembro de 2026 -> 4 meses
@@ -524,6 +534,49 @@ test('11.8 — a falta se divide pelos meses que faltam ate dezembro', () => {
   assert.equal(plMes(1), 'no mês que sobra');
   assert.equal(plMesAte(1), 'pelo mês que falta até dezembro');
   assert.equal(plMesAte(4), 'pelos 4 meses até dezembro');
+});
+
+/**
+ * O DEFEITO DE 06/09: trocar o seletor de moeda multiplicava o passado.
+ *
+ * A tabela `contribution` nao tinha coluna de moeda. A moeda de um aporte
+ * era lida do seletor da PESSOA na hora de mostrar — nao era um fato
+ * guardado. Entao lancar R$ 20.000 e depois trocar o seletor para euro
+ * fazia os mesmos R$ 20.000 virarem EUR 20.000, que o Painel mostra como
+ * R$ 124.000, sem nada na tela indicando que o numero mudou de sentido.
+ *
+ * O aporte agora carrega a propria moeda. Trocar o seletor passa a fazer
+ * o que ele espera: mostrar o MESMO dinheiro na outra moeda.
+ */
+test('11.8 — trocar a moeda da pessoa NAO multiplica o que ela ja tem', () => {
+  const s = structuredClone(S);
+  s.settings.eur_rate = 6.2;
+  s.savings.leo = { who: 'leo', goal: null, currency: 'brl' };
+  s.contributions = [ap('leo', '2026-09-01', 20000, 'o que eu tinha', 0, 'brl')];
+
+  assert.equal(C.cxTotal(s, 'leo'), 20000, 'em real, sao 20 mil');
+  assert.equal(C.cxTotalBrl(s), 20000, 'e o geral tambem');
+
+  // ele troca o seletor para euro. O dinheiro e o MESMO.
+  s.savings.leo = { who: 'leo', goal: null, currency: 'eur' };
+  assert.equal(Math.round(C.cxTotal(s, 'leo')), 3226, 'R$ 20.000 / 6,2 = EUR 3.226');
+  assert.equal(Math.round(C.cxTotalBrl(s)), 20000, 'em reais continua 20 mil');
+
+  // e o que NAO pode acontecer nunca mais:
+  assert.notEqual(Math.round(C.cxTotalBrl(s)), 124000, 'nao pode multiplicar por 6,2');
+});
+
+test('11.8 — aportes em moedas diferentes somam certo', () => {
+  const s = structuredClone(S);
+  s.settings.eur_rate = 6.2;
+  s.savings.leo = { who: 'leo', goal: null, currency: 'brl' };
+  s.contributions = [
+    ap('leo', '2026-09-01', 1000, 'salario', 0, 'brl'),
+    ap('leo', '2026-09-02', 100, 'sobra da viagem', 1, 'eur'),
+  ];
+  // 1000 + (100 x 6,2) = 1620
+  assert.equal(C.cxTotal(s, 'leo'), 1620);
+  assert.equal(C.cxBrlDe(s, s.contributions[1]), 620, 'o aporte em euro vale 620 reais');
 });
 
 test('11.8 — varios aportes somam, e a lista vem em ordem de dia', () => {

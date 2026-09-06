@@ -150,6 +150,10 @@ create table if not exists contribution (
   on_date     date not null,                 -- o dia em que o dinheiro entrou
   label       text not null default '',      -- de onde veio. Pode ficar vazio
   amount      numeric(10,2),
+  -- A moeda EM QUE O APORTE FOI FEITO (06/09). Sem ela, a moeda vinha do
+  -- seletor da pessoa na hora de mostrar, e trocar o seletor reescrevia o
+  -- passado: R$ 20.000 viravam EUR 20.000 = R$ 124.000 no Painel.
+  currency    text not null default 'brl' check (currency in ('eur','brl')),
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );

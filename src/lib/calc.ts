@@ -439,8 +439,24 @@ export const cxMoney = (s: Snapshot, v: number, w: Who) =>
 /** Converte para R$ o valor de quem pensa em euro. */
 export const cxBrl = (s: Snapshot, v: number, w: Who) =>
   cxCur(s, w) === 'eur' ? v * rate(s) : v;
-/** O valor de UM aporte em R$, pela moeda de quem o lancou. */
-export const cxBrlDe = (s: Snapshot, c: Contribution) => cxBrl(s, num(c.amount), c.who);
+/**
+ * O valor de UM aporte em R$, pela moeda DO APORTE (06/09).
+ *
+ * Antes lia a moeda da PESSOA (`cxBrl(..., c.who)`): o mesmo defeito do
+ * `cxTotal`, uma linha acima. Um aporte lancado em real continuava real
+ * mesmo que ela trocasse o seletor depois.
+ */
+export const cxBrlDe = (s: Snapshot, c: Contribution) =>
+  c.currency === 'eur' ? num(c.amount) * rate(s) : num(c.amount);
+
+/** UM aporte na moeda que a pessoa usa HOJE. E o tijolo do `cxTotal`. */
+export function cxNaMoeda(s: Snapshot, c: Contribution): number {
+  const cur = cxCur(s, c.who);
+  const v = num(c.amount);
+  if (c.currency === cur) return v;
+  const r = rate(s);
+  return cur === 'brl' ? v * r : (r ? v / r : 0);
+}
 
 /**
  * created_at vira NUMERO antes de comparar. Comparar como texto parece
@@ -490,9 +506,28 @@ export function cxUltimo(s: Snapshot, w: Who | null): Contribution | null {
   return l.length ? l[l.length - 1] : null;
 }
 
-/** O que a pessoa tem, na moeda dela: a soma dos aportes dela. */
+/**
+ * O que a pessoa tem, na moeda dela — somando CADA APORTE PELA MOEDA DELE.
+ *
+ * Ate 06/09 isto somava os valores crus e a conversao acontecia depois,
+ * uma vez so, pela moeda do SELETOR. Enquanto todos os aportes fossem da
+ * mesma moeda dava certo por acidente. Trocar o seletor depois de lancar
+ * reescrevia o passado: R$ 20.000 viravam EUR 20.000 = R$ 124.000 no
+ * Painel, sem nada na tela indicando que o numero mudou de significado.
+ *
+ * Agora o aporte carrega a propria moeda (coluna `currency`, migracao
+ * 08). Trocar o seletor passa a fazer o que ele espera: mostrar o MESMO
+ * dinheiro na outra moeda.
+ */
 export function cxTotal(s: Snapshot, w: Who): number {
-  return s.contributions.reduce((a, c) => (c.who === w ? a + num(c.amount) : a), 0);
+  const cur = cxCur(s, w);
+  const r = rate(s);
+  return s.contributions.reduce((a, c) => {
+    if (c.who !== w) return a;
+    const v = num(c.amount);
+    if (c.currency === cur) return a + v;
+    return a + (cur === 'brl' ? v * r : (r ? v / r : 0));
+  }, 0);
 }
 export const cxFalta = (s: Snapshot, w: Who) => Math.max(0, cxMeta(s, w) - cxTotal(s, w));
 
