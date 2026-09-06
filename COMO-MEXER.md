@@ -8,143 +8,110 @@ Se este arquivo e a [`ESPECIFICACAO.md`](ESPECIFICACAO.md) discordarem, a especi
 manda. Ela é a fonte; isto é o mapa.
 
 ---
+## 0. Onde eu parei — 06/09/2026, madrugada
 
-## 0. Onde eu parei — 05/09/2026, fim do dia
+**A lista de oito coisas que ele pediu em 06/09 está toda no ar.** A lista, com o que ele
+disse em cada item e o que foi decidido, está em
+[`docs/2026-09-06-lista-do-leo.md`](docs/2026-09-06-lista-do-leo.md) — leia de lá antes de
+mexer em qualquer uma delas.
 
-**Os sete ajustes que ele pediu estão TODOS no ar**, mais a cidade que ele pode criar.
-Desenho em [`docs/superpowers/specs/2026-09-05-ajustes-do-leo-design.md`](docs/superpowers/specs/2026-09-05-ajustes-do-leo-design.md).
-`npm test` 121/121; typecheck limpo; build limpo com `ƒ Middleware` no relatório.
+`npm test` **126/126** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+**verde**.
 
-### O que quebrou de noite, e já está consertado
+### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro
 
-**A cidade que ele cria derrubava o app inteiro.** Ele criou uma chamada "teste" e viu
-"Application error: a client-side exception has occurred" — duas vezes, porque a linha
-ficava no banco e o tombo se repetia a cada F5. Três telas perguntavam o nome da cidade
-direto à `CT`, a lista das **11 fixas**: `CT['teste'].n` é TypeError, e não havia rede
-nenhuma embaixo do app.
+> *"tudo que for sugerido por você, absolutamente tudo. As minhas abas devem ficar apenas
+> com os meus dados"*
 
-- Trocado por `C.nomeCidade(s, k)` em `Atracoes.tsx` (o formulário de acrescentar),
-  `Roteiro.tsx` (os chips de "pôr neste dia", os dois vazios e a linha da atração) e
-  `Hospedagem.tsx` (que não recebe cidade dele hoje, mas ficava a um `basesDe` de receber).
-- **Segundo defeito no mesmo lugar**, que só apareceu depois de o primeiro sair: o chip de
-  uma cidade dele não selecionava — `pk` conferia a existência pela `CT` e caía de volta na
-  base do dia. Agora é `C.temCidade(s, k)`, que olha as duas listas.
-- Helpers novos em `calc.ts`: **`temCidade`** (existe? fixa ou dele) e **`ccCidade`** (a cor
-  pelo país — a `ccOf` do `content` devolve `--pine` para toda cidade dele).
-- **A rede que faltava:** `src/app/error.tsx` e `src/app/global-error.tsx`. Antes, qualquer
-  tropeço de tela virava a tela preta em inglês. Agora é um cartão em português dizendo que
-  nada se perdeu, com "tentar de novo" e "recarregar".
-- **`tests/telas.test.mjs`**: lê o próprio código e falha se alguma tela voltar a indexar
-  `CT[...]` cru, apontando arquivo e linha. Provei que falha mesmo — repus o defeito e o
-  teste acusou `Atracoes.tsx:487`.
+**Pesquisa minha NUNCA MAIS é linha da tabela dele.** Ela vive em `src/content` (arquivo),
+aparece na aba **Sugestões** com seis sub-abas, e só vira linha dele quando ele aperta o `+`.
 
-**Provado no navegador, não só no `tsc`:** com a cidade "teste" no banco, abri Atrações de
-Portugal, Roteiro (clicando num dia e no chip "teste") e Dicas. As três desenham, e o chip
-seleciona. A linha de teste foi apagada do banco no fim.
+Antes disto eu semeava a pesquisa DENTRO das tabelas dele. Parecia dado dele; o `×` mandava
+o `seed_id` para `killed_seed`; e nem `npm run seed` trazia de volta. **Ele perdeu 17 opções
+de hospedagem e 35 atrações assim, em dois dias.** Ele mesmo apontou a origem: *"as opções de
+hospedagem eram bairros sugeridos por você, não deve restaurar isso"*.
 
-**`npm run check` agora abre com dois X vermelhos, e não é defeito.** Quatro atrações de
-Lisboa foram postas no dia 13/12 — ou seja, o app foi usado. Os números de aceite da seção
-12.3 são o retrato da semeadura; o script não distingue "ele usou" de "o dado quebrou".
+**O que isso implica para quem for mexer:**
 
-### O PRÓXIMO PASSO, e é só um
+- **Não religue nenhum bloco de `scripts/seed.mjs` que saiu** (transporte, hospedagem,
+  avisos, e a linha das 69 atrações). O sintoma de religar é silencioso: a aba dele volta a
+  nascer cheia de coisa minha, e o `×` volta a ser definitivo.
+- **Pesquisa nova entra em `src/content`, não no banco.** O `dados/` gêmeo é só combustível
+  do seed; o navegador não o alcança.
+- `src/lib/apagar.ts` decide entre `remove` (mata, grava killed_seed) e `devolver` (devolve
+  a sugestão). A prova é **`adopted`**, não o prefixo do `seed_id`.
+- `npm run check` tem um aceite que prova tudo isso: **"nenhuma sugestão minha aqui dentro"**.
+  Se ficar vermelho, alguém religou alguma coisa.
 
-**Ele apagou de propósito as 35 atrações de Madrid (20) e Lisboa (15) para pesquisar de
-novo, e depois se arrependeu.** Eu já restaurei pelo `seed` — as 104 estão de volta e o
-`check` fechou. **O que ele quer agora é a pesquisa refeita**: atrações novas para Madrid
-e Lisboa. Ele não disse quantas nem com que critério; pergunte antes de encher a lista.
+### O estado do banco
 
-Duas coisas que a restauração NÃO trouxe: as 5 de Sintra que ele tinha promovido para
-`escolhida` voltaram como `backlog` (não muda dinheiro nenhum — a etiqueta vem do dia do
-Roteiro desde a Fase 3), e qualquer preço ou nota que ele tenha editado depois do dia 4.
+35 atrações (as dele, Lisboa e Madrid) · 0 trechos · 0 opções de hospedagem · 0 avisos ·
+0 aportes · 2 comidas · 7 reservas · 1 cidade criada por ele ("TESTE", em Itália).
+As 128 linhas que eram minhas foram apagadas em 06/09, com cópia em
+`.backup-pesquisa-06-09.json` (fora do git). Elas voltam pelo `+`, não pela cópia.
 
-### O que está pendente de PROVA, e só ele consegue
+### Os quatro SQL que ele já rodou
 
-- **O tempo real da tabela `city` e da `stay_option`.** As duas são novas, estão na
-  publicação e com `replica identity full` (conferido no banco, quatro linhas de `select`
-  batendo). Mas ninguém abriu dois navegadores para ver criar e apagar chegando do outro
-  lado. Foi exatamente aí que a `aviso` falhou da primeira vez.
-- **O celular ele já conferiu** (05/09, "parece bom"). Registro: **foi ele, não eu** — o
-  `resize` do Chrome não pegou aqui, então o que eu provei foi a aritmética das grades,
-  medindo numa caixa de 328px. Ele confirmou o conjunto, não as 10 abas × 3 larguras ×
-  2 temas uma a uma.
+`05-hospedagem-e-pago` · `06-cidades` · **`07-metro`** (metrô como tipo de transporte) ·
+**`08-moeda-do-aporte`** (cada aporte guarda a própria moeda). Os dois últimos foram
+conferidos por fora depois de rodar.
 
-### O conserto que eu prometi e NÃO fiz
+### O que mudou em 06/09, em uma linha cada
 
-**Um toque no `×` apaga para sempre, sem confirmação e sem desfazer** — e o `seed_id` vai
-para `killed_seed`, o que faz até o `npm run seed` respeitar. Foi assim que as 35 sumiram
-em 15 segundos. Ele concordou que precisa mudar: o `×` deve pedir confirmação no próprio
-botão (primeiro toque vira "apagar?", segundo confirma, some sozinho em alguns segundos).
-Vale para atração, comida, trecho, reserva, aviso e opção de hospedagem.
-
-*(Como desfazer, se acontecer de novo: as linhas semeadas voltam tirando o `seed_id` de
-`killed_seed` e rodando `npm run seed`. As criadas à mão não voltam — não têm `seed_id`.)*
-
-### A lista dele de 06/09, item 1: Comidas com um campo so
-
-Ele checou o sistema e mandou sete coisas — a lista esta em
-[`docs/2026-09-06-lista-do-leo.md`](docs/2026-09-06-lista-do-leo.md), com a regra que ele
-deu: **uma de cada vez**. O item 1 saiu: os tres formularios de acrescentar de Comidas
-viraram UM, num cartao no topo, com um `select` de etiqueta que decide o tipo.
-
-Duas coisas que so a revisao adversarial pegou, e valem para quem mexer depois:
-
-- **`input` herda `color`; `select` NAO.** `.addrow input, .addrow select`
-  (`estilo-atual.css:334`) nunca definiu `color`, e o select cai no preto padrao do
-  navegador — preto sobre preto no tema escuro. **Ja havia CINCO selects assim** antes desta
-  rodada (`Transporte.tsx:286` e `:301`, `Custos.tsx:308`, `Caixa.tsx:340`,
-  `Avisos.tsx:209` — este em seis telas). Conferido no site publicado: o de moeda do
-  "adicionar trecho" aparecia como uma **caixa vazia**. A regra `.addrow select { color:
-  var(--ink) }` do `extras.css` e de proposito SEM escopo: prende-la a `.fo3` devolve o
-  defeito para os cinco.
-- **A grade da `.fo3` e medida, nao chutada.** 158px para a etiqueta ("🍽️ restaurante" pede
-  144px com seta) e 205px fixos para o botao, cujo rotulo muda com a etiqueta e, em `auto`,
-  crescia 50px e empurrava os campos enquanto ele digitava.
-
-E `tests/telas.test.mjs` ganhou um terceiro teste: **toda grade `.addrow` precisa do par que
-vira coluna unica abaixo de 700px**. Todas tinham; nada obrigava. Agora obriga.
-
-### O que mudou hoje, em uma linha cada
-
-| fase | o que é |
+| item | o que |
 |---|---|
-| **0** | higiene: `stripTags` fora da entrada, teto no reenvio, `killed_seed` só depois do DELETE, ordem por nome, as duas redes de segurança reconciliadas |
-| **1** | o acrescentar de Reservas subiu, e nenhuma tela come mais o que foi digitado |
-| **2** | "a lançar" virou "quanto custa" em toda parte; campo vazio ganhou borda |
-| **3** | **o dinheiro segue o roteiro**: `day_iso` manda, `status` virou ORIGEM, painel de sugestões separado |
-| **4** | as dicas saíram dos dias e viraram a aba **Dicas** (10ª); 3 alertas ficaram no dia |
-| **5** | caixinha **"já paguei"** em atração e hospedagem |
-| **6** | **hospedagem por país**, com opções e "é esta"; tabela `stay_option`; `stay` aposentada |
-| **7** | a identidade **"Círculos"**, escolhida por ele olhando; `src/app/identidade.css` |
-| **+** | **cidade que ele cria** em Atrações (tabela `city`); só de visitar, dentro dos 7 países |
+| **0** | a **cidade nova derrubava o app**; e nasceu a rede (`error.tsx`, `global-error.tsx`) |
+| **1** | Comidas: **um** formulário com etiqueta, no lugar de três |
+| **2** | Roteiro: a chave **"vou usar transporte neste dia?"** |
+| **3** | **a aba Sugestões** — a maior; leia a regra acima |
+| **4** | Atrações: os números logo abaixo das bandeiras |
+| **5** | **metrô** como tipo de transporte (oito lugares, um SQL) |
+| **6** | **a moeda**: cinco consertos, o do aporte com SQL |
+| **7** | Dicas: o campo de escrever, com país ou **a viagem inteira** |
+| **8** | Hospedagem: a estrutura de preencher, e dois defeitos medidos |
 
-**Migrações rodadas por ele hoje:** `05-hospedagem-e-pago.sql` e `06-cidades.sql`. As duas
-conferidas no banco depois, pelas seis/quatro coisas que falham em silêncio.
+### As armadilhas que 06/09 ensinou
 
-### As armadilhas que custaram caro hoje
+- **`input` herda `color`; `select` e `textarea` NÃO herdam o que precisam.** Três vezes no
+  mesmo dia: o `select` preto-no-preto em **cinco** telas (`.addrow select` não tinha
+  `color`), a etiqueta nova de Comidas, e a nota da Hospedagem **branca** no tema escuro
+  (`textarea` dentro de `.mrow` não tem fundo). Campo novo dentro de `.mrow` precisa de cor
+  e fundo explícitos; dentro de `.fld`/`.form`, não.
+- **`CT[cidade]` cru numa tela derruba o app inteiro.** Use `C.nomeCidade`, `C.paisDaCidade`,
+  `C.ccCidade`, `C.temCidade`. Há teste que falha se alguém repetir.
+- **Grade de `.addrow` conta COLUNAS; o JSX conta FILHOS.** Três campos numa grade de quatro
+  colunas espremeram o botão em 62px precisando de 177 — o texto vazava do cartão.
+- **Lista de tipos em CSS é lista para esquecer.** `identidade.css` listava os quatro
+  transportes; o metrô nasceria com uma tarja que nenhuma outra linha tem. Virou
+  `[class*="tk-"]`.
+- **JSON de sugestão pode ter a chave `_` de comentário.** `hospedagens-sugeridas` tem;
+  `atracoes-sugeridas` não. Quem varre e faz `.map` nela quebra a tela — aconteceu, e o
+  `error.tsx` segurou.
 
-- **Toda tabela nova entra em SETE listas**, não quatro: RLS, publicação,
-  `replica identity full`, o array `tabelas` de `store.tsx`, `PK`/`Tabela`/`LISTA` de
-  `merge.ts`, o `select` e o `vazio()` de `load.ts`, e o `Snapshot`. Pôr em `LISTA` sem a
-  chave no `Snapshot` **não é falha silenciosa, é queda**.
-- **`load.ts` normaliza por lista branca.** Coluna nova que ele não conhece funciona na
-  tela, sincroniza para o outro, **e some no primeiro F5**. Declare o campo
-  **obrigatório** em `types.ts` que o `tsc` acha os lugares.
-- **Um `:root` num CSS carregado depois NÃO vence o tema escuro** — os tokens dele moram
-  em seletores de especificidade (0,2,0). `identidade.css` repete os três.
-- **Mexer no respiro de `.mrow` estoura a grade do celular.** Subir o padding de 10/12
-  para 12/16 estourou 32px num aparelho de 360. Se mexer, **meça**: clone a linha numa
-  caixa de 328px e confira `scrollWidth - clientWidth`.
-- **`dados/*.json` e `src/content/*.json` são cópias que precisam bater.** Nada no build
-  reclama.
+### Os quatro testes de `tests/telas.test.mjs`
 
-**Ainda sem prova: a renovação de sessão.** O `middleware.ts` ficou na RAIZ desde a
-primeira publicação e por isso **nunca rodou** — o Next procura `src/middleware.ts` quando
-o app vive em `src/app`. A sessão nunca se renovava, e passada a validade do token os dois
-caíam na tela de entrada; é provavelmente a origem do "a Lu não consegue entrar".
-Consertado em 05/09. Só o uso ao longo de horas prova. Se for mexer: depois do build, o
-relatório tem que imprimir `ƒ Middleware`.
+Nenhum roda React: leem o código-fonte e o CSS. **Todos foram provados falhando** antes de
+serem aceitos.
 
----
+1. nenhuma tela indexa `CT[...]` cru
+2. a rede (`error.tsx` e `global-error.tsx`) existe e é client component
+3. toda grade `.addrow` tem o par que vira coluna única abaixo de 700px
+4. todo tipo de transporte tem os oito lugares preenchidos
+
+### O único item que continua esperando ELE
+
+**Quantas atrações novas de Madrid e Lisboa, e com que critério.** Ele apagou as 35 em 05/09
+para "pesquisar de novo" e se arrependeu. O destino agora é **`src/content/atracoes-sugeridas.json`**
+— pesquisa nova entra como sugestão, nunca como linha dele.
+
+### O que NUNCA foi provado
+
+- **O tempo real das tabelas novas** (`stay_option`, `city`): nunca ninguém abriu dois
+  navegadores. Foi aí que a `aviso` falhou da primeira vez.
+- **A renovação de sessão.** O `middleware.ts` estava na RAIZ e por isso nunca rodou;
+  consertado em 05/09. Só o uso ao longo de horas prova. Depois do build, o relatório tem
+  que imprimir `ƒ Middleware`.
+- **O celular**, além do que ele conferiu de olho em 05/09.
 
 ## 1. O mapa
 
