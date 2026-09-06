@@ -39,7 +39,7 @@ quatro grupos. Passa a vir fechada, com um liga/desliga em cima; ligou, abre a s
 - **Banco:** nada.
 - **Tamanho:** pequeno.
 
-## 3. A aba Sugestões — 🔨 **CONSTRUÍDA, esperando ele olhar** (localhost:3001)
+## 3. A aba Sugestões — 🔨 **REDESENHADA em 06/09: agora é TUDO que é meu**
 
 **Ele disse:** *"coloque todas as suas sugestões em uma aba chamada Sugestões e separe por
 seguimento (comida, atração...), quando eu te pedir ajuda você coloca por lá, pode fazer
@@ -49,9 +49,38 @@ Tudo que eu pesquisei sai de dentro das abas dele e vai para uma aba própria, c
 por segmento. Vira também o lugar onde eu ponho o que ele me pedir daqui pra frente — a
 pesquisa nova de Madrid e Lisboa, por exemplo.
 
-- **Banco:** nada. O que é meu já se distingue pelo `status = 'sugerida'`.
-- **Atenção:** é a 11ª aba, e mexe em Atrações, Comidas e Reservas ao mesmo tempo.
-- **Tamanho:** grande. É o maior da lista.
+### A regra que ele deu em 06/09, e que vale para o app inteiro
+
+> *"tudo que for sugerido por você, absolutamente tudo. As minhas abas devem ficar apenas
+> com os meus dados"*
+
+Antes disso ele já tinha corrigido o erro de origem: *"as opções de hospedagem eram bairros
+sugeridos por você, não deve restaurar isso"*. Eu havia SEMEADO pesquisa minha dentro das
+tabelas dele — e é por isso que apagar uma sugestão custava caro: ia para `killed_seed`, de
+onde nem `npm run seed` traz de volta. Ele perdeu 17 hospedagens e 35 atrações assim.
+
+**Sugestão minha passa a viver em ARQUIVO, não em linha da tabela dele.** O `+` lê do
+arquivo e cria a linha. Apagar da lista dele deixa de ser definitivo — a sugestão continua
+em Sugestões, para puxar de novo.
+
+### O que muda em cada aba
+
+| aba | hoje | depois |
+|---|---|---|
+| Atrações | 35 dele + 69 minhas | **35 dele** (Lisboa e Madrid — as duas cidades do arquivo dele) |
+| Comidas | 2 dele | **2 dele** |
+| Reservas | 7 dele | **7 dele** |
+| Transporte | 12, todos meus | **vazia** |
+| Hospedagem | 2, minhas | **vazia** |
+| Dicas | 13, minhas | **vazia**, para o campo novo do item 7 |
+| Roteiro | 3 alertas vermelhos meus nos dias | **dias limpos** |
+
+Nenhum número do Painel muda: transporte e hospedagem já somam € 0, porque nenhum tem valor.
+
+- **Sub-abas:** Atrações · Comidas · Reservas · Hospedagem · Transporte · Dicas (seis).
+- **Banco:** nada. Nenhuma coluna, nenhuma tabela, nenhum SQL para ele rodar.
+- **Tamanho:** o maior da lista, e refaz o que a primeira versão da aba já tinha construído
+  (aquela tinha três sub-abas e mantinha hospedagem, transporte e avisos fora).
 
 ## 4. Atrações: os números no topo — ✅ **NO AR**
 
