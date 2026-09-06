@@ -23,7 +23,13 @@
 // compartilham. Consequencia registrada: escolher Luxemburgo aqui deixa
 // Atracoes e Comidas abrindo em Luxemburgo no proximo F5, porque
 // `setSelCO` grava em localStorage.
+//
+// AJUSTE DA TARDE DE 06/09: o formulario de acrescentar deixou de ser uma
+// tirinha de dois campos e virou o anuncio inteiro, aberto por padrao numa
+// base vazia. O porque esta em `Acrescentar`, no fim do arquivo — e vale a
+// leitura, porque o defeito nao era campo faltando, era campo escondido.
 // ============================================================
+import { useEffect, useState } from 'react';
 import { CIDADES_FIXAS, STAYS, coOf } from '@/content';
 import { AreaField, NumField, IntField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
@@ -32,7 +38,7 @@ import { useApp } from '@/lib/store';
 import { useApagarLinha } from '@/lib/apagar';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, eur, parseNum } from '@/lib/fmt';
+import { brl, eur, parseInt10, parseNum } from '@/lib/fmt';
 import type { StayOption } from '@/lib/types';
 
 
@@ -58,10 +64,11 @@ export default function Hospedagem() {
       <div className="panelhead">
         <h2>Hospedagem</h2>
         <p>
-          As opções <b>que você guardar aqui</b>, e você marca <b>a que fechou</b>. Só a
-          marcada entra no custo da viagem — as outras ficam como plano B. A diária é a
-          <b> diária cheia do anúncio</b>, sem dividir. Os bairros que eu pesquisei estão na
-          aba <b>Sugestões</b>: o + de lá traz para cá.
+          Cada base é uma lista de <b>opções</b>, e você marca <b>a que fechou</b>. Só a
+          marcada entra no custo da viagem — as outras ficam como plano B. Cada opção tem o
+          anúncio inteiro: <b>endereço, link, diária, noites, check-in, check-out, total e
+          observação</b>. A diária é a <b>diária cheia do anúncio</b>, sem dividir. Os
+          bairros que eu pesquisei estão na aba <b>Sugestões</b>: o + de lá traz para cá.
         </p>
       </div>
 
@@ -78,7 +85,7 @@ export default function Hospedagem() {
       <div className="bigsum">
         <div>
           <b>{C.stayCount(s, CIDADES)}/{STAYS.length}</b>
-          <span>bases com endereço salvo</span>
+          <span>bases com endereço da fechada</span>
         </div>
         <div>
           <b>{eur(tt)}</b>
@@ -134,13 +141,26 @@ function Base({ city, cc }: { city: string; cc: string }) {
 
         {opcoes.length === 0 ? (
           <div className="empty">
-            Nenhuma opção aqui ainda. Escreva abaixo, ou puxe um bairro meu com o{' '}
-            <b>+</b> da aba <b>Sugestões</b>.
+            Nenhuma opção aqui ainda. <b>Os campos do anúncio estão logo abaixo</b> — preencha
+            e clique em guardar. Ou puxe um bairro meu com o <b>+</b> da aba <b>Sugestões</b>.
           </div>
         ) : (
-          <div className="mt">
-            {opcoes.map((o) => <Opcao key={o.id} o={o} />)}
-          </div>
+          <>
+            {/* Sem isto, guardar o anuncio inteiro e ver o total continuar em
+                €0 e "0/7 bases" e a proxima pergunta dele — e a tela nao teria
+                resposta nenhuma. O cabecalho diz "nenhuma marcada ainda", mas
+                em cinza, longe do dinheiro, e sem dizer o que isso CUSTA. */}
+            {marcada ? null : (
+              <div className="empty">
+                Nenhuma destas está marcada — por isso {C.nomeCidade(s, city)} ainda soma
+                <b> €0</b> no total da viagem, e não entra na conta de bases lá em cima.
+                Clique em <b>é esta</b> na opção que você fechou.
+              </div>
+            )}
+            <div className="mt">
+              {opcoes.map((o) => <Opcao key={o.id} o={o} />)}
+            </div>
+          </>
         )}
 
         <Acrescentar city={city} proximaPos={opcoes.length} />
@@ -224,7 +244,7 @@ function Opcao({ o }: { o: StayOption }) {
 
       <div className="form">
         <div className="fld">
-          <label>Localização</label>
+          <label>Endereço</label>
           <TextField
             fk={`stay_option|${o.id}|address`}
             value={o.address}
@@ -233,7 +253,7 @@ function Opcao({ o }: { o: StayOption }) {
           />
         </div>
         <div className="fld">
-          <label>Link da reserva</label>
+          <label>Link do anúncio</label>
           <TextField
             fk={`stay_option|${o.id}|link`}
             value={o.link}
@@ -263,6 +283,7 @@ function Opcao({ o }: { o: StayOption }) {
               placeholder="noites"
               aria-label="noites"
             />
+            <DicaNoites city={o.city} />
           </div>
         </div>
         <div className="frow">
@@ -297,7 +318,7 @@ function Opcao({ o }: { o: StayOption }) {
           />
         </div>
         <div className="fld">
-          <label>Nota</label>
+          <label>Observação</label>
           <AreaField
             fk={`stay_option|${o.id}|note`}
             value={o.note}
@@ -310,46 +331,268 @@ function Opcao({ o }: { o: StayOption }) {
   );
 }
 
+/**
+ * A dica de noites: o numero que o ROTEIRO dele ja tem para esta cidade.
+ *
+ * Nao preenche nada sozinho. Preencher seria adivinhar: um Airbnb pode
+ * cobrir so parte do bloco, e um numero que aparece sem ele digitar entra
+ * calado na conta da viagem. Aqui e so o lembrete, ao lado do campo, para
+ * ele nao ter que contar dia por dia no calendario.
+ */
+function DicaNoites({ city }: { city: string }) {
+  const { s } = useApp();
+  const n = C.noitesEm(s, city);
+  if (!n.length) return null;
+  const noite = (x: number) => `${x} ${x === 1 ? 'noite' : 'noites'}`;
+  return (
+    <span className="fdica">
+      {n.length === 1
+        ? `o roteiro tem ${noite(n[0])} aqui`
+        : `o roteiro passa aqui ${n.length} vezes: ${n.map(noite).join(', depois ')}`}
+    </span>
+  );
+}
+
+/**
+ * O formulario de opcao NOVA, reescrito em 06/09 depois desta foto dele:
+ * "deve ter campos suficientes para eu preencher os dados do airbnb
+ * (endereco, diaria, localizacao, observacao....) ali esta apenas um campo
+ * como que vou preencher isso".
+ *
+ * O DIAGNOSTICO, porque ele nao e obvio. Os campos que ele pede EXISTEM
+ * todos, desde a Fase 6, e nenhuma coluna nova precisou nascer para este
+ * conserto. So que eles moravam DENTRO de uma opcao ja criada, e Madrid
+ * tinha zero opcoes: para chegar aos campos era preciso primeiro inventar
+ * um nome numa tirinha de um campo so, clicar, e descobrir o formulario
+ * depois. Nada na tela dizia isso. Do lado dele, a aba Hospedagem tinha um
+ * campo de texto e um botao.
+ *
+ * Agora o formulario e o mesmo bloco da opcao — os mesmos rotulos, a mesma
+ * ordem — e:
+ *
+ *  - numa base VAZIA ele nasce ABERTO. E o caso da foto: ele abre Madrid e
+ *    os campos do anuncio estao ali, sem clique nenhum no meio;
+ *  - numa base que ja tem opcao ele fica RECOLHIDO atras de um link, como
+ *    o formulario de aviso. Sete bases x um formulario aberto embaixo de
+ *    cada lista seria a tela limpa virando parede de campo vazio.
+ *
+ * A tirinha `.addrow` morreu junto, e com ela o defeito que aparece na
+ * foto: "quanto custa" cortado em "quanto cu", porque a coluna do meio da
+ * `.addrow` tem 96px fixos.
+ *
+ * SO LIMPA DEPOIS DE O BANCO CONFIRMAR (secao 8, promessa 3) — e agora isso
+ * pesa muito mais do que pesava com dois campos: um insert que falha aqui
+ * apagaria o anuncio inteiro que ele acabou de copiar do Airbnb. Se falhar,
+ * o texto fica na tela e o erro aparece por escrito.
+ */
 function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number }) {
   const { insert } = useApp();
+  /**
+   * ABERTO E ESTADO LOCAL, E SO ISSO — a revisao adversarial de 06/09 pegou
+   * aqui o defeito mais caro desta mudanca, e ele merece as linhas.
+   *
+   * A primeira versao decidia com `vazio || aberto`, onde `vazio` era
+   * `proximaPos === 0` — ou seja, DADO REMOTO. Cenario: ele abre Madrid vazia,
+   * o formulario nasce aberto, e ele passa tres minutos colando os nove campos
+   * do anuncio. Nesse meio-tempo a Lu acrescenta a primeira opcao de Madrid no
+   * navegador dela (ou ele mesmo puxa um bairro pelo `+` de Sugestoes noutra
+   * aba). O Realtime entrega o INSERT, `opcoes.length` vai de 0 para 1, `vazio`
+   * vira false, `aberto` continua false — e o bloco inteiro SAI DO DOM. Os nove
+   * campos sao nao-controlados: o texto morava so ali. Ele volta para a tela e
+   * o anuncio sumiu, sem erro, sem aviso, sem desfazer.
+   *
+   * E a regra 5.15 pelo caminho mais violento que existe: mudanca da outra
+   * pessoa nao pode roubar o foco, e MUITO menos apagar o que ele escreveu.
+   *
+   * Agora `aberto` decide sozinho, e so muda por ACAO DELE: nasce aberto se a
+   * base estiver vazia, fecha quando ele guarda ou desiste. O efeito abaixo so
+   * ABRE, nunca fecha — e a diferenca entre reagir ao remoto e obedecer a ele.
+   */
+  const [aberto, setAberto] = useState(proximaPos === 0);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
+
+  /** Base que FICA vazia (ele apagou a ultima) volta a mostrar o formulario. */
+  useEffect(() => { if (proximaPos === 0) setAberto(true); }, [proximaPos]);
+
   const nome = useLocal();
+  const endereco = useLocal();
+  const link = useLocal();
   const diaria = useLocal();
+  const noites = useLocal();
+  const entrada = useLocal();
+  const saida = useLocal();
+  const total = useLocal();
+  const nota = useLocal();
+
+  /** Base sem nenhuma opcao: o formulario E a tela, nao ha o que recolher. */
+  const vazio = proximaPos === 0;
+
+  if (!aberto) {
+    return (
+      <button
+        type="button"
+        className="maisav"
+        onClick={() => { setErro(''); setAberto(true); }}
+      >
+        + outra opção nesta cidade
+      </button>
+    );
+  }
 
   const por = async () => {
     const n = nome.get();
-    if (!n) return;
-    const r = insert('stay_option', {
-      city, name: n, note: '',
+    if (!n) {
+      setErro('Falta o nome da opção — o bairro, ou o nome do anúncio. O resto pode vir depois.');
+      // O botao fica no FIM de nove campos: no celular a mensagem nasce fora da
+      // tela, embaixo, e ele le "falta o nome" sem ver qual campo e. O foco leva
+      // o campo de volta a tela sozinho, e e o unico jeito que funciona nos dois.
+      nome.ref.current?.focus();
+      return;
+    }
+    setErro('');
+    setSalvando(true);
+    // As colunas vao TODAS explicitas: o insert manda exatamente o objeto que
+    // a tela montar, e campo esquecido aqui nasce com o default do banco sem
+    // ninguem avisar. Ver a nota em supabase/00-tudo.sql, na tabela.
+    const r = await insert('stay_option', {
+      city,
+      name: n,
+      note: nota.get(),
       nightly_eur: parseNum(diaria.get()),
+      nights: parseInt10(noites.get()),
+      total_eur: parseNum(total.get()),
+      address: endereco.get(),
+      check_in: entrada.get(),
+      check_out: saida.get(),
+      link: link.get(),
+      chosen: false,
+      paid: false,
       position: proximaPos,
       seed_id: null,
     });
-    // So limpa depois de o banco confirmar (secao 8, promessa 3).
-    if (!(await r).ok) return;
-    nome.limpar();
-    diaria.limpar();
+    setSalvando(false);
+    if (!r.ok) {
+      setErro('Não consegui salvar esta opção. Nada do que você escreveu se perdeu — tente de novo, e se insistir, me chame.');
+      return;
+    }
+    for (const c of [nome, endereco, link, diaria, noites, entrada, saida, total, nota]) c.limpar();
+    setAberto(false);
   };
 
-  // `.addrow` puro, nao `.three`: sao TRES campos, e `.three` declara QUATRO
-  // colunas (1fr 96px 62px auto). O botao caia na faixa de 62px precisando de
-  // 177px, e o texto vazava para fora do cartao — foi o que ele fotografou em
-  // 06/09. Sobra de quando havia um seletor de moeda ali.
   return (
-    <div className="addrow">
-      <input
-        ref={(el) => { nome.ref.current = el; }}
-        type="text"
-        placeholder="ex. Chamberí"
-        aria-label="nome da opção"
-      />
-      <input
-        ref={(el) => { diaria.ref.current = el; }}
-        type="text"
-        inputMode="decimal"
-        placeholder="quanto custa"
-        aria-label="diária em euros"
-      />
-      <button type="button" onClick={() => void por()}>acrescentar opção</button>
+    <div className="hopc novo">
+      <div className="hopc-nh">os dados do anúncio</div>
+      <div className="form">
+        <div className="fld">
+          <label>Nome da opção</label>
+          <input
+            ref={(el) => { nome.ref.current = el; }}
+            type="text"
+            placeholder="ex. Chamberí"
+            aria-label="nome da opção"
+          />
+        </div>
+        <div className="fld">
+          <label>Endereço</label>
+          <input
+            ref={(el) => { endereco.ref.current = el; }}
+            type="text"
+            placeholder="rua, número, bairro"
+            aria-label="endereço"
+          />
+        </div>
+        <div className="fld">
+          <label>Link do anúncio</label>
+          <input
+            ref={(el) => { link.ref.current = el; }}
+            type="text"
+            placeholder="cole o link do anúncio"
+            aria-label="link do anúncio"
+          />
+        </div>
+        <div className="frow">
+          <div className="fld">
+            <label>Custo por noite</label>
+            <input
+              ref={(el) => { diaria.ref.current = el; }}
+              type="text"
+              inputMode="decimal"
+              className="pv"
+              placeholder="€ por noite"
+              aria-label="diária cheia em euros"
+            />
+          </div>
+          <div className="fld">
+            <label>Quantas noites</label>
+            <input
+              ref={(el) => { noites.ref.current = el; }}
+              type="text"
+              inputMode="numeric"
+              className="pv"
+              placeholder="noites"
+              aria-label="noites"
+            />
+            <DicaNoites city={city} />
+          </div>
+        </div>
+        <div className="frow">
+          <div className="fld">
+            <label>Check-in</label>
+            <input
+              ref={(el) => { entrada.ref.current = el; }}
+              type="text"
+              placeholder="ex. dia 12 - 15h"
+              aria-label="check-in"
+            />
+          </div>
+          <div className="fld">
+            <label>Check-out</label>
+            <input
+              ref={(el) => { saida.ref.current = el; }}
+              type="text"
+              placeholder="ex. dia 16 - 11h"
+              aria-label="check-out"
+            />
+          </div>
+        </div>
+        <div className="fld">
+          <label>Total lançado, se souber</label>
+          <input
+            ref={(el) => { total.ref.current = el; }}
+            type="text"
+            inputMode="decimal"
+            className="pv"
+            placeholder="ignora diária × noites"
+            aria-label="total em euros"
+          />
+        </div>
+        <div className="fld">
+          <label>Observação</label>
+          <textarea
+            ref={(el) => { nota.ref.current = el; }}
+            placeholder="o que você quer lembrar desta opção"
+            aria-label="observação"
+          />
+        </div>
+        {erro ? <div className="ferro" role="alert">{erro}</div> : null}
+        <div className="fim">
+          <button type="button" onClick={() => void por()} disabled={salvando}>
+            {salvando ? 'guardando…' : 'guardar esta opção'}
+          </button>
+          {vazio ? null : (
+            <button
+              type="button"
+              className="cancelav"
+              disabled={salvando}
+              onClick={() => { setErro(''); setAberto(false); }}
+            >
+              deixa
+            </button>
+          )}
+          <span className="fdica">só o nome é obrigatório — o resto você completa depois</span>
+        </div>
+      </div>
     </div>
   );
 }

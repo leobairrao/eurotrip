@@ -69,6 +69,37 @@ conferidos por fora depois de rodar.
 | **6** | **a moeda**: cinco consertos, o do aporte com SQL |
 | **7** | Dicas: o campo de escrever, com país ou **a viagem inteira** |
 | **8** | Hospedagem: a estrutura de preencher, e dois defeitos medidos |
+| **9** | Hospedagem, **de tarde**: o formulário inteiro ANTES de salvar — ver abaixo |
+
+### O item 9, da tarde: "ali está apenas um campo como que vou preencher isso"
+
+Ele mandou a foto da Hospedagem de Madrid e perguntou como preencheria os dados do Airbnb
+com um campo só. **Ele estava certo, e o diagnóstico não é o óbvio.**
+
+Os campos que ele pedia existiam TODOS desde a Fase 6 — endereço, link, diária, noites,
+check-in, check-out, total, nota — e **nenhuma coluna nova precisou nascer.** Só que eles
+moravam dentro de uma opção **já criada**, e Madrid tinha zero opções. Para chegar até eles
+era preciso primeiro inventar um nome numa tirinha `.addrow` de dois campos, clicar em
+acrescentar, e descobrir o formulário depois. **Nada na tela dizia isso.**
+
+O que mudou (`src/screens/Hospedagem.tsx`, função `Acrescentar`):
+
+- o formulário de acrescentar virou **o anúncio inteiro**, com os mesmos rótulos e a mesma
+  ordem da opção que já existe;
+- numa base **sem nenhuma opção** ele **nasce aberto** — é o caso da foto;
+- numa base que já tem opção ele fica recolhido atrás de um link, como o formulário de aviso;
+- a tirinha `.addrow` morreu, e com ela o `"quanto custa"` cortado em `"quanto cu"` pela
+  coluna de 96px fixos;
+- os rótulos das duas telas foram alinhados: **Endereço** (era "Localização", e o número lá
+  em cima diz "bases com **endereço** salvo"), **Link do anúncio**, **Observação**;
+- `C.noitesEm(s, city)` põe *"o roteiro tem 4 noites aqui"* embaixo do campo de noites. **Não
+  preenche sozinho**: um Airbnb pode cobrir só parte do bloco, e número que aparece sem ele
+  digitar entra calado na conta.
+
+**E o aviso que faltava:** opção nasce com `chosen: false`, então ele podia preencher o
+anúncio inteiro e ver o total continuar em €0 sem explicação nenhuma. Agora, base com opção
+e nenhuma marcada mostra *"Nenhuma destas está marcada — por isso Lisboa ainda soma €0 no
+total da viagem"*. Sem isso, o item 9 viraria o item 10.
 
 ### As armadilhas que 06/09 ensinou
 
@@ -87,16 +118,26 @@ conferidos por fora depois de rodar.
 - **JSON de sugestão pode ter a chave `_` de comentário.** `hospedagens-sugeridas` tem;
   `atracoes-sugeridas` não. Quem varre e faz `.map` nela quebra a tela — aconteceu, e o
   `error.tsx` segurou.
+- **`.fld` é grid, e grid ESTICA a linha.** Num `.frow`, o campo sem dica embaixo cresce para
+  empatar com o que tem, e "custo por noite" nascia 12px mais alto que "quantas noites".
+  `align-content: start` resolve. Só se vê olhando a tela: typecheck, build e os 126 testes
+  passaram com os dois campos desalinhados.
+- **`identidade.css` carrega DEPOIS de `extras.css`** (veja `layout.tsx`). Regra nova em
+  `extras.css` que dispute com uma de lá precisa de especificidade MAIOR, não basta vir
+  depois no arquivo. Foi o caso de `.form .cancelav` e de `.hopc .form button` (o alvo de
+  toque de 44px no celular, que `.form button` nunca teve porque até hoje nenhum formulário
+  com botão morava dentro de um cartão de lista).
 
-### Os quatro testes de `tests/telas.test.mjs`
+### Os cinco testes de `tests/telas.test.mjs`
 
 Nenhum roda React: leem o código-fonte e o CSS. **Todos foram provados falhando** antes de
-serem aceitos.
+serem aceitos. (Eram cinco desde 06/09; este texto dizia "quatro" e esquecia o último.)
 
 1. nenhuma tela indexa `CT[...]` cru
 2. a rede (`error.tsx` e `global-error.tsx`) existe e é client component
 3. toda grade `.addrow` tem o par que vira coluna única abaixo de 700px
 4. todo tipo de transporte tem os oito lugares preenchidos
+5. nenhuma lista de sugestão esconde a chave `_` de comentário
 
 ### O único item que continua esperando ELE
 
@@ -155,14 +196,15 @@ src/components/
 src/screens/           uma tela por arquivo, na ordem das abas
   Painel.tsx     278    Roteiro.tsx    745   ← a maior, e a mais complexa
   Atracoes.tsx   293    Comidas.tsx    284
-  Transporte.tsx 258    Hospedagem.tsx 200
+  Transporte.tsx 258    Hospedagem.tsx 400
   Reservas.tsx   247    Caixa.tsx      457
   Custos.tsx     306
 
 src/app/
   estilo-atual.css 587  O CSS, sem a tag <style>. NÃO RENOMEIE CLASSE.
-  extras.css      ~210  o que o artefato não tinha: login, presença, o extrato
-                        de aportes, os controles de linha e os avisos
+  extras.css      ~490  o que o artefato não tinha: login, presença, o extrato
+                        de aportes, os controles de linha, os avisos, e o bloco
+                        de opção da Hospedagem (`.hopc`, no fim do arquivo)
   page.tsx              servidor: sessão → allowlist → carrega tudo
   layout.tsx            html lang=pt-BR, as 3 fontes do Google
   auth/callback/        o link mágico volta aqui

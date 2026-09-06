@@ -178,9 +178,35 @@ verbo que ele usou.
 
 ---
 
+## 9. Hospedagem, de tarde: "ali está apenas um campo"
+
+> *"agora vamos ajsutar a aba de hospedagens deve ter campos suficientes para eu preencher
+> os dados do airbnb (endereço, diaria, localização, observação....) ali está apenas um
+> campo como que vou preencher isso"* — com a foto da aba de Madrid.
+
+**O item 8 saiu de manhã e mesmo assim ele viu um campo só.** A explicação: o item 8 arrumou
+a opção que EXISTE, e Madrid tem zero opções. Do lado dele, a aba Hospedagem era uma tirinha
+com um campo de texto e um botão — os oito campos estavam do outro lado de um clique que
+ninguém tinha como adivinhar.
+
+**Nenhuma coluna nova.** Todos os campos que ele lista já existiam; o conserto foi trazer o
+formulário inteiro para ANTES de salvar, e abri-lo por padrão numa base vazia. O detalhe
+está na `Acrescentar` de `src/screens/Hospedagem.tsx` e na seção 0 do `COMO-MEXER.md`.
+
+Junto foram: o `"quanto custa"` cortado em `"quanto cu"` (coluna de 96px), os rótulos
+desencontrados entre as duas telas, o desalinhamento dos campos dentro do `.frow`, o alvo
+de toque de 36px no celular, e o aviso que faltava — **opção guardada e não marcada soma
+€0**, e nada dizia isso.
+
+- **Banco:** nada.
+- **Tamanho:** médio.
+
+---
+
 ## A ordem que eu sugiro
 
-**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ — **a lista inteira saiu.**
+**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ → 9 ✅** — a lista inteira saiu, mais o
+item 9 que nasceu da foto que ele mandou depois.
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.

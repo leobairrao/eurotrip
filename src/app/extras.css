@@ -452,3 +452,102 @@
   .hopc-h { grid-template-columns: 1fr auto auto; row-gap: var(--e2); }
   .hopc-h .nv { grid-column: 1 / -1; }
 }
+
+/* ---------------------------------------------------------------
+   HOSPEDAGEM: o formulario de opcao NOVA (06/09/2026, tarde).
+
+   A foto dele mostrava a aba Hospedagem de Madrid com UM campo de texto
+   e um botao, e a pergunta: "ali esta apenas um campo como que vou
+   preencher isso". Os campos existiam — dentro de uma opcao ja criada, e
+   Madrid tinha zero opcoes. Agora o formulario inteiro vem ANTES de
+   salvar, e numa base vazia ele nasce aberto.
+
+   O bloco e o mesmo `.hopc` da opcao de verdade, com a borda TRACEJADA e o
+   fundo `--surface-2`.
+
+   O FUNDO NAO E DETALHE, e eu errei nele na primeira escrita. `.hopc` pinta
+   `--surface`, e `.card` pinta `--surface` TAMBEM — o mesmo token, medido no
+   navegador: rgb(18,22,20) dos dois lados no tema escuro. O bloco ficava
+   invisivel, separado so por 1px tracejado de `--hairline-2` a 1,4:1 (claro)
+   e 1,55:1 (escuro), com metade dos pixels apagados pelo tracejado. Numa base
+   vazia o formulario E a tela inteira, e ele nascia sem contorno nenhum.
+   `--surface-2` e o fundo que a `.empty` logo acima ja usa nesta mesma
+   posicao, entao o par contra o cartao esta provado nos dois temas — e de
+   quebra separa a opcao que ainda NAO existe da opcao de verdade.
+
+   Nao ha `.addrow.<sigla>` nova aqui, e isso e escolha: `.frow` ja vira
+   coluna unica em 700px (estilo-atual.css:276), entao o celular esta
+   coberto sem mais uma grade em px com aritmetica justa para alguem
+   esquecer de colapsar depois.
+   --------------------------------------------------------------- */
+.hopc.novo { border-style: dashed; background: var(--surface-2); }
+.hopc.novo .form { margin-top: 0; }
+.hopc-nh {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: var(--e3);
+}
+
+/* a linha dos botoes do formulario */
+.form .fim { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e2) var(--e3); }
+/* `:disabled` precisa vencer tambem o `:hover`, que mora em identidade.css e
+   carrega DEPOIS: sem o par explicito, passar o mouse no botao travado ainda
+   clareia a pilula e ela parece clicavel enquanto grava. */
+.form button:disabled, .form button:disabled:hover {
+  opacity: .5; cursor: default; filter: none;
+}
+/* `.cancelav` so existia dentro de `.addrow` (extras.css:231). Sem este par,
+   o "deixa" sai pintado de pinho, do mesmo tamanho do "guardar", e as duas
+   acoes ficam com o mesmo peso. */
+.form .cancelav { background: none; border: 1px solid var(--hairline-2); color: var(--muted); }
+.form .cancelav:hover { background: none; color: var(--ink); border-color: var(--hairline-2);
+  filter: none; }
+
+/* a linha miuda embaixo de um campo: a dica de noites e o "so o nome e
+   obrigatorio". Dentro de `.fld`, que e grid com gap 5px, ela cai sozinha
+   embaixo do campo sem margem nenhuma. */
+.fdica { font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: .02em; }
+/* dentro da opcao MARCADA o fundo vira `--pine-wash` e `--muted` cai para
+   4,26:1 no tema claro — reprova para 10,5px. `--ink-2` sobe bem acima de 7:1
+   nos dois temas, e a dica ali e a mesma frase, so num fundo diferente. */
+.hopc.on .fdica { color: var(--ink-2); }
+/* `.fld` e grid, e grid ESTICA a linha para preencher a altura. Num `.frow`, o
+   campo que NAO tem dica embaixo cresce para empatar com o que tem, e "custo
+   por noite" nascia 12px mais alto que "quantas noites" — desalinhado com o
+   vizinho, so nesta tela. `align-content: start` deixa cada linha na altura
+   natural e o campo para de esticar. Escopo em `.hopc` de proposito: `.fld`
+   serve o app inteiro, e nenhuma outra tela tem dica dentro do campo. */
+.hopc .fld { align-content: start; }
+/* `.pv` era LETRA MORTA aqui. As regras que dao mono e tabular ao campo de
+   dinheiro sao `.mrow input.pv` e `.addrow input.pv` — nenhuma alcanca `.fld`.
+   Os seis campos de dinheiro da Hospedagem (diaria e total, na opcao e no
+   formulario novo) escreviam numero em fonte de texto, ao contrario de TODO
+   campo de dinheiro do resto do app. Alinhamento continua a esquerda de
+   proposito: aqui o rotulo esta EM CIMA e o campo e largo, entao numero
+   grudado na direita fica longe do nome dele — o contrario da `.mrow`, onde a
+   coluna e estreita e a direita e onde os numeros se empilham. */
+.fld input.pv { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+/* a `textarea` nascia com 64px e o placeholder de observacao ocupa tres linhas
+   num campo estreito: a frase ficava cortada pela propria caixa */
+.hopc .fld textarea { min-height: 76px; }
+/* o erro de gravacao, no lugar onde ele estava olhando */
+.ferro { font-size: 13.5px; color: var(--rust); line-height: 1.45; }
+/* Dentro de uma `.addrow` o erro e o FILHO A MAIS: `.av3` declara 5 colunas e
+   o JSX passou a ter 6 elementos, entao sem isto a mensagem cai numa sexta
+   coluna implicita e empurra a linha para fora do cartao. E a armadilha que o
+   COMO-MEXER ja registra — grade conta COLUNAS, JSX conta FILHOS — e ela
+   morde de novo a cada campo novo. `1 / -1` nao depende de quantas sao. */
+.addrow .ferro { grid-column: 1 / -1; }
+
+/* Alvo de toque no celular. `identidade.css` carrega DEPOIS deste arquivo, e
+   la `.addrow button, .form button, button.pb` fixa `padding: 9px 18px` — 36px
+   de altura, abaixo dos 44 que um dedo pede. A `.addrow` ja tinha o par dela
+   em estilo-atual.css:384; a `.form` nunca teve, porque ate hoje nenhum
+   formulario com botao morava dentro de um cartao de lista.
+   `.hopc .form button` tem (0,2,1) e vence o (0,1,1) de la mesmo vindo antes. */
+@media (max-width: 700px) {
+  .hopc .form button { min-height: 44px; padding: 11px 18px; }
+  /* o "so o nome e obrigatorio" cai para a linha de baixo sozinho; sem isto
+     ele briga por espaco com os dois botoes numa tela de 360 */
+  .form .fim .fdica { flex: 1 0 100%; }
+}

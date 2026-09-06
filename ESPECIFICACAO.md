@@ -730,8 +730,35 @@ noites, o total calculado, o botão **"é esta"**, a caixinha **já paguei** e o
 Sem isso, três opções em Madrid com diária lançada entrariam as três no total, e ele veria
 um número errado sem nada na tela indicando erro.
 
-O formulário da reserva — endereço, check-in, check-out, total lançado, link — **só aparece
-depois de ele marcar uma**. Antes disso não há o que preencher.
+> **Revisto duas vezes em 06/09/2026.** De manhã (item 8), o formulário da reserva —
+> endereço, check-in, check-out, total lançado, link — **só aparecia depois de ele marcar
+> a opção fechada**, e diária e noites viviam espremidas na linha, sem rótulo. Passou a ser
+> um bloco com rótulo em cima de cada campo, sempre à vista.
+>
+> De tarde (item 9), ele mandou a foto de Madrid e escreveu *"ali está apenas um campo como
+> que vou preencher isso"*. Tinha razão: a manhã arrumou a opção que EXISTE, e Madrid tinha
+> zero opções — os campos estavam do outro lado de um clique que ninguém tinha como
+> adivinhar. **O formulário de acrescentar passou a ser o anúncio inteiro**, e numa base sem
+> nenhuma opção ele nasce aberto.
+
+Cada opção mostra, sempre à vista e com rótulo em cima: **nome, endereço, link do anúncio,
+custo por noite, quantas noites, check-in, check-out, total lançado e observação**. Não há
+campo que só apareça depois de marcar.
+
+**Acrescentar uma opção usa os mesmos campos, na mesma ordem.** Numa base vazia o formulário
+nasce aberto (é a tela inteira); numa base que já tem opção ele fica recolhido atrás de um
+link, como o formulário de aviso. O estado aberto/fechado é **só local**: dado que chega da
+outra pessoa nunca fecha o formulário, senão o anúncio que ele está digitando some do DOM
+(regra 5.15, pelo caminho mais violento que existe).
+
+Embaixo de "quantas noites", uma dica tirada do próprio roteiro: *"o roteiro tem 4 noites
+aqui"*, ou *"o roteiro passa aqui 2 vezes: 3 noites, depois 1"* em Madrid, que é a única
+base com duas passagens. **A dica não preenche nada**: um Airbnb pode cobrir só parte do
+bloco, e número que aparece sem ele digitar entra calado na conta.
+
+**Base com opção e nenhuma marcada avisa por escrito** que a cidade ainda soma €0 no total.
+Sem isso, ele preenche o anúncio inteiro, vê o total continuar zerado e não tem como saber
+por quê.
 
 **Luxemburgo e Alemanha não têm base**, e as abas dizem isso: *"aqui é bate-volta de Metz"*.
 Aba vazia parece defeito, e não é — é decisão dele.
