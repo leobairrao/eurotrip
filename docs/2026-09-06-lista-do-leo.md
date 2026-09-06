@@ -53,7 +53,7 @@ pesquisa nova de Madrid e Lisboa, por exemplo.
 - **Atenção:** é a 11ª aba, e mexe em Atrações, Comidas e Reservas ao mesmo tempo.
 - **Tamanho:** grande. É o maior da lista.
 
-## 4. Atrações: os números no topo
+## 4. Atrações: os números no topo — **FEITO em 06/09**
 
 **Ele disse:** *"as infos da viagem devem aparecer no topo da aba logo abaixo das bandeiras
 dos países"*
@@ -63,7 +63,12 @@ somaria" hoje fica no rodapé da aba, depois de todos os cartões. Sobe para log
 bandeiras.
 
 - **Banco:** nada.
-- **Tamanho:** pequeno.
+- **Como ficou:** a ordem da aba passou a ser bandeiras → números → filtros → cartões.
+  O primeiro número continua acompanhando a bandeira escolhida ("Itália, no roteiro" vira
+  "Espanha, no roteiro"); os outros três são da viagem toda.
+- **Conferido:** nenhuma regra de CSS depende da posição desses blocos (não há seletor de
+  irmão nem `:last-child` envolvendo `.bigsum`, `.filt` ou `.fita`), e a faixa aparece sem
+  precisar rolar.
 
 ## 5. Transporte: a opção metrô
 
@@ -104,7 +109,7 @@ toda feita em reais"*
 
 ## A ordem que eu sugiro
 
-**1 (feito) → 4 → 2 → 6 (depois de ele responder) → 5 → 3.**
+**1 (feito) → 4 (feito) → 2 → 6 (depois de ele responder) → 5 → 3.**
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.

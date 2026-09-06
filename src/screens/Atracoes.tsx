@@ -69,6 +69,31 @@ export default function Atracoes() {
         valor={(k: string) => { const e = C.attrEurCountry(s, k, 'roteiro'); return e ? eur(e) : ''; }}
       />
 
+      {/* ---- os numeros da viagem, LOGO ABAIXO das bandeiras (06/09) ----
+          Ele pediu assim: "as infos da viagem devem aparecer no topo da aba
+          logo abaixo das bandeiras dos paises". Estavam no rodape, depois de
+          todos os cartoes — para ver quanto o pais somava era preciso rolar a
+          aba inteira. O primeiro numero acompanha a bandeira selecionada; os
+          outros tres sao da viagem toda e nao mudam com o pais. */}
+      <div className="bigsum">
+        <div>
+          <b>{eur(C.attrEurCountry(s, selCO, 'roteiro'))}</b>
+          <span>{co.n}, no roteiro</span>
+        </div>
+        <div>
+          <b>{eur(E)}</b>
+          <span>no roteiro, na viagem</span>
+        </div>
+        <div>
+          <b>{brl(E * C.rate(s))}</b>
+          <span>em reais</span>
+        </div>
+        <div>
+          <b>{eur(B)}</b>
+          <span>fora do roteiro somaria</span>
+        </div>
+      </div>
+
       {/* ---- filtros: a contagem e so do pais selecionado ---- */}
       <div className="filt">
         {FILTROS.map(([v, rot, sig]) => (
@@ -91,24 +116,6 @@ export default function Atracoes() {
           clicar na espanha, devo conseguir cadastrar uma nova cidade". */}
       <AcrescentarCidade co={selCO} />
 
-      <div className="bigsum">
-        <div>
-          <b>{eur(C.attrEurCountry(s, selCO, 'roteiro'))}</b>
-          <span>{co.n}, no roteiro</span>
-        </div>
-        <div>
-          <b>{eur(E)}</b>
-          <span>no roteiro, na viagem</span>
-        </div>
-        <div>
-          <b>{brl(E * C.rate(s))}</b>
-          <span>em reais</span>
-        </div>
-        <div>
-          <b>{eur(B)}</b>
-          <span>fora do roteiro somaria</span>
-        </div>
-      </div>
       <p className="mono foot">
         Os preços são de 2026 e servem de ordem de grandeza — confirme no site oficial ao
         reservar. Tudo é editável, inclusive o que eu sugeri: o nome, a nota, a cidade, o tipo
