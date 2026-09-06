@@ -3,7 +3,9 @@ export type Currency = 'eur' | 'brl';
 export type Status = 'escolhida' | 'backlog' | 'sugerida';
 export type AttrKind = 'passeio' | 'tour';
 export type FoodKind = 'prato' | 'restaurante' | 'cafe';
-export type LegKind = 'trem' | 'aviao' | 'onibus' | 'carro';
+/** 'metro' entrou em 06/09, a pedido dele. Ver o teste em tests/telas.test.mjs:
+ *  uma opcao de transporte nova precisa de OITO lugares, nao um. */
+export type LegKind = 'trem' | 'aviao' | 'onibus' | 'carro' | 'metro';
 export type Who = 'leo' | 'lu';
 /** A cor da barra de um aviso: verde, ambar, vermelho. */
 export type Tone = 'free' | 'warn' | 'alert';

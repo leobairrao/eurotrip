@@ -360,3 +360,57 @@
   /* WCAG 2.2 pede 24px de alvo; a caixinha herdada tem 18. */
   .mrow.at6 .ck, .mrow.ho6 .ck { width: 24px; height: 24px; }
 }
+
+/* ---------------------------------------------------------------
+   O METRO (06/09/2026, pedido dele: "adicione a opção de metro").
+   Roxo `--c-it`: e a unica cor de pais que nenhum outro transporte usa
+   (trem `--c-fr`, aviao `--rust`, onibus `--c-nl`, carro `--ochre`).
+   Sem estas tres linhas o metro fica sem barra, sem borda e com a
+   palavra na cor do texto comum — funciona, e parece defeito.
+   --------------------------------------------------------------- */
+.mrow.tr5.tk-metro { box-shadow: inset 3px 0 0 var(--c-it); }
+.dtg.tk-metro { border-left-color: var(--c-it); }
+.stg.tkc-metro { color: var(--c-it); }
+
+/* ---------------------------------------------------------------
+   O LIGA/DESLIGA de "vou usar transporte neste dia?" (06/09/2026).
+
+   A PERGUNTA INTEIRA e o botao, nao so o interruptor. No celular um alvo
+   de 46x26 e menor que os 44px que o dedo acerta; com a frase dentro, o
+   alvo passa a ser a largura do cartao. E quem le com leitor de tela ouve
+   a pergunta, nao "botao".
+
+   `role="switch"` + `aria-checked` e o par certo aqui: nao e um botao que
+   faz algo, e um estado que ele vira.
+   --------------------------------------------------------------- */
+.liga {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--e3); width: 100%; min-height: 44px;
+  margin: 4px 0 2px; padding: 0;
+  background: none; border: 0; cursor: pointer; text-align: left;
+}
+.liga .lbl {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--muted);
+}
+.liga[aria-checked="true"] .lbl { color: var(--ink-2); }
+.liga .sw {
+  position: relative; flex: 0 0 auto; width: 46px; height: 26px;
+  border-radius: 999px; border: 1px solid var(--hairline-2);
+  background: var(--ground); transition: background .15s, border-color .15s;
+}
+.liga .sw::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--muted); transition: transform .15s, background .15s;
+}
+.liga[aria-checked="true"] .sw { background: var(--pine-wash); border-color: var(--pine); }
+.liga[aria-checked="true"] .sw::after { transform: translateX(20px); background: var(--pine); }
+.liga:focus-visible { outline: none; }
+.liga:focus-visible .sw {
+  box-shadow: 0 0 0 3px var(--pine-wash), 0 0 0 1.5px var(--pine);
+  border-color: var(--pine);
+}
+@media (prefers-reduced-motion: reduce) {
+  .liga .sw, .liga .sw::after { transition: none; }
+}

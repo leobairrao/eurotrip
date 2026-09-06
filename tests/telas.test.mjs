@@ -19,6 +19,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import { TK, TKPL, TKE, TKORD } from '@/content/index.ts';
+
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Todo .tsx de tela e de componente — onde o JSX mora. */
@@ -116,4 +118,41 @@ test('toda grade .addrow tem o par que vira coluna unica no celular', () => {
     [],
     `Grade de formulario sem colapso no celular. Ponha a sigla na lista do @media (max-width: 700px):\n${orfas.join('\n')}`,
   );
+});
+
+/**
+ * Um tipo de transporte novo precisa de OITO lugares, nao de um.
+ *
+ * Descoberto ao por o metro em 06/09: o tipo (`types.ts`), tres dicionarios
+ * (`TK`, `TKPL`, `TKE`), a ordem (`TKORD`), a trava do banco (`leg_kind_check`)
+ * e tres regras de CSS (a barra da linha, a etiqueta do dia, a cor do texto).
+ * Faltar qualquer uma NAO da erro de build: da um transporte sem emoji, ou sem
+ * cor, ou que a tela oferece e o banco recusa.
+ *
+ * O nono lugar deixou de existir: `identidade.css` listava os quatro tipos para
+ * apagar a barra antiga, e agora usa `[class*="tk-"]`. Lista em CSS e lista para
+ * esquecer.
+ */
+test('todo tipo de transporte tem os oito lugares preenchidos', () => {
+  const css = ['src/app/estilo-atual.css', 'src/app/extras.css']
+    .map((f) => readFileSync(join(RAIZ, f), 'utf8')).join('\n');
+  const schema = ['supabase/01-schema.sql', 'supabase/00-tudo.sql']
+    .map((f) => readFileSync(join(RAIZ, f), 'utf8')).join('\n');
+  const tipoTs = readFileSync(join(RAIZ, 'src/lib/types.ts'), 'utf8');
+  const linhaDaTrava = schema.split('\n').filter((l) => /kind in \('trem'/.test(l));
+
+  const faltando = [];
+  for (const k of Object.keys(TK)) {
+    if (!TKPL[k]) faltando.push(`${k}: sem plural em TKPL (content/index.ts)`);
+    if (!TKE[k]) faltando.push(`${k}: sem emoji em TKE (content/index.ts)`);
+    if (TKORD[k] === undefined) faltando.push(`${k}: sem ordem em TKORD (content/index.ts)`);
+    if (!new RegExp(`LegKind[^;]*'${k}'`, 's').test(tipoTs)) faltando.push(`${k}: fora do tipo LegKind (lib/types.ts)`);
+    if (!css.includes(`.mrow.tr5.tk-${k}`)) faltando.push(`${k}: sem a barra da linha (.mrow.tr5.tk-${k})`);
+    if (!css.includes(`.dtg.tk-${k}`)) faltando.push(`${k}: sem a cor da etiqueta do dia (.dtg.tk-${k})`);
+    if (!css.includes(`.stg.tkc-${k}`)) faltando.push(`${k}: sem a cor do texto (.stg.tkc-${k})`);
+    // a trava do banco: as duas copias do esquema tem que aceitar o tipo
+    const emTodas = linhaDaTrava.length > 0 && linhaDaTrava.every((l) => l.includes(`'${k}'`));
+    if (!emTodas) faltando.push(`${k}: o banco RECUSA — falta em leg_kind_check (supabase/01-schema.sql e 00-tudo.sql)`);
+  }
+  assert.deepEqual(faltando, [], `Tipo de transporte pela metade:\n${faltando.join('\n')}`);
 });

@@ -6,6 +6,7 @@
 //   (b) sem dia selecionado, os blocos de dias com a mesma base;
 //   (c) com um dia selecionado, o editor de QUATRO cartoes.
 // ============================================================
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   AKE, CO, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL, coOf,
@@ -327,7 +328,9 @@ function Editor({ iso }: { iso: string }) {
   return (
     <>
       <CartaoDia iso={iso} />
-      <CartaoTransporte iso={iso} />
+      {/* a chave por dia e de proposito: "vou usar transporte neste dia?" e uma
+          pergunta por DIA, entao a resposta nao pode vazar para o dia seguinte */}
+      <CartaoTransporte key={iso} iso={iso} />
       <CartaoAtracoes iso={iso} />
       <CartaoComidas iso={iso} />
     </>
@@ -386,6 +389,16 @@ function CartaoDia({ iso }: { iso: string }) {
 function CartaoTransporte({ iso }: { iso: string }) {
   const { s, now } = useApp();
   const { selTPick, setSelTPick } = useUi();
+  /**
+   * O liga/desliga que ele pediu em 06/09: "deve ter um on/off assim: vou
+   * usar transporte esse dia? Se eu ativar, abre a seleção e eu coloco qual
+   * transporte vou usar".
+   *
+   * Comeca LIGADO se o dia ja tem trecho marcado — nesse caso ele ja
+   * respondeu que sim, e esconder a selecao seria esconder o unico jeito de
+   * marcar o segundo trecho do mesmo dia (o 16 tem carro e voo).
+   */
+  const [usaTransporte, setUsaTransporte] = useState(C.legsOfDay(s, iso).length > 0);
 
   const pk = selTPick && TKROT[selTPick] ? selTPick : 'trem';
   const mine = C.legsOfDay(s, iso);
@@ -415,7 +428,8 @@ function CartaoTransporte({ iso }: { iso: string }) {
       <div className="b">
         {!mine.length ? (
           <div className="empty">
-            Nenhum trecho neste dia. Se você pega trem ou voo, marque abaixo.
+            Nenhum trecho neste dia. Se você pega trem, metrô ou voo, ligue a chave
+            abaixo.
           </div>
         ) : (
           <div className="at">
@@ -445,6 +459,18 @@ function CartaoTransporte({ iso }: { iso: string }) {
           </div>
         )}
 
+        <button
+          className="liga"
+          role="switch"
+          aria-checked={usaTransporte}
+          onClick={() => setUsaTransporte((v) => !v)}
+        >
+          <span className="lbl">vou usar transporte neste dia?</span>
+          <i className="sw" aria-hidden="true" />
+        </button>
+
+        {!usaTransporte ? null : (
+        <>
         <div className="sechead">pôr neste dia</div>
         <div className="subtabs">
           {TKS.map((x) => {
@@ -503,6 +529,8 @@ function CartaoTransporte({ iso }: { iso: string }) {
             </>
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );

@@ -71,7 +71,7 @@ create table if not exists leg (
   name        text not null,                 -- 'Madrid -> Caceres'
   note        text not null default '',
   kind        text not null default 'trem'
-              check (kind in ('trem','aviao','onibus','carro')),
+              check (kind in ('trem','aviao','onibus','carro','metro')),
   amount      numeric(10,2),                 -- null = ainda nao lancou
   currency    text not null default 'eur' check (currency in ('eur','brl')),
   bought      boolean not null default false, -- a caixinha "comprado" (regra 5.10)

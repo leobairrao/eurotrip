@@ -7,3 +7,6 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# copias de trabalho temporarias (worktrees de agente). Nao vao para o repositorio.
+.claude/

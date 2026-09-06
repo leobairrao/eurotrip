@@ -141,10 +141,12 @@ export const FKORD: Record<string, number> = { prato: 0, restaurante: 1, cafe: 2
 /** classe CSS curta: fk-pr / fk-rest / fk-cafe */
 export const FKCLS: Record<string, string> = { prato: 'pr', restaurante: 'rest', cafe: 'cafe' };
 
-export const TK = { trem: 'trem', aviao: 'avião', onibus: 'ônibus', carro: 'carro' } as const;
-export const TKPL: Record<string, string> = { trem: 'trens', aviao: 'aviões', onibus: 'ônibus', carro: 'carros' };
-export const TKE: Record<string, string> = { trem: '🚆', aviao: '✈️', onibus: '🚌', carro: '🚗' };
-export const TKORD: Record<string, number> = { trem: 0, aviao: 1, onibus: 2, carro: 3 };
+export const TK = { trem: 'trem', aviao: 'avião', onibus: 'ônibus', carro: 'carro', metro: 'metrô' } as const;
+export const TKPL: Record<string, string> = { trem: 'trens', aviao: 'aviões', onibus: 'ônibus', carro: 'carros', metro: 'metrôs' };
+export const TKE: Record<string, string> = { trem: '🚆', aviao: '✈️', onibus: '🚌', carro: '🚗', metro: '🚇' };
+/** O metro entra no FIM (4), nao ao lado do trem: mudar a ordem dos quatro
+ *  existentes reembaralharia os 12 trechos que ele ja tem na aba Transporte. */
+export const TKORD: Record<string, number> = { trem: 0, aviao: 1, onibus: 2, carro: 3, metro: 4 };
 
 // ---------- as constantes de referencia (secao 11.9) ----------
 /** R$ 5.079,77 — o voo internacional, ja pago. */

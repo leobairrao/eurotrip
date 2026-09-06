@@ -311,8 +311,12 @@ h1, h2, h3, h4, h5 { font-family: var(--social); letter-spacing: -.025em; }
 .mrow.st-bac { background: var(--surface); box-shadow: none; }
 .mrow.st-sug { background: var(--surface-2); box-shadow: none; }
 .mrow.pgo    { background: var(--pine-wash); box-shadow: none; }
-.mrow.tr5.tk-trem, .mrow.tr5.tk-aviao,
-.mrow.tr5.tk-onibus, .mrow.tr5.tk-carro { box-shadow: none; }
+/* Era uma LISTA dos quatro tipos, e listar tipo de transporte em CSS e
+   armadilha: o metro entrou em 06/09 e teria nascido com a barra inset que
+   esta identidade apaga em todo o resto — sozinho, com uma tarja a esquerda
+   que nenhuma outra linha tem. O seletor de atributo nao tem lista para
+   esquecer. (`tkc-` nao casa com `tk-`, entao a etiqueta de texto nao entra.) */
+.mrow.tr5[class*="tk-"] { box-shadow: none; }
 
 /* a etiqueta derivada vira pílula cheia, como o "seguindo" de uma rede */
 .sttag {
