@@ -164,23 +164,42 @@ function LinhaLista({ a }: { a: Aviso }) {
 function Acrescentar({ spot, rotulo, lista }: { spot: string; rotulo: string; lista?: boolean }) {
   const { s, insert } = useApp();
   const [aberto, setAberto] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
   const titulo = useLocal();
   const corpo = useLocal();
   const tom = useRef<HTMLSelectElement>(null);
 
   if (!aberto) {
     return (
-      <button type="button" className="maisav" onClick={() => setAberto(true)}>
+      <button
+        type="button"
+        className="maisav"
+        onClick={() => { setErro(''); setAberto(true); }}
+      >
         + {rotulo}
       </button>
     );
   }
 
-  const por = () => {
+  /**
+   * CONSERTADO EM 06/09, e o defeito estava aqui desde a Fase 1.
+   *
+   * Era `void insert(...)` seguido de `limpar()` e `setAberto(false)` na linha
+   * de baixo: os campos sumiam ANTES de o banco dizer qualquer coisa. Se o
+   * insert falhasse — 4xx, rede caida, sessao vencida — o aviso que ele acabou
+   * de escrever desaparecia da tela e nunca chegava no banco. Nenhum erro,
+   * nenhum rascunho, nada. E a promessa 3 da secao 8 ao contrario, no arquivo
+   * que serviu de MODELO para o formulario novo da Hospedagem — foi montando
+   * aquele que a revisao adversarial encontrou este.
+   */
+  const por = async () => {
     const t = titulo.get();
     const b = corpo.get();
     if (!t && !b) return;
-    void insert('aviso', {
+    setErro('');
+    setSalvando(true);
+    const r = await insert('aviso', {
       spot,
       tone: lista ? 'warn' : (tom.current?.value ?? 'warn'),
       title: t,
@@ -188,6 +207,11 @@ function Acrescentar({ spot, rotulo, lista }: { spot: string; rotulo: string; li
       position: C.proxAviso(s, spot),
       seed_id: null,
     });
+    setSalvando(false);
+    if (!r.ok) {
+      setErro('Não consegui salvar. O que você escreveu continua aqui — tente de novo.');
+      return;
+    }
     titulo.limpar();
     corpo.limpar();
     if (tom.current) tom.current.value = 'warn';
@@ -213,10 +237,18 @@ function Acrescentar({ spot, rotulo, lista }: { spot: string; rotulo: string; li
           {TOM.map(([k, r]) => <option key={k} value={k}>{r}</option>)}
         </select>
       )}
-      <button type="button" onClick={por}>acrescentar</button>
-      <button type="button" className="cancelav" onClick={() => setAberto(false)}>
+      <button type="button" onClick={() => void por()} disabled={salvando}>
+        {salvando ? 'salvando…' : 'acrescentar'}
+      </button>
+      <button
+        type="button"
+        className="cancelav"
+        disabled={salvando}
+        onClick={() => { setErro(''); setAberto(false); }}
+      >
         deixa
       </button>
+      {erro ? <div className="ferro" role="alert">{erro}</div> : null}
     </div>
   );
 }
