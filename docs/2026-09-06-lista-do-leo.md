@@ -8,7 +8,7 @@ rede embaixo dele (`error.tsx`). Está no ar e provado no site.
 
 ---
 
-## 1. Comidas: um campo só, com etiqueta — **FEITO em 06/09, esperando publicar**
+## 1. Comidas: um campo só, com etiqueta — ✅ **NO AR**
 
 **Ele disse:** *"em comidas não precisa de três inputs (comida, café e restaurante: temos
 que ter um input e lá colocamos o nome e uma tag de qual das 3 opções é)"*
@@ -28,7 +28,7 @@ qual dos três.
   de acrescentar do app, ele nasceu preto sobre preto: a palavra existia e sumia, e só o
   emoji aparecia. Corrigido em `extras.css`, com o comentário explicando para o próximo.
 
-## 2. Roteiro: "vou usar transporte neste dia?"
+## 2. Roteiro: "vou usar transporte neste dia?" — ✅ **NO AR**
 
 **Ele disse:** *"deve ter um on/off assim: vou usar transporte esse dia? Se eu ativar, abre
 a seleção e eu coloco qual transporte vou usar"*
@@ -39,7 +39,7 @@ quatro grupos. Passa a vir fechada, com um liga/desliga em cima; ligou, abre a s
 - **Banco:** nada.
 - **Tamanho:** pequeno.
 
-## 3. A aba Sugestões
+## 3. A aba Sugestões — 🔨 **CONSTRUÍDA, esperando ele olhar** (localhost:3001)
 
 **Ele disse:** *"coloque todas as suas sugestões em uma aba chamada Sugestões e separe por
 seguimento (comida, atração...), quando eu te pedir ajuda você coloca por lá, pode fazer
@@ -53,7 +53,7 @@ pesquisa nova de Madrid e Lisboa, por exemplo.
 - **Atenção:** é a 11ª aba, e mexe em Atrações, Comidas e Reservas ao mesmo tempo.
 - **Tamanho:** grande. É o maior da lista.
 
-## 4. Atrações: os números no topo — **FEITO em 06/09**
+## 4. Atrações: os números no topo — ✅ **NO AR**
 
 **Ele disse:** *"as infos da viagem devem aparecer no topo da aba logo abaixo das bandeiras
 dos países"*
@@ -70,7 +70,7 @@ bandeiras.
   irmão nem `:last-child` envolvendo `.bigsum`, `.filt` ou `.fita`), e a faixa aparece sem
   precisar rolar.
 
-## 5. Transporte: a opção metrô
+## 5. Transporte: a opção metrô — ✅ **NO AR** (ele rodou o SQL em 06/09)
 
 **Ele disse:** *"adicione a opção de metro"*
 
@@ -105,11 +105,53 @@ toda feita em reais"*
   euro e converte tudo — o que muda Painel, Custos, Caixa e as contas da seção 11.
 - **Tamanho:** (a) é pequeno. (c) é grande.
 
+## 7 (novo). Dicas: um campo para escrever, com país ou "geral"
+
+**Ele disse:** *"na aba dicas: vamos colocar um input onde eu coloco a dica, alguma
+observação e posso selecionar o país ou geral, daí eu posso anotar dicas gerais da viagem"*
+
+Hoje a aba Dicas só tem o `+ DICA` dentro do cartão de cada cidade — não há onde escrever
+uma dica que valha para a viagem inteira. Vira um formulário no topo da aba: a dica, uma
+observação, e um seletor de **país ou "geral"**.
+
+- **Banco:** nada. Os avisos já são linhas com um `spot`; "geral" é um `spot` novo
+  (`dicas:geral`), não uma coluna nova.
+- **A decidir:** a dica "geral" aparece só na aba Dicas, ou também no topo das outras?
+- **Tamanho:** médio.
+
+## 8 (novo). Hospedagem: a estrutura de preencher de volta, e dois defeitos
+
+**Ele disse:** *"na aba hospedagem eu quero a estrutura que tínhamos antes para preencher:
+nome da cidade, localização do airbnb, link para a reserva, custo por noite, quantos
+dias... do jeito que está agora está tudo jogado e mal formatado, olha esse botão de
+acrescentar todo mal adicionado"*
+
+**O que aconteceu com a estrutura:** os campos que ele quer EXISTEM no banco — endereço,
+link, check-in, check-out, total. Mas a Fase 6 os escondeu atrás do "é esta": eles só
+aparecem depois de marcar a opção fechada. Diária e noites ficaram na linha, endereço e
+link sumiram até ele escolher. Ele quer os cinco visíveis para **preencher**, que é o
+verbo que ele usou.
+
+**Os dois defeitos, medidos no site publicado em 06/09:**
+
+- **O botão "acrescentar opção" vaza.** O formulário tem TRÊS campos e usa a grade
+  `.addrow.three`, que declara QUATRO colunas (`1fr 96px 62px auto`). O botão cai na faixa
+  de **62px** e precisa de **177px** — por isso "ACRESCEN…" sai cortado para fora.
+  Sobrou de quando havia um seletor de moeda ali. É trocar a classe.
+- **A caixa de nota é BRANCA no tema escuro.** `estilo-atual.css:46` dá `color: inherit`
+  a `input,textarea`, mas não dá fundo — e esta é a **única** `textarea` do app que vive
+  dentro de uma `.mrow` (as outras estão em `.fld`, que tem fundo próprio). Medido:
+  `background: rgb(255,255,255)` com texto cinza. É irmã da armadilha do `select` preto
+  no preto que consertamos hoje: elemento que não herda o tema.
+
+- **Banco:** nada.
+- **Tamanho:** médio. Os dois defeitos são pequenos; a estrutura é o grosso.
+
 ---
 
 ## A ordem que eu sugiro
 
-**1 (feito) → 4 (feito) → 2 → 6 (depois de ele responder) → 5 → 3.**
+**1 (feito) → 4 (feito) → 2 (feito) → 5 (feito) → 8 → 7 → 3 → 6.**
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.
