@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import {
-  AKE, CO, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL, coOf,
+  AKE, CO, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL, akEmoji, coOf,
 } from '@/content';
 import { AreaField, Inline, TextField } from '@/components/Field';
 import Avisos from '@/components/Avisos';
@@ -313,7 +313,7 @@ function DiaTags({ iso }: { iso: string }) {
         // dentro do dia toda linha esta no roteiro, por definicao
         return (
           <span key={it.id} className="dtg st-esc">
-            {AKE[it.kind]} {it.name}
+            {akEmoji(it.kind)} {it.name}
             {pr ? <> <b>{eur(pr)}</b></> : null}
           </span>
         );
@@ -589,7 +589,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
               const pr = num(it.price_eur);
               return (
                 <div key={it.id} className={`atr pkd${pr ? '' : ' free'}`}>
-                  <div className="nm">{AKE[it.kind]} {it.name}</div>
+                  <div className="nm">{akEmoji(it.kind)} {it.name}</div>
                   <div className="vl">{pr ? eur(pr) : 'grátis'}</div>
                   {/* Tirar do dia NAO desfaz a escolha (regra 5.3). */}
                   <button
@@ -649,7 +649,7 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                   return (
                     <div key={it.id} className="sgr">
                       <div className="nm">
-                        {AKE[it.kind]} {it.name}{' '}
+                        {akEmoji(it.kind)} {it.name}{' '}
                         <span className={`stg st-${ORIGCLS(it)}`}>{ORIGEM(it)}</span>
                       </div>
                       <div className="vl">{pr ? eur(pr) : 'grátis'}</div>

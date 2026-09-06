@@ -68,7 +68,8 @@ const log = [];
         price_eur: Number(valOrNull(it.pr) ?? 0),
         note: it.w ?? '',
         status: ST[it.st] ?? 'backlog',
-        kind: it.k === 'tour' ? 'tour' : 'passeio',
+        // tema livre desde 06/09: nao normalize para a lista de dois
+        kind: String(it.k ?? '').trim().slice(0, 24) || 'passeio',
         day_iso: it.day && String(it.day).trim() ? it.day : null,
       };
       if (it.sid && porSeed.has(it.sid)) {

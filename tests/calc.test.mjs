@@ -22,7 +22,7 @@ import { readFileSync } from 'node:fs';
 
 import * as C from '@/lib/calc.ts';
 import { num, brl, eur, saveMonths, dtLabel, isData, hojeLocal, plMes, plMesAte, norm, stripTags, inputNum, parseNum } from '@/lib/fmt.ts';
-import { ISOS, STAYS, VOO, ESTIM_EUR, CO, CT, FOOD } from '@/content/index.ts';
+import { ISOS, STAYS, VOO, ESTIM_EUR, CO, CT, FOOD, akEmoji } from '@/content/index.ts';
 
 const ST = { esc: 'escolhida', bac: 'backlog', sug: 'sugerida' };
 const FKD = { pr: 'prato', rest: 'restaurante', cafe: 'cafe' };
@@ -152,6 +152,54 @@ test('11.2 — 8 bases, 31 noites, 32 dias em terra + 2 de voo = 34', () => {
  *   3. as 7 bases de STAYS tem dica; cidade sem dia devolve lista vazia, e a
  *      tela nao desenha nada.
  */
+/**
+ * O TEMA LIVRE da atracao (06/09/2026).
+ *
+ * Ele pediu: "eu devo poder escolher logo no registro se e passeio ou tour ou
+ * outro tema que pode ser escrita livre". O menu de tema sai de
+ * `temasDeAtracao`, e ele tem duas obrigacoes que erram em silencio:
+ *
+ *   1. os dois PADRAO vem sempre na frente, mesmo que nenhuma atracao os use
+ *      — senao o menu que ele conhece muda de ordem sozinho;
+ *   2. tema que ele escreveu aparece UMA vez, para a segunda atracao com o
+ *      mesmo tema ser um clique e nao uma redigitacao. Sem isto, "mercado de
+ *      natal" escrito duas vezes vira dois temas se cair um maiusculo.
+ */
+test('tema da atracao: o menu tem os dois padrao na frente e os dele sem repetir', () => {
+  const base = C.temasDeAtracao(S);
+  assert.deepEqual(base, ['passeio', 'tour'], 'sem tema dele, o menu e so o padrao');
+
+  const s2 = structuredClone(S);
+  const [a, b, c] = s2.attractions;
+  a.kind = 'mercado de natal';
+  b.kind = 'mercado de natal';   // repetido: nao pode aparecer duas vezes
+  c.kind = 'mirante';
+  const com = C.temasDeAtracao(s2);
+  assert.deepEqual(com, ['passeio', 'tour', 'mercado de natal', 'mirante']);
+  assert.equal(new Set(com).size, com.length, 'nenhum tema repetido no menu');
+
+  // tema so de espacos nao vira item de menu, e tema vazio tampouco
+  const s3 = structuredClone(S);
+  s3.attractions[0].kind = '   ';
+  s3.attractions[1].kind = '';
+  assert.deepEqual(C.temasDeAtracao(s3), ['passeio', 'tour']);
+});
+
+/**
+ * O emoji do tema. `AKE['museu']` e `undefined`, e `{undefined} {nome}` no JSX
+ * nao quebra: desenha um espaco solto antes do nome, em quatro lugares do
+ * Roteiro, e ninguem descobre. Por isso a tela usa `akEmoji`, nunca `AKE` cru.
+ */
+test('tema da atracao: akEmoji nunca devolve undefined', () => {
+  assert.equal(akEmoji('passeio'), '🚶');
+  assert.equal(akEmoji('tour'), '🏛️');
+  for (const t of ['mercado de natal', 'museu', '', 'tour ', 'TOUR']) {
+    const e = akEmoji(t);
+    assert.equal(typeof e, 'string');
+    assert.ok(e.length > 0, `tema ${JSON.stringify(t)} ficou sem emoji`);
+  }
+});
+
 test('11.2 — noitesEm devolve uma entrada por passagem, nao a soma', () => {
   assert.deepEqual(C.noitesEm(S, 'madrid'), [3, 1], '3 noites no comeco, 1 no fim');
   assert.deepEqual(C.noitesEm(S, 'lisboa'), [4]);

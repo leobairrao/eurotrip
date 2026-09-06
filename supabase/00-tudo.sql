@@ -38,8 +38,11 @@ create table if not exists attraction (
   note        text not null default '',      -- pode conter <b> e <i>. Ver secao 10.0
   status      text not null default 'backlog'
               check (status in ('escolhida','backlog','sugerida')),
+  -- TEMA LIVRE desde 06/09 (supabase/09-tema-da-atracao.sql). A trava nao
+  -- olha o conteudo, so o tamanho: era `kind in ('passeio','tour')` e ele
+  -- pediu para poder escrever o proprio tema no registro da atracao.
   kind        text not null default 'passeio'
-              check (kind in ('passeio','tour')),
+              check (length(btrim(kind)) between 1 and 24),
   day_iso     date references day(iso) on delete set null,   -- null = sem dia
   seed_id     text unique,                   -- 'm:lisboa:0' | 's:roma:4'. Null se ele criou
   created_at  timestamptz not null default now(),

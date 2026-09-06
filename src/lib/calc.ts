@@ -7,6 +7,7 @@ import {
   BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf, CIDADES_FIXAS,
 } from '@/content';
 import { brl, eur, norm, num, saveMonths } from './fmt';
+import { AK_PADRAO } from './types';
 import type { Attraction, Aviso, Contribution, Snapshot, Status, Who } from './types';
 
 // ---------------- 11.2 blocos, noites e dias ----------------
@@ -176,6 +177,31 @@ export const attrsOf = (s: Snapshot, city: string) => s.attractions.filter((a) =
  * O desempate por nome importa: `load.ts` passou a pedir `.order('name')`
  * na Fase 0, porque sem ordem a lista dancava entre um F5 e outro.
  */
+/**
+ * Os temas que EXISTEM na viagem: os dois de sempre, mais tudo que ele ja
+ * escreveu, sem repetir.
+ *
+ * E o que alimenta o menu de tema. Sem isto, um tema inventado so existiria
+ * na atracao onde ele foi digitado: para usar "mercado de natal" na segunda
+ * atracao ele teria que escrever de novo, com risco de sair "Mercado de
+ * Natal" e virar um tema diferente do primeiro.
+ *
+ * Os dois padrao vem SEMPRE na frente e nesta ordem, mesmo que nenhuma
+ * atracao os use — sao o menu que ele ja conhece. O resto sai em ordem
+ * alfabetica para o menu nao dancar a cada atracao nova.
+ */
+export function temasDeAtracao(s: Snapshot): string[] {
+  const vistos = new Set(AK_PADRAO);
+  const dele: string[] = [];
+  for (const a of s.attractions) {
+    const t = (a.kind ?? '').trim();
+    if (!t || vistos.has(t)) continue;
+    vistos.add(t);
+    dele.push(t);
+  }
+  return [...AK_PADRAO, ...dele.sort((x, y) => x.localeCompare(y, 'pt-BR'))];
+}
+
 export function attrsDele(s: Snapshot, city: string) {
   return attrsOf(s, city)
     .filter((a) => !ehPesquisa(a))

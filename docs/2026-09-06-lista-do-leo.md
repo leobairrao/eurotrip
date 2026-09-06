@@ -203,10 +203,33 @@ de toque de 36px no celular, e o aviso que faltava — **opção guardada e não
 
 ---
 
+## 10. Atrações: o tema escolhido no registro, e livre
+
+> *"quando eu for registrar um passeio eu devo poder escolher logo no registro se é passeio
+> ou tour ou outro tema que pode ser escrita livre"* — com a foto do formulário de Madrid.
+
+**Duas coisas no mesmo pedido.** Escolher NA HORA (o formulário gravava `passeio` fixo, e
+para dizer que era tour ele acrescentava e depois procurava a linha nova no meio de uma lista
+ordenada por nome), e TEMA LIVRE (só existiam dois).
+
+**Este precisou de SQL** — o único da lista até agora que precisou. A coluna `kind` tinha
+`check (kind in ('passeio','tour'))`, então tema escrito por ele era recusado pelo banco.
+`supabase/09-tema-da-atracao.sql`. Medido no navegador antes de escrever o arquivo: com a
+trava velha, guardar uma atração com tema "mercado de natal" devolve erro e ela não existe.
+
+O que veio junto: o erro de gravação passou a aparecer **na tela**, com o nome do que não
+salvou (antes só o rodapé sabia); e `AKE[kind]` virou `akEmoji(kind)` em quatro lugares,
+porque tema inventado não tem emoji e `{undefined}` no JSX não quebra — só some.
+
+- **Banco:** SIM, `09-tema-da-atracao.sql`.
+- **Tamanho:** médio.
+
+---
+
 ## A ordem que eu sugiro
 
-**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ → 9 ✅** — a lista inteira saiu, mais o
-item 9 que nasceu da foto que ele mandou depois.
+**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ → 9 ✅ → 10 ✅** — a lista inteira saiu,
+mais os itens 9 e 10, que nasceram das fotos que ele mandou depois.
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.

@@ -5,6 +5,7 @@
 // ============================================================
 import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
+import { AK_MAX } from './types';
 import type {
   AppUser, Attraction, Aviso, Booking, Contribution, Extra, Food, Leg,
   CityRow, Savings, Settings, Snapshot, Stay, StayOption, Tone, Who,
@@ -217,7 +218,12 @@ export async function carregarDemo(): Promise<Snapshot> {
         id: String(it.id), city, name: String(it.n),
         price_eur: num(it.pr), note: String(it.w ?? ''),
         status: ST[String(it.st)] ?? 'backlog',
-        kind: it.k === 'tour' ? 'tour' : 'passeio',
+        // Lista branca aqui SOME COM O TEMA no primeiro F5: ele escreve
+        // "mercado de natal", a tela mostra, e o normalizador devolve
+        // 'passeio'. E a armadilha que o COMO-MEXER registra, aplicada ao
+        // valor em vez da coluna. Agora passa o que veio, com o mesmo
+        // aparo da tela e do banco.
+        kind: String(it.k ?? '').trim().slice(0, AK_MAX) || 'passeio',
         day_iso: it.day && String(it.day).trim() ? String(it.day) : null,
         paid: !!it.paid,
         seed_id: it.sid ? String(it.sid) : null,

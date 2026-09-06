@@ -50,11 +50,15 @@ hospedagem eram bairros sugeridos por você, não deve restaurar isso"*.
 As 128 linhas que eram minhas foram apagadas em 06/09, com cópia em
 `.backup-pesquisa-06-09.json` (fora do git). Elas voltam pelo `+`, não pela cópia.
 
-### Os quatro SQL que ele já rodou
+### Os SQL que ele já rodou
 
 `05-hospedagem-e-pago` · `06-cidades` · **`07-metro`** (metrô como tipo de transporte) ·
 **`08-moeda-do-aporte`** (cada aporte guarda a própria moeda). Os dois últimos foram
 conferidos por fora depois de rodar.
+
+**Esperando ele:** `09-tema-da-atracao` — tira a trava que só aceita `passeio` e `tour` na
+coluna `kind`. **Enquanto não rodar, tema escrito por ele é RECUSADO pelo banco** e a
+atração não entra; a tela diz isso por escrito (é o único lugar onde essa recusa aparece).
 
 ### O que mudou em 06/09, em uma linha cada
 
@@ -70,6 +74,7 @@ conferidos por fora depois de rodar.
 | **7** | Dicas: o campo de escrever, com país ou **a viagem inteira** |
 | **8** | Hospedagem: a estrutura de preencher, e dois defeitos medidos |
 | **9** | Hospedagem, **de tarde**: o formulário inteiro ANTES de salvar — ver abaixo |
+| **10** | Atrações: **o tema escolhido no registro**, e tema livre — ver abaixo |
 
 ### O item 9, da tarde: "ali está apenas um campo como que vou preencher isso"
 
@@ -101,6 +106,30 @@ anúncio inteiro e ver o total continuar em €0 sem explicação nenhuma. Agora
 e nenhuma marcada mostra *"Nenhuma destas está marcada — por isso Lisboa ainda soma €0 no
 total da viagem"*. Sem isso, o item 9 viraria o item 10.
 
+### O item 10: o tema da atração, escolhido no registro e livre
+
+> *"quando eu for registrar um passeio eu devo poder escolher logo no registro se é passeio
+> ou tour ou outro tema que pode ser escrita livre"*
+
+**Duas coisas no mesmo pedido**, e a segunda é a que custa SQL:
+
+1. **escolher no registro.** O formulário mandava `kind: 'passeio'` fixo. Para dizer que era
+   tour, ele acrescentava e DEPOIS procurava a linha recém-criada no meio de uma lista
+   ordenada por nome. Agora o menu está no formulário, e **não volta para `passeio` depois de
+   guardar** — quem cadastra cinco museus seguidos escolhe uma vez.
+2. **tema livre.** A coluna `kind` tinha `check (kind in ('passeio','tour'))`. Enquanto essa
+   trava existir o banco RECUSA qualquer outro tema. É o `09-tema-da-atracao.sql`.
+
+**Um menu, e não um campo de texto solto.** Com campo solto, usar "mercado de natal" na
+segunda atração exige escrever de novo — e sai "Mercado de Natal", que para o banco é outro
+tema. O menu traz os dois de sempre **mais tudo que ele já escreveu** (`C.temasDeAtracao`),
+e a última opção (`✏️ outro tema…`) abre o campo de escrever.
+
+**O que quase passou batido:** `AKE[kind]` é `undefined` para tema inventado, e
+`{undefined} {nome}` no JSX **não quebra nada** — desenha um espaço solto antes do nome, em
+quatro lugares. Virou `akEmoji(kind)`, com `?? '📍'`, e há teste que falha se alguém voltar a
+ler `AKE[...]` direto.
+
 ### As armadilhas que 06/09 ensinou
 
 - **`input` herda `color`; `select` e `textarea` NÃO herdam o que precisam.** Três vezes no
@@ -128,16 +157,17 @@ total da viagem"*. Sem isso, o item 9 viraria o item 10.
   toque de 44px no celular, que `.form button` nunca teve porque até hoje nenhum formulário
   com botão morava dentro de um cartão de lista).
 
-### Os cinco testes de `tests/telas.test.mjs`
+### Os seis testes de `tests/telas.test.mjs`
 
 Nenhum roda React: leem o código-fonte e o CSS. **Todos foram provados falhando** antes de
-serem aceitos. (Eram cinco desde 06/09; este texto dizia "quatro" e esquecia o último.)
+serem aceitos.
 
 1. nenhuma tela indexa `CT[...]` cru
 2. a rede (`error.tsx` e `global-error.tsx`) existe e é client component
 3. toda grade `.addrow` tem o par que vira coluna única abaixo de 700px
 4. todo tipo de transporte tem os oito lugares preenchidos
 5. nenhuma lista de sugestão esconde a chave `_` de comentário
+6. nenhuma tela lê `AKE[...]` direto — tema livre não tem emoji próprio
 
 ### O único item que continua esperando ELE
 

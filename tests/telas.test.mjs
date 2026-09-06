@@ -121,6 +121,38 @@ test('toda grade .addrow tem o par que vira coluna unica no celular', () => {
 });
 
 /**
+ * Nenhuma tela pode ler `AKE[...]` direto.
+ *
+ * Desde 06/09 o tema da atracao e TEXTO LIVRE, entao `AKE['museu']` e
+ * `undefined` — e `{undefined} {nome}` no JSX nao quebra nada: desenha um
+ * espaco solto antes do nome e segue. Eram QUATRO lugares (tres no Roteiro,
+ * um em Atracoes), e nenhum deles daria erro de build, de teste ou de tela.
+ *
+ * `akEmoji(kind)` tem a saida `?? '📍'`. Este teste faz usar ela ser
+ * obrigatorio, do mesmo jeito que o teste do `CT[...]` cru.
+ *
+ * `AKE.passeio` e `AKE.tour` continuam permitidos: sao as duas chaves que
+ * existem de verdade, e a legenda do Roteiro as escreve na mao.
+ */
+const AKE_CRU = /\bAKE\[[^\]]+\]/;
+
+test('nenhuma tela le AKE[...] direto — tema livre nao tem emoji proprio', () => {
+  const achados = [];
+  for (const rel of arquivosDeTela()) {
+    const linhas = readFileSync(join(RAIZ, rel), 'utf8').split('\n');
+    linhas.forEach((l, i) => {
+      if (l.trimStart().startsWith('//') || l.trimStart().startsWith('*')) return;
+      if (AKE_CRU.test(l)) achados.push(`${rel}:${i + 1}  ${l.trim()}`);
+    });
+  }
+  assert.deepEqual(
+    achados,
+    [],
+    `Tela lendo AKE direto. Troque por akEmoji(kind), de @/content:\n${achados.join('\n')}`,
+  );
+});
+
+/**
  * Um tipo de transporte novo precisa de OITO lugares, nao de um.
  *
  * Descoberto ao por o metro em 06/09: o tipo (`types.ts`), tres dicionarios

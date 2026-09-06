@@ -1,7 +1,24 @@
 // Uma linha por coisa editavel (secao 6.1). Espelha o esquema do Postgres.
 export type Currency = 'eur' | 'brl';
 export type Status = 'escolhida' | 'backlog' | 'sugerida';
-export type AttrKind = 'passeio' | 'tour';
+/**
+ * O TEMA da atracao. Era `'passeio' | 'tour'`; virou texto livre em 06/09,
+ * a pedido dele: "eu devo poder escolher logo no registro se e passeio ou
+ * tour ou outro tema que pode ser escrita livre".
+ *
+ * Continua sendo `string` e nao um union porque QUALQUER palavra vale — os
+ * dois de sempre sao so os que ja vem prontos no menu (`AK` em content). O
+ * limite de 24 caracteres mora na tela e na trava do banco
+ * (supabase/09-tema-da-atracao.sql), nao aqui.
+ *
+ * Quem for desenhar tema na tela usa `akEmoji(kind)`, nunca `AKE[kind]`
+ * cru: tema inventado nao tem emoji, e `AKE['museu']` e `undefined`.
+ */
+export type AttrKind = string;
+/** Os dois que ja vem no menu. O resto ele escreve. */
+export const AK_PADRAO: readonly AttrKind[] = ['passeio', 'tour'];
+/** Trava de tamanho, a mesma da tela e da do banco. */
+export const AK_MAX = 24;
 export type FoodKind = 'prato' | 'restaurante' | 'cafe';
 /** 'metro' entrou em 06/09, a pedido dele. Ver o teste em tests/telas.test.mjs:
  *  uma opcao de transporte nova precisa de OITO lugares, nao um. */

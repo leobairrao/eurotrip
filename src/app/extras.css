@@ -130,6 +130,23 @@
 
 /* o formulario de acrescentar ganhou o campo de nota */
 .addrow.at3 { grid-template-columns: 1fr 1fr 96px auto; }
+/* `.at4` e a `.at3` com o menu de TEMA no meio (06/09). Cinco filhos, cinco
+   colunas — grade conta COLUNAS e o JSX conta FILHOS, e foi assim que o botao
+   da Hospedagem vazou do cartao hoje de manha.
+   O tema fica em PX e nao em `1fr` de proposito: a ESPECIFICACAO registra o
+   caso ja vivido de coluna de `select` em `1fr` no celular fazer
+   "🚶 passeio" virar "🚶 pa". 132px cabe "📍 mercado de nata…" sem cortar o
+   emoji, que e o que da para ler de relance. */
+/* 164px, MEDIDO e nao chutado: "mercado de natal" ocupa 138px na fonte da
+   linha, e com 132 o campo de escrever ja nascia rolando — ele digitava e
+   nao via o comeco do que escreveu. 164 cabe isso com folga. Tema mais
+   longo que a caixa rola, que e o que qualquer campo de texto faz; o limite
+   duro sao os 24 caracteres (`AK_MAX`), e esses precisariam de 303px, que
+   nao existem nesta linha. */
+.addrow.at4 { grid-template-columns: 1fr 1fr 164px 96px auto; }
+/* o campo de escrever nasce no lugar do menu, no mesmo tamanho — sem isto a
+   linha muda de largura no meio do clique */
+.addrow.at4 input[aria-label="escreva o tema"] { font-size: 14px; }
 /* Comidas passou a ter UM formulario para os tres tipos (06/09): entrou a
    etiqueta entre a nota e o botao. Abaixo de 700px vira coluna unica junto
    com as outras, na regra logo abaixo — sem isso a linha estoura no celular. */
@@ -167,7 +184,7 @@
 .addrow.tr5 { grid-template-columns: 1fr 1fr 116px 96px 62px auto; }
 .addrow.re4 { grid-template-columns: 1fr 1fr 96px 58px auto; }
 @media (max-width: 700px) {
-  .addrow.at3, .addrow.fo3, .addrow.di4, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  .addrow.at3, .addrow.at4, .addrow.fo3, .addrow.di4, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
   .mrow .wh.nt .wv, .bkr.rr .rb.nt .wv { flex: 1 1 100%; }
 }
 

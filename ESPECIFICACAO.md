@@ -664,10 +664,33 @@ Um cartão por cidade, com o aviso da cidade em cima e a lista. **Uma lista só*
 sugeri e o que ele mandou convivem, separados pela situação, e ordenados
 escolhida → backlog → sugerida. Cada linha tem:
 
-`nome (editável) | situação (select) | tipo (select) | preço € | ×`
+`nome (editável) | situação (select) | tema (select) | preço € | ×`
 
-O select de tipo mostra **`🚶 passeio`** e **`🏛️ tour`**. Embaixo da linha, quando houver: a
-data em que caiu (etiqueta verde) e a nota.
+> **Revisto em 06/09/2026 (item 10).** O select mostrava só **`🚶 passeio`** e **`🏛️ tour`**,
+> e o formulário de acrescentar não tinha select nenhum — gravava `passeio` fixo. Ele pediu:
+> *"quando eu for registrar um passeio eu devo poder escolher logo no registro se é passeio
+> ou tour ou outro tema que pode ser escrita livre"*.
+
+O campo agora se chama **tema**, e é **texto livre** (até 24 caracteres). O menu traz os dois
+de sempre, mais **todos os temas que ele já escreveu na viagem** (`C.temasDeAtracao`), mais
+`✏️ outro tema…`, que troca o menu por um campo de escrever. É menu e não campo solto porque
+com campo solto "mercado de natal" digitado duas vezes vira dois temas ao primeiro maiúsculo.
+
+**O mesmo componente serve a linha e o formulário de acrescentar**, e no formulário o tema
+escolhido **não volta para `passeio` depois de guardar**: quem cadastra cinco museus seguidos
+escolhe uma vez.
+
+Tema inventado não tem emoji próprio: `akEmoji(kind)` devolve `📍`. **Nenhuma tela pode ler
+`AKE[...]` direto** — `AKE['museu']` é `undefined`, e `{undefined} {nome}` no JSX não quebra,
+só desenha um espaço solto. Há teste em `tests/telas.test.mjs` que falha se alguém voltar a
+fazer isso.
+
+O banco precisou de SQL: a coluna `kind` tinha `check (kind in ('passeio','tour'))`, e
+enquanto essa trava existir qualquer outro tema é recusado. Ver
+`supabase/09-tema-da-atracao.sql`. A trava nova olha só o tamanho, de 1 a 24 caracteres.
+
+Embaixo da linha, quando houver: a data em que caiu (etiqueta verde, com o emoji do tema) e
+a nota.
 
 No fim de cada cidade: "escolhidas: € X · backlog inteiro somaria mais € Y".
 No fim da tela: quatro números — o país selecionado, o total escolhido da viagem, o mesmo em
@@ -676,6 +699,10 @@ R$, e o que o backlog inteiro somaria.
 Rodapé: *"Os preços são de 2026 e servem de ordem de grandeza — confirme no site oficial ao
 reservar. Tudo é editável, inclusive o que eu sugeri: o nome, a nota, a cidade, o tipo e o
 número que eu chutei."*
+
+O formulário de acrescentar é `.addrow.at4`: **cinco campos, cinco colunas** — nome, nota,
+tema (164px, medido: "mercado de natal" ocupa 138px e com 132 o campo nascia rolando), preço
+e o botão. Mais o erro de gravação, que ocupa a linha inteira quando aparece.
 
 ### 10.4 — Comidas
 

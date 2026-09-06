@@ -6,8 +6,8 @@
 // Regra 5.2: so 'escolhida' entra no custo. O backlog aparece
 // sempre em linha propria ("somaria mais"), nunca somado ao real.
 // ============================================================
-import { AK, AKE, CO, CT, coOf } from '@/content';
-import { useState } from 'react';
+import { CO, CT, akEmoji, coOf } from '@/content';
+import { useRef, useState } from 'react';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
@@ -16,6 +16,7 @@ import { useApagarLinha } from '@/lib/apagar';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import { brl, eur, norm, parseNum, shortDt } from '@/lib/fmt';
+import { AK_MAX } from '@/lib/types';
 import type { Attraction } from '@/lib/types';
 
 /**
@@ -342,17 +343,16 @@ function Linha({ it }: { it: Attraction }) {
           onChange={(e) => now('attraction', it.id, 'paid', e.currentTarget.checked)}
         />
       ) : <span className="ck" aria-hidden="true" />}
-      {/* v28: passeio (rua/centro) ou tour (visitar um lugar). O emoji vai para o dia. */}
-      <select
+      {/* v28: passeio (rua/centro) ou tour (visitar um lugar). Desde 06/09 tambem
+          qualquer tema que ele escrever. O emoji vai para a etiqueta do dia. */}
+      <Tema
         className="sv kv"
-        aria-label="tipo"
         value={it.kind}
-        onChange={(e) => now('attraction', it.id, 'kind', e.currentTarget.value)}
-      >
-        {Object.entries(AK).map(([k, rot]) => (
-          <option key={k} value={k}>{`${AKE[k]} ${rot}`}</option>
-        ))}
-      </select>
+        /* `patch` e nao `now`: o campo de escrever comita a cada tecla, e com
+           `now` isso seria um UPDATE por letra. `patch` junta em 400ms, que e
+           o que todo campo digitado do app ja faz. */
+        onChange={(v) => patch('attraction', it.id, 'kind', v)}
+      />
       {/* Campo de valor vazio e vazio, nao zero (10.0): o artefato escreve `it.pr||""`,
           e sao 66 atracoes gratuitas — com "0" no campo a borda deixa de ser transparente. */}
       <NumField
@@ -396,7 +396,7 @@ function Linha({ it }: { it: Attraction }) {
           ))}
         </select>
         {it.day_iso ? (
-          <span className="dtag">{`${AKE[it.kind]} ${shortDt(it.day_iso)}`}</span>
+          <span className="dtag">{`${akEmoji(it.kind)} ${shortDt(it.day_iso)}`}</span>
         ) : null}
         {/* NAO pode haver poda no que ENTRA: `stripTags` APAGA o trecho
             entre "<" e ">", e o texto sumia do BANCO. Quem escapa e a
@@ -414,37 +414,168 @@ function Linha({ it }: { it: Attraction }) {
   );
 }
 
+/**
+ * O TEMA da atracao — um componente so, usado na linha e no formulario de
+ * acrescentar (06/09/2026).
+ *
+ * O pedido dele: "quando eu for registrar um passeio eu devo poder escolher
+ * logo no registro se e passeio ou tour ou outro tema que pode ser escrita
+ * livre". Duas coisas ai: escolher NA HORA DE REGISTRAR (antes so dava para
+ * trocar depois, na linha), e TEMA LIVRE (antes so havia dois).
+ *
+ * POR QUE UM MENU, E NAO UM CAMPO DE TEXTO SOLTO. Com campo solto, usar
+ * "mercado de natal" na segunda atracao exige escrever de novo — e sai
+ * "Mercado de Natal", que para o banco e outro tema. Duas listas onde ele
+ * queria uma, e nada na tela dizendo que sao a mesma coisa. Entao o menu
+ * traz os dois de sempre MAIS tudo que ele ja escreveu (`C.temasDeAtracao`),
+ * e a ultima opcao abre o campo de escrever.
+ *
+ * O `__novo` como valor da opcao e uma sentinela, e nao um tema: dois
+ * sublinhados nas pontas nao colidem com nada que alguem escreva, e se
+ * colidisse o pior caso seria abrir o campo de texto.
+ *
+ * NUNCA comita vazio: campo em branco no blur volta para o tema anterior. A
+ * coluna e `not null` no banco, e um `kind` vazio derrubaria a trava nova
+ * (`length(btrim(kind)) between 1 and 24`) com a linha ja na tela.
+ */
+function Tema({
+  value, onChange, className = '',
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const { s } = useApp();
+  const [escrevendo, setEscrevendo] = useState(false);
+  const campo = useRef<HTMLInputElement>(null);
+  const temas = C.temasDeAtracao(s);
+
+  const fechar = (v: string) => {
+    const t = v.trim().slice(0, AK_MAX);
+    setEscrevendo(false);
+    if (t && t !== value) onChange(t);
+  };
+
+  if (escrevendo) {
+    return (
+      <input
+        ref={campo}
+        className={className}
+        type="text"
+        autoFocus
+        maxLength={AK_MAX}
+        defaultValue=""
+        placeholder="o tema"
+        aria-label="escreva o tema"
+        /**
+         * COMITA A CADA TECLA, e nao so no blur — isto conserta um defeito
+         * de verdade, achado ao provar a tela em 06/09.
+         *
+         * So no blur: ele escreve "mercado de natal" e clica DIRETO em "pôr
+         * no backlog". O clique tira o foco, o blur dispara e chama
+         * `setTema` — mas `por()` roda no mesmo instante, lendo o `tema`
+         * ANTERIOR. A atracao nasce com "passeio", ele so descobre depois
+         * de achar a linha na lista, e nada na tela indicou erro.
+         *
+         * Comitando a cada tecla, o tema esta sempre em dia e o botao pode
+         * ser clicado a qualquer momento. Vazio nao comita: a coluna e
+         * `not null` e a trava do banco recusa string em branco.
+         */
+        onInput={(e) => {
+          const t = e.currentTarget.value.trim().slice(0, AK_MAX);
+          if (t && t !== value) onChange(t);
+        }}
+        onBlur={(e) => fechar(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+          // Esc desiste: o blur do `fechar` ja ignora vazio, mas sem isto ele
+          // ficaria preso no campo sem jeito de voltar ao menu pelo teclado.
+          if (e.key === 'Escape') { e.preventDefault(); setEscrevendo(false); }
+        }}
+      />
+    );
+  }
+
+  return (
+    <select
+      className={className}
+      aria-label="tema"
+      value={value}
+      onChange={(e) => {
+        const v = e.currentTarget.value;
+        if (v === '__novo') { setEscrevendo(true); return; }
+        onChange(v);
+      }}
+    >
+      {/* o tema atual pode nao estar na lista se a outra pessoa acabou de
+          renomear o dela: sem esta linha o <select> mostraria o primeiro
+          da lista, e a tela mentiria sobre o que esta no banco */}
+      {temas.includes(value) ? null : <option value={value}>{`${akEmoji(value)} ${value}`}</option>}
+      {temas.map((k) => (
+        <option key={k} value={k}>{`${akEmoji(k)} ${k}`}</option>
+      ))}
+      <option value="__novo">✏️ outro tema…</option>
+    </select>
+  );
+}
+
 /** O formulario de acrescentar. Entra sempre como backlog — quem escolhe e ele. */
 function AddRow({ city }: { city: string }) {
   const { s, insert } = useApp();
   const nome = useLocal();
   const nota = useLocal();
   const preco = useLocal();
+  /**
+   * O TEMA ESCOLHIDO NA HORA DE REGISTRAR (06/09), que e o pedido dele.
+   *
+   * Antes o `insert` mandava `kind: 'passeio'` fixo, e o unico jeito de dizer
+   * que era um tour era acrescentar e DEPOIS achar a linha e trocar o menu.
+   * Numa cidade com 20 atracoes isso e procurar a linha que voce acabou de
+   * criar no meio da lista ordenada por nome.
+   *
+   * Isto e estado de verdade, e nao `useLocal`, porque o menu precisa mostrar
+   * o que esta escolhido enquanto ele preenche o resto da linha.
+   */
+  const [tema, setTema] = useState('passeio');
+  const [erro, setErro] = useState('');
 
   const por = async () => {
     const nm = nome.get().trim();
     if (!nm) return;
+    setErro('');
     const r = insert('attraction', {
       city,
       name: nm,
       price_eur: parseNum(preco.get()) ?? 0,
       note: nota.get(),
       status: 'backlog',
-      kind: 'passeio',
+      kind: tema.trim().slice(0, AK_MAX) || 'passeio',
       day_iso: null,
       seed_id: null,
     });
     // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
     // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
     // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
-    if (!(await r).ok) return;
+    if (!(await r).ok) {
+      // O rodape ja dizia "nao consegui salvar", mas em cima da tela e sem
+      // dizer O QUE nao salvou. Numa cidade com 20 linhas ele nao tem como
+      // saber se a atracao entrou. E enquanto o 09-tema-da-atracao.sql nao
+      // rodar, tema escrito por ele e RECUSADO pelo banco — este e o unico
+      // lugar onde essa recusa aparece por escrito.
+      setErro(
+        `Não consegui guardar "${nm}". O que você escreveu continua aqui — tente de novo.`,
+      );
+      return;
+    }
     nome.limpar();
     nota.limpar();
     preco.limpar();
+    // o TEMA nao volta para 'passeio': quem esta cadastrando cinco museus
+    // seguidos escolhe uma vez, nao cinco.
   };
 
   return (
-    <div className="addrow at3">
+    <div className="addrow at4">
       <input
         ref={(el) => { nome.ref.current = el; }}
         type="text"
@@ -457,6 +588,7 @@ function AddRow({ city }: { city: string }) {
         placeholder="uma nota (opcional)"
         aria-label="nota da atração"
       />
+      <Tema value={tema} onChange={setTema} />
       <input
         ref={(el) => { preco.ref.current = el; }}
         type="text"
@@ -466,6 +598,7 @@ function AddRow({ city }: { city: string }) {
         aria-label="preço em euros"
       />
       <button onClick={() => void por()}>pôr no backlog</button>
+      {erro ? <div className="ferro" role="alert">{erro}</div> : null}
     </div>
   );
 }

@@ -147,6 +147,15 @@ export const STCLS: Record<string, string> = { escolhida: 'esc', backlog: 'bac',
 
 export const AK = { passeio: 'passeio', tour: 'tour' } as const;
 export const AKE: Record<string, string> = { passeio: '🚶', tour: '🏛️' };
+/**
+ * O emoji do tema, COM saida para tema inventado.
+ *
+ * Desde 06/09 o tema e texto livre, entao `AKE[kind]` e `undefined` para
+ * tudo que nao seja passeio ou tour — e `{undefined} {nome}` no JSX nao
+ * quebra nada: so desenha um espaco solto antes do nome, em quatro lugares
+ * do Roteiro, e ninguem descobre. Use SEMPRE esta funcao.
+ */
+export const akEmoji = (kind: string): string => AKE[kind] ?? '📍';
 
 export const FK = { prato: 'prato', restaurante: 'restaurante', cafe: 'café' } as const;
 export const FKE: Record<string, string> = { prato: '🍲', restaurante: '🍽️', cafe: '☕' };
