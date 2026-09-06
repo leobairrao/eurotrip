@@ -9,35 +9,78 @@ manda. Ela é a fonte; isto é o mapa.
 
 ---
 
-## 0. Onde eu parei — 05/09/2026
+## 0. Onde eu parei — 05/09/2026, fim do dia
 
-**Tudo o que foi feito está no ar.** A migração `04-avisos.sql` foi rodada pelo Leo,
-`npm run seed` inseriu os 45 avisos, e o push publicou. Não há passo pendente.
+**Os sete ajustes que ele pediu estão TODOS no ar**, mais a cidade que ele pode criar.
+Desenho em [`docs/superpowers/specs/2026-09-05-ajustes-do-leo-design.md`](docs/superpowers/specs/2026-09-05-ajustes-do-leo-design.md).
+`npm run check` **verde** com os 18 números; `npm test` 119/119; build limpo.
 
-Conferido contra o banco depois de rodar: tabela `aviso` com as 9 colunas, RLS ligada (o
-anônimo apanha), 45 linhas na distribuição certa (7 cidade, 18 dia, 4 país, 15 "não vale",
-1 transporte), zero tag crua, 21 com `*negrito*`. Semear de novo não duplica. As notas
-antigas que tinham `<b>` viraram `*asterisco*`: 6 atrações e 3 trechos.
+### O PRÓXIMO PASSO, e é só um
 
-### O tempo real foi testado, e funciona
+**Ele apagou de propósito as 35 atrações de Madrid (20) e Lisboa (15) para pesquisar de
+novo, e depois se arrependeu.** Eu já restaurei pelo `seed` — as 104 estão de volta e o
+`check` fechou. **O que ele quer agora é a pesquisa refeita**: atrações novas para Madrid
+e Lisboa. Ele não disse quantas nem com que critério; pergunte antes de encher a lista.
 
-**05/09/2026 — o Leo confirmou:** os dois navegadores ao mesmo tempo, e está funcionando.
-Era a promessa central do projeto e a única coisa que nunca tinha sido exercitada com duas
-sessões de gente diferente — nem por mim, nem antes de mim.
+Duas coisas que a restauração NÃO trouxe: as 5 de Sintra que ele tinha promovido para
+`escolhida` voltaram como `backlog` (não muda dinheiro nenhum — a etiqueta vem do dia do
+Roteiro desde a Fase 3), e qualquer preço ou nota que ele tenha editado depois do dia 4.
 
-Registro de quem verificou: **foi ele, não eu.** Eu só tenho uma sessão; o que eu consigo
-provar aqui é a mesclagem em memória (`tests/merge.test.mjs`) e a assinatura do canal, que
-não é a mesma coisa. Ele não detalhou item por item, então o que está confirmado é o
-conjunto: um edita, o outro vê.
+### O que está pendente de PROVA, e só ele consegue
 
-Se um dia algo de tempo real falhar, dois lugares antes de qualquer outro:
+- **O tempo real da tabela `city` e da `stay_option`.** As duas são novas, estão na
+  publicação e com `replica identity full` (conferido no banco, quatro linhas de `select`
+  batendo). Mas ninguém abriu dois navegadores para ver criar e apagar chegando do outro
+  lado. Foi exatamente aí que a `aviso` falhou da primeira vez.
+- **O celular ele já conferiu** (05/09, "parece bom"). Registro: **foi ele, não eu** — o
+  `resize` do Chrome não pegou aqui, então o que eu provei foi a aritmética das grades,
+  medindo numa caixa de 328px. Ele confirmou o conjunto, não as 10 abas × 3 larguras ×
+  2 temas uma a uma.
 
-- `src/lib/store.tsx`, o array `tabelas` do canal `eurotrip` — **toda tabela nova precisa
-  entrar ali**. A `aviso` ficou de fora na primeira escrita e nada de aviso sincronizava,
-  com o SQL todo correto do outro lado. Foi a revisão que pegou.
-- No Supabase, se a tabela está na publicação `supabase_realtime` e tem
-  `replica identity full` (sem isso o DELETE não chega com a linha, e o item não sai da
-  tela do outro).
+### O conserto que eu prometi e NÃO fiz
+
+**Um toque no `×` apaga para sempre, sem confirmação e sem desfazer** — e o `seed_id` vai
+para `killed_seed`, o que faz até o `npm run seed` respeitar. Foi assim que as 35 sumiram
+em 15 segundos. Ele concordou que precisa mudar: o `×` deve pedir confirmação no próprio
+botão (primeiro toque vira "apagar?", segundo confirma, some sozinho em alguns segundos).
+Vale para atração, comida, trecho, reserva, aviso e opção de hospedagem.
+
+*(Como desfazer, se acontecer de novo: as linhas semeadas voltam tirando o `seed_id` de
+`killed_seed` e rodando `npm run seed`. As criadas à mão não voltam — não têm `seed_id`.)*
+
+### O que mudou hoje, em uma linha cada
+
+| fase | o que é |
+|---|---|
+| **0** | higiene: `stripTags` fora da entrada, teto no reenvio, `killed_seed` só depois do DELETE, ordem por nome, as duas redes de segurança reconciliadas |
+| **1** | o acrescentar de Reservas subiu, e nenhuma tela come mais o que foi digitado |
+| **2** | "a lançar" virou "quanto custa" em toda parte; campo vazio ganhou borda |
+| **3** | **o dinheiro segue o roteiro**: `day_iso` manda, `status` virou ORIGEM, painel de sugestões separado |
+| **4** | as dicas saíram dos dias e viraram a aba **Dicas** (10ª); 3 alertas ficaram no dia |
+| **5** | caixinha **"já paguei"** em atração e hospedagem |
+| **6** | **hospedagem por país**, com opções e "é esta"; tabela `stay_option`; `stay` aposentada |
+| **7** | a identidade **"Círculos"**, escolhida por ele olhando; `src/app/identidade.css` |
+| **+** | **cidade que ele cria** em Atrações (tabela `city`); só de visitar, dentro dos 7 países |
+
+**Migrações rodadas por ele hoje:** `05-hospedagem-e-pago.sql` e `06-cidades.sql`. As duas
+conferidas no banco depois, pelas seis/quatro coisas que falham em silêncio.
+
+### As armadilhas que custaram caro hoje
+
+- **Toda tabela nova entra em SETE listas**, não quatro: RLS, publicação,
+  `replica identity full`, o array `tabelas` de `store.tsx`, `PK`/`Tabela`/`LISTA` de
+  `merge.ts`, o `select` e o `vazio()` de `load.ts`, e o `Snapshot`. Pôr em `LISTA` sem a
+  chave no `Snapshot` **não é falha silenciosa, é queda**.
+- **`load.ts` normaliza por lista branca.** Coluna nova que ele não conhece funciona na
+  tela, sincroniza para o outro, **e some no primeiro F5**. Declare o campo
+  **obrigatório** em `types.ts` que o `tsc` acha os lugares.
+- **Um `:root` num CSS carregado depois NÃO vence o tema escuro** — os tokens dele moram
+  em seletores de especificidade (0,2,0). `identidade.css` repete os três.
+- **Mexer no respiro de `.mrow` estoura a grade do celular.** Subir o padding de 10/12
+  para 12/16 estourou 32px num aparelho de 360. Se mexer, **meça**: clone a linha numa
+  caixa de 328px e confira `scrollWidth - clientWidth`.
+- **`dados/*.json` e `src/content/*.json` são cópias que precisam bater.** Nada no build
+  reclama.
 
 **Ainda sem prova: a renovação de sessão.** O `middleware.ts` ficou na RAIZ desde a
 primeira publicação e por isso **nunca rodou** — o Next procura `src/middleware.ts` quando
