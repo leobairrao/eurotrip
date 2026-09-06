@@ -83,12 +83,16 @@ export default function Painel() {
           <i>{C.attrCount(s, 'roteiro')} no roteiro</i>
         </div>
         <div>
-          <b>{eur(legEur)}</b>
+          {/* O NUMERO GRANDE E O TRANSPORTE INTEIRO (06/09). Antes era so a
+              parte em euro, e o que estava em real ia para o rodape pequeno
+              como "mais R$ X" — nada se perdia no total da viagem, mas o
+              numero embaixo do rotulo "transportes" nao era o transporte. */}
+          <b>
+            {legEur ? eur(legEur) : ''}{legEur && legBrlLado ? ' + ' : ''}
+            {legBrlLado ? brl(legBrlLado) : ''}{!legEur && !legBrlLado ? eur(0) : ''}
+          </b>
           <span>transportes</span>
-          <i>
-            {C.legDone(s)} de {s.legs.length} comprados
-            {legBrlLado ? ` · mais ${brl(legBrlLado)}` : ''}
-          </i>
+          <i>{C.legDone(s)} de {s.legs.length} comprados</i>
         </div>
         <div>
           <b>{brl(C.totalBrl(s, CIDADES))}</b>

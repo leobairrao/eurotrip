@@ -121,7 +121,7 @@ deixe ele exatamente assim, foi erro meu, ta certinho"*. **Não mexer.**
 
 *"foi erro meu igual no outro, não faça nada, ta certinho"*. **Não mexer.**
 
-## 6 (novo). A contabilização toda em reais
+## 6 (novo). A moeda: garantir que o seletor é contabilizado — ✅ **FEITO em 06/09**
 
 **Ele disse, ao cancelar o item de cima:** *"mas deixa em real, a contabilização vai ser
 toda feita em reais"*
@@ -180,7 +180,7 @@ verbo que ele usou.
 
 ## A ordem que eu sugiro
 
-**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → falta 7 e 6.**
+**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → falta só o 7 (Dicas).**
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.

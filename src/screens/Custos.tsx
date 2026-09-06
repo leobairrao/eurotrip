@@ -5,7 +5,7 @@
 // porque um lugar so edita cada coisa.
 // ============================================================
 import { useRef } from 'react';
-import { STAYS, VOO } from '@/content';
+import { ESTIM_EUR, STAYS, TETO, VOO } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
@@ -165,11 +165,17 @@ export default function Custos() {
           <div className="m">04/09 · não entra em nenhuma soma acima</div>
         </div>
         <div className="b">
+          {/* OS NUMEROS SAO CONTA, NAO TEXTO (06/09). Estavam escritos a mao,
+              calculados com o cambio 6,00: com o 6,20 de hoje, esta frase
+              dizia "uns R$ 16.770" enquanto a Caixa, que ja calculava,
+              dizia R$ 17.329 para a MESMA estimativa — R$ 559 de diferenca
+              entre duas abas do mesmo app. A constante TETO ja existia em
+              content/index.ts e ninguem usava. */}
           <p>
             Com o <b>seu perfil</b> — hospedagem sempre em bairro afastado e dividida, trem sempre
             o mais barato, e &quot;um ou outro&quot; passeio — a conta fecha em{' '}
-            <b>€ 2.795, uns R$ 16.770</b>. Contra os R$ 19.920 que sobram depois do voo
-            internacional, <b>sobram uns R$ 3.150</b>.
+            <b>{eur(ESTIM_EUR)}, uns {brl(ESTIM_EUR * rt)}</b>. Contra os {brl(TETO)} que sobram
+            depois do voo internacional, <b>sobram uns {brl(TETO - ESTIM_EUR * rt)}</b>.
           </p>
           <p className="mono">
             hospedagem € 1.062 · transporte € 640 · comida € 788 · passeios € 180 · seguro, chip e

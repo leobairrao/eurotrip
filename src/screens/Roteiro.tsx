@@ -288,7 +288,14 @@ function DiaTags({ iso }: { iso: string }) {
   const tr = C.legsOfDay(s, iso);
   if (!a.length && !f.length && !tr.length) return null;
 
-  const tot = C.dayAttrTotal(s, iso) + C.dayLegEur(s, iso);
+  // OS DOIS LADOS, nao so o euro (06/09). Ate aqui a etiqueta somava
+  // `dayAttrTotal + dayLegEur` e imprimia `eur(tot)`: um trem de R$ 800 no
+  // mesmo dia de uma atracao de EUR 20 desaparecia do resumo — a etiqueta
+  // dizia "EUR 20 no dia". Nao contava errado (o total geral sempre esteve
+  // certo); escondia. O cartao de transporte do mesmo dia ja mostrava os
+  // dois lados, o que prova que foi esquecimento, nao decisao.
+  const totE = C.dayAttrTotal(s, iso) + C.dayLegEur(s, iso);
+  const totB = C.dayLegBrl(s, iso);
 
   return (
     <div className="dtags">
@@ -316,7 +323,11 @@ function DiaTags({ iso }: { iso: string }) {
           {FKE[it.kind]} {it.name}
         </span>
       ))}
-      {tot ? <span className="dtg tot">{eur(tot)} no dia</span> : null}
+      {totE || totB ? (
+        <span className="dtg tot">
+          {totE ? eur(totE) : ''}{totE && totB ? ' + ' : ''}{totB ? brl(totB) : ''} no dia
+        </span>
+      ) : null}
     </div>
   );
 }
