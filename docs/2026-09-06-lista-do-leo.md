@@ -134,7 +134,7 @@ toda feita em reais"*
   euro e converte tudo — o que muda Painel, Custos, Caixa e as contas da seção 11.
 - **Tamanho:** (a) é pequeno. (c) é grande.
 
-## 7 (novo). Dicas: um campo para escrever, com país ou "geral"
+## 7 (novo). Dicas: um campo para escrever, com país ou "geral" — ✅ **FEITO em 06/09**
 
 **Ele disse:** *"na aba dicas: vamos colocar um input onde eu coloco a dica, alguma
 observação e posso selecionar o país ou geral, daí eu posso anotar dicas gerais da viagem"*
@@ -180,7 +180,7 @@ verbo que ele usou.
 
 ## A ordem que eu sugiro
 
-**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → falta só o 7 (Dicas).**
+**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ — **a lista inteira saiu.**
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.
