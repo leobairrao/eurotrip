@@ -224,7 +224,7 @@ src/components/
   Login.tsx      105    a tela de entrada
 
 src/screens/           uma tela por arquivo, na ordem das abas
-  Painel.tsx     278    Roteiro.tsx    745   ← a maior, e a mais complexa
+  Painel.tsx     278    Roteiro.tsx    809   ← a maior, e a mais complexa
   Atracoes.tsx   293    Comidas.tsx    284
   Transporte.tsx 258    Hospedagem.tsx 400
   Reservas.tsx   247    Caixa.tsx      457
