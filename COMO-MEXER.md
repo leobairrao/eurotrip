@@ -79,6 +79,30 @@ Vale para atração, comida, trecho, reserva, aviso e opção de hospedagem.
 *(Como desfazer, se acontecer de novo: as linhas semeadas voltam tirando o `seed_id` de
 `killed_seed` e rodando `npm run seed`. As criadas à mão não voltam — não têm `seed_id`.)*
 
+### A lista dele de 06/09, item 1: Comidas com um campo so
+
+Ele checou o sistema e mandou sete coisas — a lista esta em
+[`docs/2026-09-06-lista-do-leo.md`](docs/2026-09-06-lista-do-leo.md), com a regra que ele
+deu: **uma de cada vez**. O item 1 saiu: os tres formularios de acrescentar de Comidas
+viraram UM, num cartao no topo, com um `select` de etiqueta que decide o tipo.
+
+Duas coisas que so a revisao adversarial pegou, e valem para quem mexer depois:
+
+- **`input` herda `color`; `select` NAO.** `.addrow input, .addrow select`
+  (`estilo-atual.css:334`) nunca definiu `color`, e o select cai no preto padrao do
+  navegador — preto sobre preto no tema escuro. **Ja havia CINCO selects assim** antes desta
+  rodada (`Transporte.tsx:286` e `:301`, `Custos.tsx:308`, `Caixa.tsx:340`,
+  `Avisos.tsx:209` — este em seis telas). Conferido no site publicado: o de moeda do
+  "adicionar trecho" aparecia como uma **caixa vazia**. A regra `.addrow select { color:
+  var(--ink) }` do `extras.css` e de proposito SEM escopo: prende-la a `.fo3` devolve o
+  defeito para os cinco.
+- **A grade da `.fo3` e medida, nao chutada.** 158px para a etiqueta ("🍽️ restaurante" pede
+  144px com seta) e 205px fixos para o botao, cujo rotulo muda com a etiqueta e, em `auto`,
+  crescia 50px e empurrava os campos enquanto ele digitava.
+
+E `tests/telas.test.mjs` ganhou um terceiro teste: **toda grade `.addrow` precisa do par que
+vira coluna unica abaixo de 700px**. Todas tinham; nada obrigava. Agora obriga.
+
 ### O que mudou hoje, em uma linha cada
 
 | fase | o que é |

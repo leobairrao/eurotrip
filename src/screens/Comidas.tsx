@@ -1,14 +1,18 @@
 'use client';
 // ============================================================
-// 10.4 — Comidas. Tres listas por pais, nesta ordem: pratos tipicos
-// (lista de desejo, sem dia), restaurantes e cafes (esses aparecem no
-// Roteiro para encaixar num dia).
+// 10.4 — Comidas. UM formulario de acrescentar (06/09) e tres listas
+// por pais, nesta ordem: pratos tipicos (lista de desejo, sem dia),
+// restaurantes e cafes (esses aparecem no Roteiro para encaixar num dia).
+//
+// A etiqueta escolhida no formulario decide em qual das tres a linha
+// cai. Ate 05/09 eram tres formularios iguais, um dentro de cada cartao.
 //
 // Comida NAO tem campo de valor — nenhum (regra 5.9). O que se come
 // vive na estimativa e na Caixa, nunca no custo real.
 // ============================================================
 import { CO, FK, FKCLS, FKE, FKPL, FOOD, coOf } from '@/content';
 import type { FoodSugg } from '@/content';
+import { useState } from 'react';
 import { Nota, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
@@ -44,14 +48,25 @@ export default function Comidas() {
   const co = coOf(selCO);
   const f = FOOD.find((x) => x.pais === selCO) ?? null;
 
+  /**
+   * A etiqueta mora AQUI, e nao dentro do formulario, por causa do
+   * `key={selCO}` logo abaixo: a chave remonta o formulario a cada troca
+   * de pais, e remontar zera todo estado de hook que estiver la dentro.
+   * Com a etiqueta aqui em cima, trocar de pais limpa o que ele digitou
+   * (que e o que a chave existe para fazer) sem desfazer a escolha dele.
+   * Catalogando restaurantes pelos sete paises, ele escolhe uma vez.
+   */
+  const [kind, setKind] = useState<FoodKind>('prato');
+
   return (
     <>
       <div className="panelhead">
         <h2>Comidas</h2>
         <p>
-          Três listas por país. <b>Pratos</b> é lista de desejo — coisa típica que você quer
-          provar em algum momento, sem dia marcado. <b>Restaurantes</b> e <b>cafés</b> são
-          lugares, e esses aparecem no Roteiro para você encaixar num dia.
+          <b>Um campo só para acrescentar</b>, logo abaixo: escreva o nome e escolha a
+          etiqueta. <b>Pratos</b> é lista de desejo — coisa típica que você quer provar em
+          algum momento, sem dia marcado. <b>Restaurantes</b> e <b>cafés</b> são lugares, e
+          esses aparecem no Roteiro para você encaixar num dia.
         </p>
       </div>
 
@@ -62,7 +77,11 @@ export default function Comidas() {
         valor={(k: string) => String(C.foodsOf(s, k).length || '')}
       />
 
-      {/* a chave leva o pais: trocar de pais limpa o campo de acrescentar, como no artefato */}
+      {/* UM formulario para os tres (06/09). A chave leva o pais: trocar de pais
+          limpa o NOME e a NOTA, como o artefato fazia com os tres. A etiqueta
+          nao — ela vive no estado daqui de cima, que a chave nao alcanca. */}
+      <Acrescentar key={selCO} kind={kind} setKind={setKind} />
+
       {KINDS.map((k) => (
         <Cartao key={`${selCO}|${k}`} kind={k} cor={k === 'prato' ? co.cc : k === 'restaurante' ? '--c-nl' : '--ochre'} />
       ))}
@@ -72,7 +91,7 @@ export default function Comidas() {
   );
 }
 
-/** Um dos tres cartoes: lista + formulario de acrescentar. */
+/** Um dos tres cartoes: so a lista. O formulario e um so, la em cima. */
 function Cartao({ kind, cor }: { kind: FoodKind; cor: string }) {
   const { s } = useApp();
   const { selCO } = useUi();
@@ -96,7 +115,6 @@ function Cartao({ kind, cor }: { kind: FoodKind; cor: string }) {
         ) : (
           <div className="empty"><Vazio kind={kind} /></div>
         )}
-        <Acrescentar kind={kind} />
       </div>
     </div>
   );
@@ -105,18 +123,26 @@ function Cartao({ kind, cor }: { kind: FoodKind; cor: string }) {
 function Vazio({ kind }: { kind: FoodKind }) {
   if (kind === 'prato') {
     return (
-      <>Nada aqui ainda. As minhas sugestões estão embaixo — puxe com o <b>+</b> ou escreva o seu.</>
+      <>
+        Nada aqui ainda. As minhas sugestões estão embaixo — puxe com o <b>+</b>, ou escreva
+        o seu no campo do topo com a etiqueta <b>prato</b>.
+      </>
     );
   }
   if (kind === 'restaurante') {
     return (
       <>
-        Nenhum restaurante anotado. Quando achar um que você quer ir, ponha aqui —{' '}
-        <b>ele vira opção nos dias do Roteiro</b>.
+        Nenhum restaurante anotado. Quando achar um que você quer ir, escreva no campo do
+        topo com a etiqueta <b>restaurante</b> — <b>ele vira opção nos dias do Roteiro</b>.
       </>
     );
   }
-  return <>Nenhum café anotado. Mesmo caso: <b>café entra nos dias do Roteiro</b>.</>;
+  return (
+    <>
+      Nenhum café anotado. Mesmo caso, com a etiqueta <b>café</b>: ele{' '}
+      <b>entra nos dias do Roteiro</b>.
+    </>
+  );
 }
 
 /** nome | tipo | x — e nada mais: comida nao tem preco (regra 5.9). */
@@ -185,16 +211,40 @@ function Linha({ it }: { it: Food }) {
   );
 }
 
-function Acrescentar({ kind }: { kind: FoodKind }) {
+/**
+ * UM formulario para os tres cartoes (06/09/2026).
+ *
+ * Ele pediu: "em comidas nao precisa de tres inputs (comida, cafe e
+ * restaurante): temos que ter um input e la colocamos o nome e uma tag
+ * de qual das 3 opcoes e". Antes, cada cartao tinha o seu — tres
+ * formularios identicos, um por tipo.
+ *
+ * A etiqueta e um `select` de verdade, nao um botao que parece etiqueta:
+ * e o mesmo controle que ja existe em cada linha da lista, entao ele
+ * escolhe do mesmo jeito ao criar e ao corrigir depois.
+ *
+ * `day_iso: null` sempre, para os tres. Restaurante e cafe ganham dia no
+ * Roteiro, nunca aqui; e prato nao ganha dia nunca (regra 5.8).
+ */
+function Acrescentar({
+  kind,
+  setKind,
+}: {
+  kind: FoodKind;
+  setKind: (k: FoodKind) => void;
+}) {
   const { insert } = useApp();
   const { selCO } = useUi();
+  const co = coOf(selCO);
   const campo = useLocal();
   const nota = useLocal();
+  const [indo, setIndo] = useState(false);
 
   const por = async () => {
     const nome = campo.get();
-    if (!nome) return;
-    const r = insert('food', {
+    if (!nome || indo) return;
+    setIndo(true);
+    const r = await insert('food', {
       country: selCO,
       name: nome,
       note: nota.get(),
@@ -202,29 +252,54 @@ function Acrescentar({ kind }: { kind: FoodKind }) {
       day_iso: null,
       seed_id: null,
     });
+    setIndo(false);
     // So limpa depois de o banco confirmar (secao 8, promessa 3): antes de
     // 05/09 o campo era limpo sempre, e um insert que falhava comia o que
     // ele digitou. O rodape avisa; o texto fica na tela para ele tentar.
-    if (!(await r).ok) return;
+    if (!r.ok) return;
     campo.limpar();
     nota.limpar();
   };
 
   return (
-    <div className="addrow fo2">
-      <input
-        type="text"
-        ref={(el) => { campo.ref.current = el; }}
-        placeholder={PLACEHOLDER[kind]}
-        aria-label="nome"
-      />
-      <input
-        type="text"
-        ref={(el) => { nota.ref.current = el; }}
-        placeholder="uma nota (opcional)"
-        aria-label="nota"
-      />
-      <button onClick={() => void por()}>pôr em {FKPL[kind]}</button>
+    <div className="card" style={{ ['--cc' as string]: `var(${co.cc})` }}>
+      <div className="h">
+        <h3>Acrescentar em {co.n}</h3>
+        <div className="m">
+          escreva o nome, escolha a etiqueta — e ele entra na lista certa aqui embaixo
+        </div>
+      </div>
+      <div className="b">
+        <div className="addrow fo3">
+          <input
+            type="text"
+            ref={(el) => { campo.ref.current = el; }}
+            placeholder={PLACEHOLDER[kind]}
+            aria-label="nome"
+          />
+          <input
+            type="text"
+            ref={(el) => { nota.ref.current = el; }}
+            placeholder="uma nota (opcional)"
+            aria-label="nota"
+          />
+          <select
+            /* sem `className="sv"`: as onze regras `.sv` do projeto comecam
+               todas com `.mrow`, e aqui estamos dentro de `.addrow`. Quem
+               veste este select e `.addrow select` do extras.css. */
+            aria-label="etiqueta"
+            value={kind}
+            onChange={(e) => setKind(e.currentTarget.value as FoodKind)}
+          >
+            {KINDS.map((k) => (
+              <option key={k} value={k}>{FKE[k]} {FK[k]}</option>
+            ))}
+          </select>
+          <button onClick={() => void por()} disabled={indo}>
+            {indo ? 'pondo…' : `pôr em ${FKPL[kind]}`}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

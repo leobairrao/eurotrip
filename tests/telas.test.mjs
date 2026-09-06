@@ -69,3 +69,51 @@ test('a rede embaixo do app existe — error.tsx e global-error.tsx', () => {
     assert.ok(/reset/.test(src), `${f} precisa oferecer o "tentar de novo"`);
   }
 });
+
+/**
+ * Toda grade de formulario de acrescentar tem que virar coluna unica no celular.
+ *
+ * As `.addrow.<sigla>` sao grades em px com aritmetica justa. Cada uma delas
+ * PRECISA de um par dentro de um `@media (max-width: ...)` que a devolva para
+ * `1fr`; sem isso, a linha nao cabe num aparelho de 360 e o app anda para o
+ * lado. Hoje todas tem — mas so porque quem escreveu lembrou. Em 06/09, ao
+ * criar a `.fo3` de Comidas, eu lembrei; nada me obrigava.
+ *
+ * Este teste faz a obrigacao existir.
+ */
+function grades(css) {
+  const fora = new Map();   // sigla -> linha, definidas FORA de @media
+  const dentro = new Set(); // siglas citadas DENTRO de um @media (max-width)
+  let profundidadeMedia = 0;
+  let dentroDeMedia = false;
+  css.split('\n').forEach((l, i) => {
+    if (/@media[^{]*max-width/.test(l)) { dentroDeMedia = true; profundidadeMedia = 0; }
+    for (const ch of l) {
+      if (ch === '{') profundidadeMedia++;
+      if (ch === '}') { profundidadeMedia--; if (dentroDeMedia && profundidadeMedia <= 0) dentroDeMedia = false; }
+    }
+    for (const m of l.matchAll(/\.addrow\.([a-z0-9]+)/g)) {
+      const sigla = m[1];
+      if (dentroDeMedia) dentro.add(sigla);
+      else if (/grid-template-columns/.test(l) && !fora.has(sigla)) fora.set(sigla, i + 1);
+    }
+  });
+  return { fora, dentro };
+}
+
+test('toda grade .addrow tem o par que vira coluna unica no celular', () => {
+  const arquivos = ['src/app/estilo-atual.css', 'src/app/extras.css'];
+  const fora = new Map();
+  const dentro = new Set();
+  for (const f of arquivos) {
+    const g = grades(readFileSync(join(RAIZ, f), 'utf8'));
+    for (const [k, linha] of g.fora) if (!fora.has(k)) fora.set(k, `${f}:${linha}`);
+    for (const k of g.dentro) dentro.add(k);
+  }
+  const orfas = [...fora].filter(([sigla]) => !dentro.has(sigla)).map(([s, onde]) => `${s} (${onde})`);
+  assert.deepEqual(
+    orfas,
+    [],
+    `Grade de formulario sem colapso no celular. Ponha a sigla na lista do @media (max-width: 700px):\n${orfas.join('\n')}`,
+  );
+});

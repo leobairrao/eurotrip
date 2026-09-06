@@ -130,11 +130,40 @@
 
 /* o formulario de acrescentar ganhou o campo de nota */
 .addrow.at3 { grid-template-columns: 1fr 1fr 96px auto; }
-.addrow.fo2 { grid-template-columns: 1fr 1fr auto; }
+/* Comidas passou a ter UM formulario para os tres tipos (06/09): entrou a
+   etiqueta entre a nota e o botao. Abaixo de 700px vira coluna unica junto
+   com as outras, na regra logo abaixo — sem isso a linha estoura no celular. */
+/* Os dois numeros sao MEDIDOS no navegador, nao chutados (06/09):
+   - 158px para a etiqueta: "🍽️ restaurante" ocupa 102px na mono de 12px, mais
+     22px de respiro e ~20px da seta nativa = 144px. Com 132px a palavra saia
+     cortada como "restaurar". A folga cobre a seta mais gorda do Safari.
+   - 205px para o botao: o rotulo muda com a etiqueta, e "PÔR EM RESTAURANTES"
+     pede 165px de texto mais 36px de respiro = 201px. Com `auto`, o botao
+     crescia 50px ao trocar de etiqueta e empurrava os dois campos de texto
+     enquanto ele digitava. Trilho fixo = nada se mexe.
+   Abaixo de 700px vira coluna unica, na regra do @media logo abaixo. */
+.addrow.fo3 { grid-template-columns: 1fr 1fr 158px 205px; }
+/* CONSERTO DE CINCO TELAS, nao so da etiqueta nova (06/09).
+   `.addrow input, .addrow select` (estilo-atual.css:334) define fundo e borda
+   e NUNCA definiu `color`. O input herda `--ink` do body; o select NAO herda —
+   cai no preto padrao do navegador. No tema escuro isso e preto sobre preto:
+   a palavra existe no DOM, some da tela, e no maximo o emoji aparece, porque
+   emoji tem cor propria.
+   Conferido no site publicado em 06/09: os dois selects do "adicionar trecho"
+   em Transporte estavam com color rgb(0,0,0) sobre background rgb(0,0,0) — o
+   de moeda aparecia como uma caixa VAZIA. Sao cinco no total, todos anteriores
+   a esta rodada: Transporte.tsx:286 e :301, Custos.tsx:308, Caixa.tsx:340 e
+   Avisos.tsx:209 — este ultimo desenhado em seis telas.
+   Por isso a regra e DE PROPOSITO sem escopo: prende-la a `.fo3` devolveria o
+   defeito para os cinco. Nenhum teste pega isto; so olhar a tela pega. */
+.addrow select { color: var(--ink); }
+/* A tipografia da etiqueta, essa sim so em Comidas: e a unica que precisa
+   parecer etiqueta. Os outros cinco continuam com a fonte que sempre tiveram. */
+.addrow.fo3 select { font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
 .addrow.tr5 { grid-template-columns: 1fr 1fr 116px 96px 62px auto; }
 .addrow.re4 { grid-template-columns: 1fr 1fr 96px 58px auto; }
 @media (max-width: 700px) {
-  .addrow.at3, .addrow.fo2, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  .addrow.at3, .addrow.fo3, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
   .mrow .wh.nt .wv, .bkr.rr .rb.nt .wv { flex: 1 1 100%; }
 }
 
