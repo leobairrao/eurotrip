@@ -54,7 +54,17 @@ const cidades = await g('city').catch(() => []);
 const extra      = await g('extra');
 // Fase 7: o item que ele escreve dentro de um dia. Entra no total da viagem
 // e nao aparece na aba Custos.
-const dayItem    = await g('day_item').catch(() => []);
+//
+// `g` usa `precisa`, que da process.exit(1) em qualquer erro — um .catch
+// aqui nunca rodaria de verdade (rodada de correcao 1 da revisao). A
+// tolerancia agora e explicita e so para o codigo que significa "esta
+// tabela nao existe" (42P01, undefined_table): antes de rodar a migracao
+// 10 e exatamente isso que acontece. Qualquer outro erro tem que aparecer
+// na linha de aceite, nao virar um zero silencioso.
+const diRes        = await db.from('day_item').select('*');
+const diSemTabela  = diRes.error?.code === '42P01';
+const diFalhou     = !!diRes.error && !diSemTabela;
+const dayItem      = diRes.data ?? [];
 
 const rate = num(settings?.eur_rate);
 
@@ -99,7 +109,7 @@ const attrPago = noRoteiro.filter((a) => a.paid).reduce((a, x) => a + num(x.pric
 const stayPago = marcadas.filter((o) => o.paid).reduce((a, o) => a + valorOpc(o), 0);
 const jaPago = VOO + emBrl(bookS('pago')) + emBrl(legS('pago')) + (attrPago + stayPago) * rate;
 const totalReal =
-  VOO + (attrEsc + stayTot + xEur + legS('').eur) * rate + xBrl + legS('').brl + emBrl(bookS(''));
+  VOO + (attrEsc + stayTot + xEur + diEur + legS('').eur) * rate + xBrl + diBrl + legS('').brl + emBrl(bookS(''));
 
 // ---- blocos, noites e dias (secao 11.2) ----
 const isos = days.map((d) => String(d.iso)).sort();
@@ -140,7 +150,16 @@ linha(attraction.length >= 35, 'atracoes na lista DELE', '>= 35', attraction.len
 linha(pesquisa.length === 0, '  ... nenhuma sugestao minha aqui dentro', 0, pesquisa.length);
 linha(stay.length === 7, 'bases de hospedagem (tabela aposentada)', 7, stay.length);
 console.log(`       retrato de hoje: ${leg.length} trechos e ${stayOpt.length} opcoes de hospedagem que ELE puxou`);
-linha(true, 'itens escritos no dia', '(retrato)', `${dayItem.length} · ${eur(diEur)} + ${brl(diBrl)}`);
+linha(
+  !diFalhou,
+  'itens escritos no dia',
+  '(retrato)',
+  diFalhou
+    ? `FALHOU: ${diRes.error.message}`
+    : diSemTabela
+      ? 'tabela ainda nao existe (rode a migracao 10)'
+      : `${dayItem.length} · ${eur(diEur)} + ${brl(diBrl)}`,
+);
 
 console.log('\n  ================ A PESQUISA, QUE AGORA VIVE EM ARQUIVO ================\n');
 linha(soma(atrSugArq) === 69, 'atracoes que eu pesquisei', 69, soma(atrSugArq));
