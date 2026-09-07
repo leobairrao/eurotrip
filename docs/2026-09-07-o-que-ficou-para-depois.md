@@ -12,40 +12,37 @@ Nada aqui começou.
 
 ---
 
-## A que precisa acontecer antes da etapa 2
+## A que precisava acontecer antes da etapa 2 — RESOLVIDA em 07/09
 
-### `DiaTags` é uma segunda implementação do dia
+### `DiaTags` era uma segunda implementacao do dia
 
-`src/screens/Roteiro.tsx`. É a tira de etiquetas embaixo de cada dia na lista
-de blocos. Ela monta e ordena as quatro origens **por conta própria**, e
-discorda do `src/lib/dia.ts` em duas coisas:
+Era a tira de etiquetas embaixo de cada dia na lista de blocos. Ela montava e
+ordenava as quatro origens por conta propria, e discordava do `src/lib/dia.ts`
+em duas coisas: comida e item livre trocados, e a ordem dentro de cada tipo.
+Recalculava tambem o total do dia por outro caminho.
 
-- **Ordem entre tipos.** Ela desenha transporte → atração → **comida → item
-  livre**. O `dia.ts` ordena transporte → atração → **item livre → comida**.
-  Comida e item livre estão trocados.
-- **Ordem dentro do tipo.** Ela usa `C.legsOfDay`/`C.attrsOfDay`/
-  `C.foodsOfDay`, que ordenam por tipo de transporte, por situação e por
-  tipo de comida. O `dia.ts` ordena por `day_pos` e depois por id. Dois
-  trens no mesmo dia já saem numa ordem na tira e noutra na visualização.
+**Hoje ela consome `D.itensDoDia` e `D.totalDoDia`.** O `Roteiro.tsx` encolheu
+64 linhas e perdeu seis imports que ficaram órfãos.
 
-Ela também recalcula o total do dia por outro caminho, com um filtro de
-`day_item` próprio — a mesma forma das duas cópias desatualizadas da fórmula
-do total que esta etapa teve que consertar, um nível abaixo.
+A correção não era trocar a fonte e pronto, como parecia: as etiquetas são
+coloridas **por tipo** — `tk-trem`, `fk-rest`, e `pgo` no trecho comprado — e o
+`ItemDoDia` não carregava nem `kind` nem `bought`. Consumir a lista como
+estava teria apagado todas as cores. Então o `ItemDoDia` ganhou um campo
+`classe`, resolvido por origem no `dia.ts` — pelo mesmo motivo que ele já
+resolve o emoji e a linha miúda: é escolha de exibição por tipo, e o tipo só
+existe lá dentro.
 
-**Hoje o custo é baixo:** a tira é um resumo, e você nunca vê as duas ao
-mesmo tempo. **A partir da etapa 2 não é:** no momento em que você ordenar o
-dia com as setas, a lista de blocos vai mostrar aquele dia numa ordem que
-você não escolheu, e a tira vai ignorar o `day_pos` de três das quatro
-origens.
+Ficaram dois testes: um prende a classe das quatro origens e o caso do trecho
+comprado; o outro **proíbe o `Roteiro.tsx` de voltar a buscar o dia sozinho**.
+O segundo foi sabotado com o código antigo e falhou, como devia. Ele ignora
+comentários — os comentários citam os nomes proibidos de propósito, ao contar
+a história.
 
-**O conserto:** fazer o `DiaTags` consumir `D.itensDoDia(s, iso)` e
-`D.totalDoDia(s, iso)`, mantendo a classe CSS de cada etiqueta pelo
-`x.tabela`. Isso apaga a ordem divergente, apaga o total duplicado, e de
-quebra resolve o item 8 desta lista.
+**O que mudou na sua tela:** a ordem da tira. Comida e item livre trocaram, e
+dentro de cada tipo a ordem passou a ser a mesma da visualização do dia. Era o
+preço combinado, e a etapa 2 dá a palavra final às setas nas duas telas.
 
-Não entrou na etapa 1 porque **muda a ordem visível** da lista de blocos, e
-uma mudança visível precisa de prova na tela e de revisão própria — a rodada
-final não tinha uma segunda chance.
+Isso resolve também o item 8 desta lista.
 
 ---
 
@@ -136,14 +133,12 @@ compila limpo e nenhum outro teste pega.
 `nights`, os dois `number`, que é exatamente a falha que a etapa provou ser
 real.
 
-### 8. O `dia.ts` filtra `day_item` na mão
+### 8. — ✅ **RESOLVIDO junto com o `DiaTags`**
 
-`src/lib/dia.ts`, enquanto as outras três origens passam por `C.*OfDay`.
-
-Recusei criar um `C.dayItemsOfDay` duas vezes durante a etapa, porque não
-havia duplicação real para evitar. A revisão final concordou e disse para
-recusar uma terceira: **o conserto certo é o do `DiaTags` lá em cima**, que
-faz o segundo filtro desaparecer em vez de virar abstração.
+Era o `dia.ts` filtrar `day_item` na mão enquanto as outras três origens
+passavam por `C.*OfDay`. Recusei criar um `C.dayItemsOfDay` três vezes, e a
+revisão final concordou: o conserto certo era o do `DiaTags`, que fez o
+segundo filtro desaparecer em vez de virar abstração. Foi o que aconteceu.
 
 ### 9. Miudezas do SQL da etapa
 
