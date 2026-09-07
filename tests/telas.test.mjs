@@ -433,3 +433,53 @@ test('toda fonte de dinheiro do totalBrl aparece na aba Custos', () => {
   assert.match(corpo[0], /\bVOO\b/);
   assert.match(tela, /\bVOO\b/, 'o voo esta no total e tem que estar na tabela');
 });
+
+/**
+ * A TIRA DE ETIQUETAS NAO PODE VOLTAR A MONTAR O DIA SOZINHA.
+ *
+ * Ate 07/09 o `DiaTags` buscava e ordenava as quatro origens por conta
+ * propria, e discordava do `dia.ts` em duas coisas: comida e item livre
+ * trocados, e a ordem dentro de cada tipo. Ninguem via, porque a tira e a
+ * visualizacao nunca aparecem juntas — e ia deixar de ser invisivel na etapa
+ * 2, quando as setas passassem a mandar na ordem e so uma das duas obedecesse.
+ *
+ * Hoje ele consome `D.itensDoDia`. Este teste impede a volta: se alguem
+ * reintroduzir uma busca por dia dentro do `Roteiro.tsx`, a divergencia volta
+ * junto, e e melhor descobrir aqui do que numa tela.
+ *
+ * A regra e crua de proposito: proibe os buscadores por dia neste arquivo, e
+ * exige a chamada ao modulo. Uma regra crua que falha no dia certo vale mais
+ * que uma fina que ninguem escreve.
+ */
+test('a tira de etiquetas do dia sai do dia.ts, e nao se remonta na tela', () => {
+  const bruto = readFileSync(join(RAIZ, 'src/screens/Roteiro.tsx'), 'utf8');
+  // SEM COMENTARIOS. Os comentarios deste arquivo contam a historia do
+  // defeito e citam os nomes proibidos de proposito; a regra e sobre codigo.
+  // (Ja errei assim hoje: um grep de palavra casou prosa em portugues.)
+  const src = bruto.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+  assert.match(
+    src, /D\.itensDoDia\s*\(/,
+    'Roteiro.tsx tem que pegar a lista do dia em dia.ts',
+  );
+  assert.match(
+    src, /D\.totalDoDia\s*\(/,
+    'o total do dia tem que vir do mesmo lugar que a lista',
+  );
+
+  const PROIBIDOS = ['attrsOfDay', 'foodsOfDay', 'legsOfDay', 'dayAttrTotal',
+                     'dayLegEur', 'dayLegBrl'];
+  const achados = PROIBIDOS.filter((f) => new RegExp(`\\b${f}\\b`).test(src));
+  assert.deepEqual(
+    achados, [],
+    `Roteiro.tsx voltou a montar o dia sozinho com: ${achados.join(', ')}.`
+    + ' Use D.itensDoDia/D.totalDoDia — senao a tira e a visualizacao'
+    + ' voltam a ordenar os mesmos itens de formas diferentes.',
+  );
+
+  // e o dia.ts continua sendo quem resolve a cor da etiqueta
+  assert.doesNotMatch(
+    src, /\bFKCLS\b/,
+    'a classe da etiqueta sai do `classe` do ItemDoDia, nao do FKCLS na tela',
+  );
+});

@@ -174,3 +174,36 @@ test('emoji nunca vem vazio, nem com tema inventado', () => {
     assert.ok(x.emoji && x.emoji.length > 0, `${x.id} ficou sem emoji`);
   }
 });
+
+/**
+ * A CLASSE CSS DE CADA ETIQUETA SAI DAQUI, E NAO DA TELA.
+ *
+ * A tira de etiquetas da lista de blocos (`DiaTags`, em Roteiro.tsx) montava e
+ * ordenava as quatro origens por conta propria, e discordava deste modulo em
+ * duas coisas: comida e item livre trocados, e a ordem dentro do tipo. Em
+ * 07/09 ela passou a consumir o `itensDoDia`.
+ *
+ * Para isso o item precisa carregar a classe de cor, que antes a tela
+ * resolvia — do mesmo jeito que ja carrega `emoji` e `sub`, que tambem sao
+ * escolha de exibicao por tipo. Se a classe voltar para a tela, a divergencia
+ * volta junto.
+ *
+ * O `pgo` do trecho comprado tem caso proprio: e a unica classe que depende
+ * de um estado, e nao so do tipo.
+ */
+test('cada item traz a classe de cor da etiqueta, por origem', () => {
+  const s = snap({
+    legs: [leg('t1', 0, { kind: 'trem' }), leg('t2', 1, { kind: 'aviao', bought: true })],
+    attractions: [attr('a1', 2)],
+    dayItems: [item('d1', 3)],
+    foods: [food('f1', 4, { kind: 'restaurante' })],
+  });
+
+  const porId = Object.fromEntries(D.itensDoDia(s, ISO).map((x) => [x.id, x.classe]));
+
+  assert.equal(porId.t1, 'tk-trem', 'o trecho leva o tipo na classe');
+  assert.equal(porId.t2, 'tk-aviao pgo', 'comprado ganha o pgo, e so o comprado');
+  assert.equal(porId.a1, 'st-esc', 'dentro do dia toda atracao esta no roteiro');
+  assert.equal(porId.d1, 'di', 'o item livre tem classe propria');
+  assert.equal(porId.f1, 'fk-rest', 'a comida usa a sigla do FKCLS, nao o kind cru');
+});

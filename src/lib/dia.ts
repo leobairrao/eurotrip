@@ -9,7 +9,7 @@
 // e testado em tests/dia.test.mjs. A juncao e a ordem sao onde este
 // desenho erra em silencio, e funcao pura e o que da para trancar.
 // ============================================================
-import { akEmoji, fkEmoji, tkEmoji, DI_EMOJI, FK, TK } from '@/content';
+import { akEmoji, fkEmoji, tkEmoji, DI_EMOJI, FK, FKCLS, TK } from '@/content';
 import * as C from './calc';
 import { num } from './fmt';
 import type { Snapshot } from './types';
@@ -41,6 +41,16 @@ export interface ItemDoDia {
   feito: boolean;
   /** A linha miuda: a cidade da atracao, o tipo do trecho, o tipo da comida. */
   sub: string;
+  /**
+   * O modificador CSS da etiqueta na lista de blocos (`.dtg <classe>`).
+   *
+   * Mora aqui, e nao na tela, pelo mesmo motivo do `emoji` e do `sub`: e
+   * escolha de exibicao POR TIPO, e o tipo so existe aqui dentro. Ate 07/09 a
+   * tira de etiquetas resolvia isso sozinha, e para isso remontava o dia
+   * inteiro — e remontando, discordava desta ordem. Trazendo a classe para ca,
+   * a tela vira um `map` e nao tem mais como divergir.
+   */
+  classe: string;
 }
 
 /** As quatro origens do dia, juntas e em ordem estavel. */
@@ -56,6 +66,7 @@ export function itensDoDia(s: Snapshot, iso: string): ItemDoDia[] {
       brl: t.currency === 'brl' ? v : 0,
       feito: t.done,
       sub: (TK as Record<string, string>)[t.kind] ?? t.kind,
+      classe: `tk-${t.kind}${t.bought ? ' pgo' : ''}`,
     });
   }
   for (const a of C.attrsOfDay(s, iso)) {
@@ -65,6 +76,8 @@ export function itensDoDia(s: Snapshot, iso: string): ItemDoDia[] {
       eur: num(a.price_eur), brl: 0,
       feito: a.done,
       sub: C.nomeCidade(s, a.city),
+      // dentro de um dia toda atracao esta no roteiro, por definicao
+      classe: 'st-esc',
     });
   }
   for (const d of s.dayItems) {
@@ -77,6 +90,7 @@ export function itensDoDia(s: Snapshot, iso: string): ItemDoDia[] {
       brl: d.currency === 'brl' ? v : 0,
       feito: d.done,
       sub: 'seu',
+      classe: 'di',
     });
   }
   for (const f of C.foodsOfDay(s, iso)) {
@@ -86,6 +100,7 @@ export function itensDoDia(s: Snapshot, iso: string): ItemDoDia[] {
       eur: 0, brl: 0,
       feito: f.done,
       sub: (FK as Record<string, string>)[f.kind] ?? f.kind,
+      classe: `fk-${FKCLS[f.kind] ?? f.kind}`,
     });
   }
 

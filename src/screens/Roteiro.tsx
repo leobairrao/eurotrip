@@ -10,14 +10,12 @@
 //       ./roteiro/Editor.tsx (saiu daqui em 06/09, sem mudar comportamento).
 // ============================================================
 import type { ReactNode } from 'react';
-import {
-  AKE, DI_EMOJI, FKCLS, FKE, ISOS, TKE, akEmoji, fkEmoji, tkEmoji,
-} from '@/content';
+import { AKE, FKE, ISOS, TKE } from '@/content';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import * as D from '@/lib/dia';
-import { brl, eur, num, shortDt, wdOf } from '@/lib/fmt';
+import { brl, eur, shortDt, wdOf } from '@/lib/fmt';
 import Editor from './roteiro/Editor';
 import Vista from './roteiro/Vista';
 
@@ -277,73 +275,30 @@ function DiaLinha({ iso }: { iso: string }) {
  */
 function DiaTags({ iso }: { iso: string }) {
   const { s } = useApp();
-  const a = C.attrsOfDay(s, iso);
-  const f = C.foodsOfDay(s, iso);
-  const tr = C.legsOfDay(s, iso);
-  // Filtro local, no mesmo formato de attrsOfDay/foodsOfDay/legsOfDay em
-  // calc.ts: nao existe um dayItemsOfDay la porque so este lugar precisa
-  // dele (a tarefa 8 ja recusou criar esse helper por um unico uso).
-  //
-  // Desempate por id depois de day_pos: todo item nasce com day_pos = 0,
-  // entao empate e o caso normal, nao a excecao (ver o comentario em
-  // dia.ts sobre ORD). Sem isso, dois itens livres do mesmo dia podiam sair
-  // numa ordem aqui e noutra em Vista.tsx (que usa D.itensDoDia, com o
-  // mesmo desempate) — a mesma falha que a ordem estavel de dia.ts existe
-  // para evitar, so que reaberta aqui.
-  const di = s.dayItems
-    .filter((x) => x.day_iso === iso)
-    .sort((x, y) => x.day_pos - y.day_pos || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
-  if (!a.length && !f.length && !tr.length && !di.length) return null;
+  // UMA fonte para o dia, e nao cinco (07/09). Ate aqui esta funcao montava e
+  // ordenava as quatro origens sozinha, e discordava do `dia.ts` em duas
+  // coisas: comida e item livre trocados, e a ordem dentro de cada tipo. Como
+  // ninguem ve a tira e a visualizacao ao mesmo tempo, a divergencia era
+  // invisivel — e ia deixar de ser na etapa 2, quando as setas passarem a
+  // mandar na ordem e so uma das duas telas obedecer.
+  const itens = D.itensDoDia(s, iso);
+  if (!itens.length) return null;
 
-  // OS DOIS LADOS, nao so o euro (06/09). Ate aqui a etiqueta somava
+  // OS DOIS LADOS, nao so o euro (06/09). A etiqueta somava
   // `dayAttrTotal + dayLegEur` e imprimia `eur(tot)`: um trem de R$ 800 no
   // mesmo dia de uma atracao de EUR 20 desaparecia do resumo — a etiqueta
-  // dizia "EUR 20 no dia". Nao contava errado (o total geral sempre esteve
-  // certo); escondia. O cartao de transporte do mesmo dia ja mostrava os
-  // dois lados, o que prova que foi esquecimento, nao decisao.
-  //
-  // O `day_item` tinha o MESMO defeito: sua grana nao entrava aqui, so no
-  // total da viagem (calc.ts). Mesmo bloco, mesma correcao.
-  const diEur = di.reduce((acc, x) => (x.currency !== 'brl' ? acc + num(x.amount) : acc), 0);
-  const diBrl = di.reduce((acc, x) => (x.currency === 'brl' ? acc + num(x.amount) : acc), 0);
-  const totE = C.dayAttrTotal(s, iso) + C.dayLegEur(s, iso) + diEur;
-  const totB = C.dayLegBrl(s, iso) + diBrl;
+  // dizia "EUR 20 no dia". Nao contava errado; escondia. Agora o total vem do
+  // mesmo lugar que a lista, entao nao ha como um crescer sem o outro.
+  const { eur: totE, brl: totB } = D.totalDoDia(s, iso);
 
   return (
     <div className="dtags">
-      {tr.map((t) => {
-        const v = num(t.amount);
-        return (
-          <span key={t.id} className={`dtg tk-${t.kind}${t.bought ? ' pgo' : ''}`}>
-            {tkEmoji(t.kind)} {t.name}
-            {v ? <> <b>{t.currency === 'brl' ? brl(v) : eur(v)}</b></> : null}
-          </span>
-        );
-      })}
-      {a.map((it) => {
-        const pr = num(it.price_eur);
-        // dentro do dia toda linha esta no roteiro, por definicao
-        return (
-          <span key={it.id} className="dtg st-esc">
-            {akEmoji(it.kind)} {it.name}
-            {pr ? <> <b>{eur(pr)}</b></> : null}
-          </span>
-        );
-      })}
-      {f.map((it) => (
-        <span key={it.id} className={`dtg fk-${FKCLS[it.kind]}`}>
-          {fkEmoji(it.kind)} {it.name}
+      {itens.map((x) => (
+        <span key={`${x.tabela}:${x.id}`} className={`dtg ${x.classe}`}>
+          {x.emoji} {x.nome}
+          {x.eur || x.brl ? <> <b>{x.eur ? eur(x.eur) : brl(x.brl)}</b></> : null}
         </span>
       ))}
-      {di.map((it) => {
-        const v = num(it.amount);
-        return (
-          <span key={it.id} className="dtg di">
-            {DI_EMOJI} {it.name}
-            {v ? <> <b>{it.currency === 'brl' ? brl(v) : eur(v)}</b></> : null}
-          </span>
-        );
-      })}
       {totE || totB ? (
         <span className="dtg tot">
           {totE ? eur(totE) : ''}{totE && totB ? ' + ' : ''}{totB ? brl(totB) : ''} no dia
