@@ -26,7 +26,13 @@ export default function Custos() {
   const rsb = C.bookingBrl(s, '');
   const rt = C.rate(s);
   const tb = C.totalBrl(s, CIDADES);
-  const somaEur = ho + at + xe + tr.eur + rs.eur;
+  // O item livre do dia entra no total desde 07/09, entao TEM que ser linha
+  // aqui: sem ela o rodape ficava maior que a soma do corpo e nada explicava.
+  // Ele nao se EDITA nesta aba — a spec proibe dois lugares mexendo no mesmo
+  // dinheiro — e por isso a coluna "de onde vem" manda de volta para o dia.
+  const diEur = C.dayItemEur(s);
+  const diBrl = C.dayItemBrl(s);
+  const somaEur = ho + at + xe + tr.eur + rs.eur + diEur;
   const trTudoBrl = C.legBrl(s, '');   // 11.6: eur x cambio + brl
 
   return (
@@ -102,6 +108,15 @@ export default function Custos() {
                 passaporte, seguro, chip… · {brl(C.bookingBrl(s, 'pago'))} já pago
               </td>
             </tr>
+            {/* so aparece quando houver item livre, igual as "Outras linhas" */}
+            {diEur || diBrl ? (
+              <tr>
+                <td className="pl2">Itens escritos nos dias</td>
+                <td className="num">{diEur ? eur(diEur) : '—'}</td>
+                <td className="num">{brl(C.dayItemTudoBrl(s))}</td>
+                <td className="sb">escritos dentro de cada dia, no Roteiro · edita lá</td>
+              </tr>
+            ) : null}
             {/* as duas ultimas so aparecem se ele tiver linha naquela moeda */}
             {xe ? (
               <tr>

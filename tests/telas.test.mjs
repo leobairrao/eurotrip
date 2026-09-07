@@ -387,3 +387,49 @@ test('as duas copias do esquema conhecem o dia em ordem', () => {
 
   assert.deepEqual(faltando, [], `Esquema pela metade ou copias divergindo:\n${faltando.join('\n')}`);
 });
+
+/**
+ * TODA FONTE DE DINHEIRO DO `totalBrl` TEM QUE APARECER NA ABA CUSTOS.
+ *
+ * A tabela do Custos imprime `totalBrl` no rodape e uma linha por categoria
+ * no corpo. Nada obrigava as duas coisas a baterem — e em 07/09 elas pararam
+ * de bater: o item livre do dia entrou no `totalBrl` e nao virou linha, entao
+ * o rodape ficou maior que a soma do corpo, sem nada explicando. So nao
+ * apareceu porque ainda nao existe nenhum item livre no banco dele.
+ *
+ * O teste irmao em calc.test.mjs ("11.9") tranca a ARITMETICA: que as
+ * categorias somadas dao o total. Ele NAO tranca que a TELA usa essas
+ * categorias — eu tentei, tirei o conserto do Custos.tsx e ele passou verde
+ * assim mesmo. Este aqui fecha esse buraco, lendo os dois arquivos: cada
+ * helper de dinheiro chamado dentro do `totalBrl` tem que ser citado tambem
+ * no Custos.tsx.
+ *
+ * E crua de proposito — cita, nao "usa direito". Uma regra crua que falha no
+ * dia certo vale mais que uma fina que ninguem consegue escrever.
+ */
+test('toda fonte de dinheiro do totalBrl aparece na aba Custos', () => {
+  const calc = readFileSync(join(RAIZ, 'src/lib/calc.ts'), 'utf8');
+  const tela = readFileSync(join(RAIZ, 'src/screens/Custos.tsx'), 'utf8');
+
+  const corpo = calc.match(/export function totalBrl[\s\S]*?\n}/);
+  assert.ok(corpo, 'nao achei o totalBrl no calc.ts — o teste precisa dele');
+
+  // os helpers que o totalBrl chama, menos os que nao sao fonte de dinheiro
+  const NAO_E_FONTE = new Set(['rate', 'legSum', 'totalBrl']);
+  const fontes = [...new Set(
+    [...corpo[0].matchAll(/\b([a-z][A-Za-z]+)\s*\(/g)].map((m) => m[1]),
+  )].filter((f) => !NAO_E_FONTE.has(f));
+
+  assert.ok(fontes.length >= 5, `esperava varias fontes, achei ${fontes.length}`);
+
+  const faltando = fontes.filter((f) => !new RegExp(`\\b${f}\\b`).test(tela));
+  assert.deepEqual(
+    faltando, [],
+    `entrou dinheiro no totalBrl que a aba Custos nao mostra: ${faltando.join(', ')}.`
+    + ' O rodape da tabela vai ficar maior que a soma das linhas.',
+  );
+
+  // o VOO nao e funcao, e uma constante — confere na mao
+  assert.match(corpo[0], /\bVOO\b/);
+  assert.match(tela, /\bVOO\b/, 'o voo esta no total e tem que estar na tabela');
+});

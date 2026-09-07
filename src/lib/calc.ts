@@ -432,6 +432,17 @@ export const dayItemEur = (s: Snapshot) =>
   s.dayItems.reduce((a, x) => (x.currency !== 'brl' ? a + num(x.amount) : a), 0);
 export const dayItemBrl = (s: Snapshot) =>
   s.dayItems.reduce((a, x) => (x.currency === 'brl' ? a + num(x.amount) : a), 0);
+/**
+ * Os dois lados juntos, em real — o molde do `legBrl` (11.6).
+ *
+ * Existe para a LINHA do Custos, que tem uma coluna so em real. Podia ser
+ * `dayItemEur(s) * rate(s) + dayItemBrl(s)` escrito la na tela, e nao e de
+ * proposito: formula de dinheiro fora do calc.ts foi o defeito que a etapa 1
+ * achou TRES vezes (no check.mjs, na ESPECIFICACAO, e no proprio Custos).
+ * Uma copia a menos e uma copia que nao tem como atrasar.
+ */
+export const dayItemTudoBrl = (s: Snapshot) =>
+  dayItemEur(s) * rate(s) + dayItemBrl(s);
 
 // ---------------- 11.7 os dois totais do dinheiro ----------------
 export const rate = (s: Snapshot) => num(s.settings.eur_rate);

@@ -916,3 +916,56 @@ test('o chip hoje so existe se hoje cair dentro dos 34 dias', () => {
   assert.equal(ISOS.includes('2026-12-16'), true);
   assert.equal(ISOS.includes('2027-02-01'), false, 'depois da viagem tambem nao');
 });
+
+/**
+ * A TABELA DO CUSTOS TEM QUE FECHAR COM ELA MESMA.
+ *
+ * O rodape da tabela imprime `totalBrl`, e o corpo dela imprime uma linha por
+ * categoria. Ate 07/09 as duas coisas batiam por acaso, nao por regra: nada
+ * obrigava. Quando o item livre do dia entrou no `totalBrl` e nao virou linha,
+ * o rodape passou a ser maior que a soma do corpo, sem nada explicando — e so
+ * nao apareceu porque ainda nao existe nenhum item livre.
+ *
+ * Este teste escreve a soma do CORPO com os mesmos helpers que a tela usa, e
+ * exige que de o rodape. Quem somar dinheiro novo no `totalBrl` e esquecer o
+ * Custos quebra aqui, em vez de descobrir quando os numeros na tela
+ * discordarem.
+ */
+test('11.9 — a soma das linhas do Custos da o total do rodape', () => {
+  const s2 = structuredClone(S);
+  s2.dayItems = [
+    { id: 'd1', day_iso: '2026-12-16', name: 'Presente', note: '',
+      amount: 40, currency: 'eur', day_pos: 0, done: false },
+    { id: 'd2', day_iso: '2026-12-16', name: 'Lavanderia', note: '',
+      amount: 35, currency: 'brl', day_pos: 1, done: false },
+  ];
+  const rt = C.rate(s2);
+
+  // as colunas em EURO do corpo, na ordem em que a tela as desenha
+  const somaEur = C.stayTotalAll(s2, CIDADES_STAY)
+    + C.attrEurAll(s2, 'roteiro')
+    + C.extraEur(s2)
+    + C.legSum(s2, '').eur
+    + C.bookingSum(s2, '').eur
+    + C.dayItemEur(s2);
+
+  // as colunas em REAL do corpo: o que ja nasce em real, e o voo
+  const somaBrl = VOO
+    + C.extraBrl(s2)
+    + C.legSum(s2, '').brl
+    + C.bookingBrl(s2, '')
+    + C.dayItemBrl(s2);
+
+  assert.equal(
+    Math.round(somaEur * rt + somaBrl),
+    Math.round(C.totalBrl(s2, CIDADES_STAY)),
+    'o corpo da tabela tem que somar o rodape — se nao soma, falta uma linha',
+  );
+
+  // e o helper que a linha nova usa converte igual ao `legBrl`
+  assert.equal(
+    Math.round(C.dayItemTudoBrl(s2)),
+    Math.round(40 * rt + 35),
+    'dayItemTudoBrl = euro x cambio + real, igual ao legBrl',
+  );
+});
