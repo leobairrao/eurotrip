@@ -576,9 +576,19 @@
    com aritmetica justa, e a nota INTEIRA e o ponto desta tela. Grade
    propria, de tres colunas, com a nota ocupando a linha de baixo.
    --------------------------------------------------------------- */
-.dvista .h { display: grid; grid-template-columns: 1fr auto; align-items: start; }
-.dvista .h .m { grid-column: 1; }
-.dvista .h .chip { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+/* `.card.dvista > .h` (0,3,0), nao `.dvista .h` (0,2,0): `identidade.css`
+   carrega DEPOIS de `extras.css` e ja tem `.card > .h` na mesma (0,2,0)
+   — no empate quem vem depois ganha, e o cabecalho nunca virava grid.
+   Por sorte o `gap: 2px` de la tambem precisa de reforco explicito aqui:
+   uma vez grid, aquele 2px vira TAMBEM o gap de coluna, e o "editar"
+   encostaria a 2px do titulo. `2px var(--e2)` mantem a linha (h3/.m)
+   colada e abre respiro de verdade entre o texto e o botao. */
+.card.dvista > .h {
+  display: grid; grid-template-columns: 1fr auto; align-items: start;
+  gap: 2px var(--e2);
+}
+.card.dvista > .h .m { grid-column: 1; }
+.card.dvista > .h .chip { grid-column: 2; grid-row: 1 / 3; align-self: center; }
 
 .dvplano {
   display: block; font-size: 15.5px; color: var(--ink-2); line-height: 1.5;
@@ -595,7 +605,8 @@
   padding: var(--e3) 0;
 }
 .dvit + .dvit { border-top: 1px solid var(--hairline); }
-.dvit .ck  { grid-area: ck; width: 22px; height: 22px; margin: 2px 0 0; }
+.dvit .ck  { grid-area: ck; width: 22px; height: 22px; margin: 2px 0 0;
+             accent-color: var(--pine); cursor: pointer; }
 .dvnm      { grid-area: nm; font-size: 16px; font-weight: 600; line-height: 1.3; }
 .dvvl      { grid-area: vl; font-family: var(--mono); font-size: 13px;
              color: var(--ink-2); font-variant-numeric: tabular-nums;
@@ -614,5 +625,4 @@
      clicavel da tela inteira — errar o toque aqui e errar tudo */
   .dvit .ck { width: 24px; height: 24px; }
   .dvit { grid-template-columns: 28px 1fr; grid-template-areas: "ck nm" ". vl" ". nt" ". sb"; }
-  .dvvl { text-align: left; }
 }

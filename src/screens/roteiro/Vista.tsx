@@ -28,7 +28,6 @@
 // ============================================================
 import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
-import * as C from '@/lib/calc';
 import * as D from '@/lib/dia';
 import { brl, eur, longDt, marcado, wdOf } from '@/lib/fmt';
 import { ISOS } from '@/content';
@@ -56,8 +55,9 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
       </div>
 
       <div className="b">
-        {/* leitura: o Avisos desenha o cartao dele, e o "mexer" fica la dentro */}
-        <Avisos spot={`roteiro:${iso}`} rotulo="aviso do dia" />
+        {/* leitura: nem o "mexer" nem o "+ aviso do dia" aparecem aqui —
+            a regra 1 do cabecalho desta tela vale tambem para o Avisos */}
+        <Avisos spot={`roteiro:${iso}`} rotulo="aviso do dia" somenteLeitura />
 
         {plano ? <Inline html={marcado(plano)} className="dvplano" /> : null}
 

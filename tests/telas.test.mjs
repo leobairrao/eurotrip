@@ -122,6 +122,79 @@ test('toda grade .addrow tem o par que vira coluna unica no celular', () => {
 });
 
 /**
+ * A REGRA DE ESPECIFICIDADE (constraint global do plano) — a unica que nao
+ * tinha teste, e a unica que quebrou (Tarefa 7).
+ *
+ * `layout.tsx` carrega `identidade.css` DEPOIS de `extras.css`. Numa
+ * EMPATE de especificidade quem vem depois ganha, sempre — entao regra
+ * nova em `extras.css` que dispute com uma de `identidade.css` precisa de
+ * especificidade MAIOR, nunca igual. Foi isto que quebrou o cabecalho da
+ * vista: `.dvista .h { display: grid; ... }` tem a MESMA especificidade
+ * (0,2,0) de `.card > .h` (identidade.css), o empate foi para quem vem
+ * depois (identidade), e o cabecalho nunca virou grid — so um humano
+ * dirigindo o Chrome achou, nao o `tsc` nem o `npm test`.
+ *
+ * Dentro de `.card`, `identidade.css` e dono de quatro alvos, cada um com
+ * a propria especificidade:
+ *   .card > .h       (0,2,0)  -- o cabecalho do cartao
+ *   .card > .b       (0,2,0)  -- o corpo do cartao
+ *   .card > .h h3    (0,2,1)  -- o titulo dentro do cabecalho
+ *   .card > .h .m    (0,3,0)  -- o subtitulo dentro do cabecalho
+ *
+ * Este teste e CRU de proposito (igual ao `grades()` acima) — nao e um
+ * parser de CSS. Ele so pega o seletor de cada regra de `extras.css` e
+ * recusa quem chega num destes quatro alvos por um caminho de MESMA
+ * especificidade: uma classe solta seguida de espaco (combinador
+ * descendente), tipo `.dvista .h`. Tem que chegar por
+ * `.card.<classe> > .h` (ou `.b`, `h3`, `.m`), que soma uma classe a mais
+ * e sempre vence — nao importa a ordem dos imports.
+ */
+function seletoresDeclarados(css) {
+  // comentario de bloco fora primeiro: prosa dentro de /* */ pode conter
+  // qualquer coisa parecida com seletor, e nao e codigo de verdade.
+  const semComentario = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const out = [];
+  let atual = '';
+  for (const ch of semComentario) {
+    if (ch === '{') { out.push(atual.trim()); atual = ''; }
+    else if (ch === '}' || ch === ';') { atual = ''; }
+    else atual += ch;
+  }
+  return out
+    .filter(Boolean)
+    .flatMap((bloco) => bloco.split(','))
+    .map((s) => s.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+// cada `re` so casa quando o alvo esta no FIM do seletor (o `$`): e o que
+// prova que e ELE quem a regra estiliza, nao so um ancestral no caminho.
+// `.dvista .h .m` por exemplo nao pode acusar o alvo `.h` — quem a regra
+// estiliza de verdade e o `.m`, e esse tem o proprio item na lista.
+const ALVOS_DE_IDENTIDADE = [
+  { alvo: '.h (o cabecalho, dono de .card > .h)', re: /\.[\w-]+\s+\.h\b\s*$/ },
+  { alvo: '.b (o corpo, dono de .card > .b)', re: /\.[\w-]+\s+\.b\b\s*$/ },
+  { alvo: 'h3 (o titulo, dono de .card > .h h3)', re: /\.[\w-]+\s+\.h\s+h3\b\s*$/ },
+  { alvo: '.h .m (o subtitulo, dono de .card > .h .m)', re: /\.[\w-]+\s+\.h\s+\.m\b\s*$/ },
+];
+
+test('nenhum seletor de extras.css empata especificidade com o que identidade.css ja e dono dentro de .card', () => {
+  const css = readFileSync(join(RAIZ, 'src/app/extras.css'), 'utf8');
+  const achados = [];
+  for (const sel of seletoresDeclarados(css)) {
+    for (const { alvo, re } of ALVOS_DE_IDENTIDADE) {
+      if (re.test(sel)) achados.push(`"${sel}" empata com ${alvo}`);
+    }
+  }
+  assert.deepEqual(
+    achados,
+    [],
+    `extras.css carrega ANTES de identidade.css (layout.tsx) — no empate quem ganha e identidade.css. ` +
+    `Escreva ".card.<classe> > ..." em vez de "<classe> ...":\n${achados.join('\n')}`,
+  );
+});
+
+/**
  * Nenhuma tela pode ler `AKE[...]`, `TKE[...]` ou `FKE[...]` direto.
  *
  * O tema da atracao e TEXTO LIVRE desde 06/09, entao `AKE['museu']` e

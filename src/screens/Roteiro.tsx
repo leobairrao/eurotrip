@@ -7,7 +7,6 @@
 //   (c) com um dia selecionado, o editor de QUATRO cartoes.
 // ============================================================
 import type { ReactNode } from 'react';
-import { useState } from 'react';
 import {
   AKE, FKCLS, FKE, ISOS, TKE, akEmoji, fkEmoji, tkEmoji,
 } from '@/content';
@@ -26,8 +25,7 @@ const WDS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
 
 export default function Roteiro() {
   const { s } = useApp();
-  const { selDay, irParaDia } = useUi();
-  const [editando, setEditando] = useState<string | null>(null);
+  const { selDay, irParaDia, editando, setEditando } = useUi();
 
   const bl = C.blocks(s);
   const fd = C.filledDays(s);
@@ -113,7 +111,7 @@ export default function Roteiro() {
         editando === selDay ? (
           <>
             <div className="chips" style={{ marginBottom: 12 }}>
-              <button className="chip" onClick={() => setEditando(null)}>← pronto</button>
+              <button type="button" className="chip" onClick={() => setEditando(null)}>← pronto</button>
             </div>
             <Editor iso={selDay} />
           </>

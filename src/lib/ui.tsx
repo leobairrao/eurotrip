@@ -17,6 +17,11 @@ interface Ui {
   selTPick: string | null; setSelTPick: (v: string | null) => void;
   /** Qual sub-aba de Sugestoes esta aberta. Guardada, como a aba de cima. */
   selSug: SugKey;          setSelSug: (v: SugKey) => void;
+  /** Guarda o ISO do dia em edicao no Roteiro, ou null se esta em modo de
+   *  vista. Mora aqui (e nao em useState local de Roteiro.tsx) porque
+   *  `irParaDia` precisa zera-lo: sem isso, voltar a um dia que ja foi
+   *  editado reabre o editor sozinho, pelo resto da sessao. */
+  editando: string | null; setEditando: (v: string | null) => void;
   irParaDia: (iso: string | null) => void;
 }
 
@@ -46,6 +51,7 @@ export function UiProvider({ quemSou, children }: { quemSou: string; children: R
   const [selPick, setSelPick] = useState<string | null>(null);
   const [selFPick, setSelFPick] = useState<string | null>(null);
   const [selTPick, setSelTPick] = useState<string | null>(null);
+  const [editando, setEditando] = useState<string | null>(null);
 
   // Le o que ficou salvo depois de montar, para o servidor e o cliente
   // pintarem a mesma coisa na primeira vez.
@@ -61,21 +67,26 @@ export function UiProvider({ quemSou, children }: { quemSou: string; children: R
   const setSelSug = useCallback((v: SugKey) => { setSugRaw(v); gravar('sug', v); }, []);
   const setSelWho = useCallback((v: string) => { setWhoRaw(v); gravar('who', v); }, []);
 
-  /** Trocar de dia zera os chips de escolha, igual ao artefato. */
+  /** Trocar de dia zera os chips de escolha, igual ao artefato — e tambem
+   *  esquece que estavamos editando (06/09): clicar num dia so MOSTRA,
+   *  nunca edita, mesmo que aquele dia ja tenha sido editado antes nesta
+   *  sessao. Roda sempre, mesmo indo para o MESMO dia que ja esta selecionado
+   *  (o React so ignoraria o `setSelDay` repetido, nao os outros dois). */
   const irParaDia = useCallback((iso: string | null) => {
     setSelDay(iso);
     setSelPick(null);
     setSelFPick(null);
     setSelTPick(null);
+    setEditando(null);
     if (typeof window !== 'undefined') window.scrollTo(0, 0);
   }, []);
 
   const valor = useMemo<Ui>(() => ({
     tab, setTab, selCO, setSelCO, selDay, setSelDay, filt, setFilt,
     selWho, setSelWho, selPick, setSelPick, selFPick, setSelFPick,
-    selTPick, setSelTPick, selSug, setSelSug, irParaDia,
+    selTPick, setSelTPick, selSug, setSelSug, editando, setEditando, irParaDia,
   }), [tab, setTab, selCO, setSelCO, selDay, filt, selWho, setSelWho,
-       selPick, selFPick, selTPick, selSug, setSelSug, irParaDia]);
+       selPick, selFPick, selTPick, selSug, setSelSug, editando, irParaDia]);
 
   return <C.Provider value={valor}>{children}</C.Provider>;
 }

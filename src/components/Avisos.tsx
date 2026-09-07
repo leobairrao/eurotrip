@@ -29,12 +29,17 @@ const TOM: ReadonlyArray<readonly [Tone, string]> = [
 ];
 
 export default function Avisos({
-  spot, lista = false, rotulo = 'aviso',
+  spot, lista = false, rotulo = 'aviso', somenteLeitura = false,
 }: {
   spot: string;
   /** true: desenha em lista (o "o que eu acho que nao vale"), nao em cartao. */
   lista?: boolean;
   rotulo?: string;
+  /** so leitura (Vista.tsx, 06/09): esconde "mexer" e "+ rotulo" — a
+   *  vista do dia so pode ter a caixinha e o `editar` como coisas
+   *  clicaveis. Editor.tsx continua chamando sem isto e ve tudo, igual
+   *  sempre foi — o padrao NAO MUDA para as outras dez chamadas. */
+  somenteLeitura?: boolean;
 }) {
   const { s } = useApp();
   const avisos = C.avisosDe(s, spot);
@@ -52,16 +57,16 @@ export default function Avisos({
 
   return (
     <>
-      {avisos.map((a) => <Cartao key={a.id} a={a} />)}
+      {avisos.map((a) => <Cartao key={a.id} a={a} somenteLeitura={somenteLeitura} />)}
       {/* key={spot}: trocar de pais/dia com o formulario aberto gravava o
           aviso no lugar errado, porque o React reaproveitava a instancia */}
-      <Acrescentar key={spot} spot={spot} rotulo={rotulo} />
+      {somenteLeitura ? null : <Acrescentar key={spot} spot={spot} rotulo={rotulo} />}
     </>
   );
 }
 
 /** O cartao colorido. Clicar em "mexer" troca o texto pelos campos. */
-function Cartao({ a }: { a: Aviso }) {
+function Cartao({ a, somenteLeitura = false }: { a: Aviso; somenteLeitura?: boolean }) {
   const { patch, now } = useApp();
   const apagar = useApagarLinha();
   const [abrindo, setAbrindo] = useState(false);
@@ -71,9 +76,11 @@ function Cartao({ a }: { a: Aviso }) {
       <div className={`n ${a.tone}`} style={{ maxWidth: 'none' }}>
         <b>{a.title}</b>
         <Inline html={marcado(a.body)} className="avcorpo" />
-        <button type="button" className="mexer" onClick={() => setAbrindo(true)}>
-          mexer
-        </button>
+        {somenteLeitura ? null : (
+          <button type="button" className="mexer" onClick={() => setAbrindo(true)}>
+            mexer
+          </button>
+        )}
       </div>
     );
   }
