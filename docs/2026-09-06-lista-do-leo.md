@@ -261,8 +261,9 @@ escritos na íntegra em `COMO-MEXER.md`, item 11.
 
 ## A ordem que eu sugiro
 
-**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ → 9 ✅ → 10 ✅** — a lista inteira saiu,
-mais os itens 9 e 10, que nasceram das fotos que ele mandou depois.
+**1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ → 9 ✅ → 10 ✅ → 11 ✅** — a lista inteira
+saiu, mais os itens 9, 10 e 11, que nasceram depois: 9 e 10 das fotos que ele mandou, 11 do
+pedido que ele aprovou antes do código.
 
 Comidas primeiro porque é o que ele mais usa e o que mais atrapalha; a aba Sugestões por
 último porque é a única que exige uma sessão inteira.

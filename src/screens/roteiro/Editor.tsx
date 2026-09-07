@@ -56,7 +56,6 @@ export default function Editor({ iso }: { iso: string }) {
 function CartaoDia({ iso }: { iso: string }) {
   const { s, patch, now } = useApp();
   const d = s.days[iso];
-  const av = C.avisoDoDia(s, iso);
 
   return (
     <div className="card" style={{ ['--cc' as string]: 'var(--pine)' }}>

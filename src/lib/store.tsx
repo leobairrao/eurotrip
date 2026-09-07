@@ -167,7 +167,7 @@ export function Provider({
       setPendentes(pend.current.size);
 
       // Toda tabela tem updated_at; so as compartilhadas tem updated_by.
-      const COM_AUTOR = ['day','attraction','food','leg','booking','stay','stay_option','city','extra'];
+      const COM_AUTOR = ['day','attraction','food','leg','booking','stay','stay_option','city','extra','day_item'];
       const payload: Record<string, unknown> = {
         ...cols,
         updated_at: new Date().toISOString(),

@@ -11,7 +11,7 @@
 // ============================================================
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normAttr, normFood, normLeg } from '@/lib/load.ts';
+import { normAttr, normDayItem, normFood, normLeg } from '@/lib/load.ts';
 
 test('normAttr: cada campo vem da coluna certa', () => {
   const a = normAttr({
@@ -93,4 +93,30 @@ test('normLeg: position (viagem) e day_pos (dia) nao se confundem', () => {
   // valores opostos, uma troca das duas colunas ficaria evidente.
   assert.equal(l.bought, false, 'bought e "eu paguei"');
   assert.equal(l.done, true, 'done e "eu fiz", nao e bought');
+});
+
+/**
+ * `day_item` e a unica tabela nova desta branch, e o normalizador que
+ * ficou sem este teste (achado da revisao final) — o mesmo buraco que os
+ * tres testes acima fecham para normAttr/normFood/normLeg. `amount` e
+ * `currency` sao dinheiro que agora entra em `totalBrl` (calc.ts), entao
+ * uma coluna trocada aqui e um bug de dinheiro que nao aparece em lugar
+ * nenhum ate alguem conferir a mao.
+ */
+test('normDayItem: cada campo vem da coluna certa', () => {
+  const di = normDayItem({
+    id: 'i1', day_iso: '2026-12-12', name: 'Padaria da esquina',
+    note: 'abre 7h',
+    amount: '18.90',               // numeric chega como string do PostgREST
+    currency: 'brl',
+    day_pos: 4, done: true,
+  });
+  assert.equal(di.id, 'i1');
+  assert.equal(di.day_iso, '2026-12-12');
+  assert.equal(di.name, 'Padaria da esquina');
+  assert.equal(di.note, 'abre 7h');
+  assert.equal(di.amount, 18.9);
+  assert.equal(di.currency, 'brl');
+  assert.equal(di.day_pos, 4, 'day_pos e a ordem DENTRO do dia');
+  assert.equal(di.done, true);
 });

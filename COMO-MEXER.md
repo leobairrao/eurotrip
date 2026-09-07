@@ -317,7 +317,7 @@ src/screens/roteiro/  o Roteiro se partiu em tres (Tarefas 6 e 7)
 
 src/app/
   estilo-atual.css 587  O CSS, sem a tag <style>. NÃO RENOMEIE CLASSE.
-  extras.css      ~490  o que o artefato não tinha: login, presença, o extrato
+  extras.css      632   o que o artefato não tinha: login, presença, o extrato
                         de aportes, os controles de linha, os avisos, e o bloco
                         de opção da Hospedagem (`.hopc`, no fim do arquivo)
   page.tsx              servidor: sessão → allowlist → carrega tudo

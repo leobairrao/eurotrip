@@ -1,10 +1,13 @@
 'use client';
 // ============================================================
 // 10.2 — Roteiro. O coracao do app, e a tela mais complexa.
-// Tres partes, na ordem em que o artefato as monta (viewRoteiro):
+// Quatro partes, na ordem em que o artefato as monta:
 //   (a) o calendario de dois meses, sempre visivel;
 //   (b) sem dia selecionado, os blocos de dias com a mesma base;
-//   (c) com um dia selecionado, o editor de QUATRO cartoes.
+//   (c) com um dia selecionado e sem editar, a Vista — so-leitura, em
+//       ./roteiro/Vista.tsx;
+//   (d) com o botao "editar" apertado, o editor de QUATRO cartoes, em
+//       ./roteiro/Editor.tsx (saiu daqui em 06/09, sem mudar comportamento).
 // ============================================================
 import type { ReactNode } from 'react';
 import {
@@ -49,9 +52,10 @@ export default function Roteiro() {
         <h2>Roteiro</h2>
         <p>
           <b>Os dias estão em branco de propósito</b> — as bases estão postas, o que fazer é
-          você que escreve. Clique numa data: dá para escrever livre, marcar as atrações da
-          cidade, o trem ou voo do dia e onde comer. Onde tem um fato duro (o corte das 20h do
-          dia 24, as janelas grátis do Palacio Real) eu deixei um aviso.
+          você que escreve. Clique numa data para ver o dia: a nota, as atrações, o trem ou voo
+          e onde comer aparecem ali; o botão <b>editar</b> é onde você escreve ou marca isso.
+          Onde tem um fato duro (o corte das 20h do dia 24, as janelas grátis do Palacio Real)
+          eu deixei um aviso.
         </p>
       </div>
 
@@ -141,7 +145,7 @@ export default function Roteiro() {
                 <h3>{bk.base}</h3>
                 <div className="m">
                   {shortDt(bk.from)} → {shortDt(bk.to)} · {bk.n}{bk.n > 1 ? ' dias' : ' dia'} ·
-                  {' '}clique num dia para editar
+                  {' '}clique num dia para ver o itinerário
                 </div>
               </div>
               <div className="b">
@@ -253,7 +257,7 @@ function DiaLinha({ iso }: { iso: string }) {
         {base ? null : <h4>— sem base</h4>}
         {plano
           ? <p>{d?.plan}</p>
-          : <p style={{ color: 'var(--muted)' }}>clique para escrever</p>}
+          : <p style={{ color: 'var(--muted)' }}>clique para ver o itinerário</p>}
         <DiaTags iso={iso} />
         {(() => {
           const { feitas, total } = D.feitasDoDia(s, iso);

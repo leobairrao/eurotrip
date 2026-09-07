@@ -188,7 +188,8 @@ const normAporte = (r: Record<string, unknown>): Contribution => ({
   currency: r.currency === 'eur' ? 'eur' : 'brl',
   created_at: r.created_at ? String(r.created_at) : undefined,
 });
-const normDayItem = (r: Record<string, unknown>): DayItem => ({
+// Exportado pelo mesmo motivo de normAttr: ver tests/load.test.mjs.
+export const normDayItem = (r: Record<string, unknown>): DayItem => ({
   id: String(r.id), day_iso: String(r.day_iso), name: String(r.name),
   note: String(r.note ?? ''),
   amount: n(r.amount), currency: r.currency as DayItem['currency'],
