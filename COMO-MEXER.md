@@ -15,7 +15,16 @@ disse em cada item e o que foi decidido, está em
 [`docs/2026-09-06-lista-do-leo.md`](docs/2026-09-06-lista-do-leo.md) — leia de lá antes de
 mexer em qualquer uma delas.
 
-`npm test` **126/126** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+**Da etapa 1 do Roteiro (07/09) saíram dois arquivos que valem ler antes de mexer nela:**
+[`docs/2026-09-07-o-que-ficou-para-depois.md`](docs/2026-09-07-o-que-ficou-para-depois.md)
+— as treze pendências, com o que vira tarefa, o que é para nunca mexer, e as três que são
+decisão sua; e
+[`docs/2026-09-07-decisoes-da-etapa-1.md`](docs/2026-09-07-decisoes-da-etapa-1.md) — as 33
+decisões tomadas durante a execução, com o que custa se cada uma estiver errada. **Uma
+delas precisa acontecer antes da etapa 2:** o `DiaTags` ainda é uma segunda implementação
+do dia, com ordem própria.
+
+`npm test` **150/150** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro
