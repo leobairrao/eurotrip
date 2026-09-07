@@ -318,3 +318,32 @@ test('day_item: escrita local pendente nao e sobrescrita pelo remoto', () => {
   }), pend);
   assert.equal(s.dayItems[0].amount, 35, 'o que ele digitou sobrevive');
 });
+
+/**
+ * Coluna nova que o normalizador de `load.ts` nao conhece funciona na tela,
+ * sincroniza para a outra pessoa, E SOME NO PRIMEIRO F5. E a armadilha do
+ * COMO-MEXER, e ela nao da erro de build. O jeito de o `tsc` pegar e o
+ * campo ser OBRIGATORIO no tipo — este teste prova o outro lado, que o
+ * valor atravessa o tempo real.
+ */
+test('day_pos e done atravessam o tempo real nas tres tabelas', () => {
+  let s = base();
+
+  s = aplicarRemoto(s, 'attraction', upd({
+    id: 'a1', city: 'lisboa', name: 'Torre de Belém', price_eur: 0, note: '',
+    status: 'escolhida', kind: 'passeio', day_iso: '2026-12-12', paid: false,
+    seed_id: 'm:lisboa:7', day_pos: 3, done: true,
+  }), new Map());
+  assert.equal(s.attractions[0].day_pos, 3);
+  assert.equal(s.attractions[0].done, true);
+
+  s = aplicarRemoto(s, 'leg', upd({
+    id: 't1', position: 0, name: 'Madrid → Cáceres', note: '', kind: 'trem',
+    amount: null, currency: 'eur', bought: false, day_iso: '2026-12-12',
+    seed_id: 't:0', day_pos: 1, done: true,
+  }), new Map());
+  assert.equal(s.legs[0].day_pos, 1, 'day_pos e a ordem no DIA');
+  assert.equal(s.legs[0].position, 0, 'position continua sendo a ordem da VIAGEM');
+  assert.equal(s.legs[0].done, true);
+  assert.equal(s.legs[0].bought, false, 'done nao e bought');
+});

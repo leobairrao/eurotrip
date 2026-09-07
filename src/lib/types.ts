@@ -60,6 +60,14 @@ export interface Attraction {
    */
   paid: boolean;
   seed_id: string | null;
+  /**
+   * A ordem DENTRO do dia. NAO e o `position` de `leg`, que e a sequencia
+   * da viagem inteira. Obrigatorio de proposito: opcional, o normalizador
+   * de load.ts pode esquecer e o valor some no primeiro F5.
+   */
+  day_pos: number;
+  /** "eu fiz". Nao e `paid` nem `bought`, que sao "eu paguei". */
+  done: boolean;
 }
 
 /**
@@ -102,6 +110,14 @@ export interface Food {
   kind: FoodKind;
   day_iso: string | null;
   seed_id: string | null;
+  /**
+   * A ordem DENTRO do dia. NAO e o `position` de `leg`, que e a sequencia
+   * da viagem inteira. Obrigatorio de proposito: opcional, o normalizador
+   * de load.ts pode esquecer e o valor some no primeiro F5.
+   */
+  day_pos: number;
+  /** "eu fiz". Nao e `paid` nem `bought`, que sao "eu paguei". */
+  done: boolean;
 }
 export interface Leg {
   id: string;
@@ -114,6 +130,14 @@ export interface Leg {
   bought: boolean;
   day_iso: string | null;
   seed_id: string | null;
+  /**
+   * A ordem DENTRO do dia. NAO e o `position` de `leg`, que e a sequencia
+   * da viagem inteira. Obrigatorio de proposito: opcional, o normalizador
+   * de load.ts pode esquecer e o valor some no primeiro F5.
+   */
+  day_pos: number;
+  /** "eu fiz". Nao e `paid` nem `bought`, que sao "eu paguei". */
+  done: boolean;
 }
 export interface Booking {
   id: string;

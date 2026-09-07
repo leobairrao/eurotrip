@@ -125,6 +125,7 @@ const normAttr = (r: Record<string, unknown>): Attraction => ({
   day_iso: r.day_iso ? String(r.day_iso) : null,
   paid: !!r.paid,
   seed_id: r.seed_id ? String(r.seed_id) : null,
+  day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 });
 const normCity = (r: Record<string, unknown>): CityRow => ({
   id: String(r.id), k: String(r.k), n: String(r.n), co: String(r.co),
@@ -146,6 +147,7 @@ const normFood = (r: Record<string, unknown>): Food => ({
   note: String(r.note ?? ''), kind: r.kind as Food['kind'],
   day_iso: r.day_iso ? String(r.day_iso) : null,
   seed_id: r.seed_id ? String(r.seed_id) : null,
+  day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 });
 const normLeg = (r: Record<string, unknown>): Leg => ({
   id: String(r.id), position: Number(r.position ?? 0), name: String(r.name),
@@ -154,6 +156,7 @@ const normLeg = (r: Record<string, unknown>): Leg => ({
   bought: !!r.bought,
   day_iso: r.day_iso ? String(r.day_iso) : null,
   seed_id: r.seed_id ? String(r.seed_id) : null,
+  day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 });
 const normBooking = (r: Record<string, unknown>): Booking => ({
   id: String(r.id), position: Number(r.position ?? 0), name: String(r.name),
@@ -236,6 +239,7 @@ export async function carregarDemo(): Promise<Snapshot> {
         day_iso: it.day && String(it.day).trim() ? String(it.day) : null,
         paid: !!it.paid,
         seed_id: it.sid ? String(it.sid) : null,
+        day_pos: 0, done: false,
       });
 
   for (const [country, itens] of Object.entries<Record<string, unknown>[]>(bruto.foods ?? {}))
@@ -245,6 +249,7 @@ export async function carregarDemo(): Promise<Snapshot> {
         id: String(it.id), country, name: String(it.n), note: String(it.w ?? ''), kind,
         day_iso: kind !== 'prato' && it.day && String(it.day).trim() ? String(it.day) : null,
         seed_id: `f:${country}:${i}`,
+        day_pos: 0, done: false,
       });
     });
 
@@ -255,6 +260,7 @@ export async function carregarDemo(): Promise<Snapshot> {
     bought: !!t.ok,
     day_iso: t.day && String(t.day).trim() ? String(t.day) : null,
     seed_id: t.sid ? String(t.sid) : null,
+    day_pos: 0, done: false,
   }));
 
   s.bookings = (bruto.res ?? []).map((r: Record<string, unknown>, i: number) => ({
