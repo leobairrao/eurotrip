@@ -4,7 +4,7 @@ A etapa 1 do Roteiro está no ar. Ao longo dela apareceram treze coisas que
 não entraram, de propósito. Nenhuma bloqueia nada hoje. Este arquivo existe
 para elas não se perderem.
 
-**Três são decisão sua** e estão no fim, separadas. As outras dez são
+**Três eram decisão sua** e estão no fim — a primeira já foi resolvida. As outras dez são
 técnicas, e a revisão final do branch triou cada uma: o que vira tarefa e o
 que é para nunca mexer.
 
@@ -170,29 +170,35 @@ alimentar a tira e a contagem.
 
 ---
 
-## As três que são decisão sua
+## As que são decisão sua
 
-Não são falhas. São escolhas que eu não podia fazer no seu lugar.
+Não são falhas. São escolhas que eu não podia fazer no seu lugar. A primeira
+já foi resolvida por você em 07/09; ficam duas.
 
-### A. A aba Custos parou de fechar consigo mesma
+### A. A aba Custos — ✅ **RESOLVIDA em 07/09**
 
-O rodapé "Total" da tabela imprime o total real da viagem, que agora inclui o
-item livre do dia. As linhas da tabela **não** o incluem — e corretamente,
-porque a spec diz que o item livre não entra em Custos: *"aparecer nos dois
-lugares seria dois lugares para mexer no mesmo dinheiro"*.
+Você escolheu: a spec proíbe **editar** o item livre em dois lugares, não
+mostrá-lo. Então ele virou **uma linha só de leitura**, igual às outras cinco
+— toda linha daquela tabela já é dinheiro editado em outra tela, e a coluna
+"de onde vem" existe para dizer isso. A dela manda de volta para o Roteiro.
 
-Antes desta etapa o rodapé fechava exatamente com a soma das linhas visíveis.
-A partir do primeiro item livre com valor, não fecha mais.
+A linha só aparece quando houver item livre, no molde das duas "Outras
+linhas". Hoje ela não aparece, e a tabela fecha: R$ 5.080 do voo + R$ 257 de
+burocracia = R$ 5.337, o mesmo do rodapé.
 
-**Hoje a diferença é provadamente zero** — nenhuma tela cria item livre
-ainda, e o `npm run check` imprime a contagem viva. Precisa estar resolvido
-**antes de a etapa 2 ligar o formulário**, não antes de qualquer outra coisa.
+Ficaram **dois** testes, porque o primeiro sozinho não bastava:
 
-As três saídas, sem eu escolher nenhuma:
+- `calc.test.mjs` **11.9** tranca a aritmética — as categorias somadas dão o
+  `totalBrl`.
+- `telas.test.mjs` lê os dois arquivos e exige que **toda fonte de dinheiro do
+  `totalBrl` seja citada no `Custos.tsx`**. Este é o que importa: sem ele, eu
+  tirei o conserto da tela e a suíte passou verde. Com ele, falha dizendo qual
+  fonte entrou no total e não virou linha.
 
-1. uma nota de rodapé na tabela explicando a diferença;
-2. uma linha só de leitura, que mostra sem deixar editar ali;
-3. um total separado, deixando o da tabela fechar com as linhas dela.
+**O que não deu para conferir na tela:** a linha desenhada. Seu banco não tem
+nenhum item livre, e eu não crio um só para testar. A aritmética e a guarda
+estão trancadas por teste; o visual da linha se vê no primeiro item que você
+escrever.
 
 ### B. A cor da etiqueta do item livre
 
