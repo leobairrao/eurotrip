@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import {
-  AKE, CO, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL, akEmoji, coOf,
+  AKE, CO, FK, FKCLS, FKE, ISOS, ST, STCLS, TK, TKE, TKPL, akEmoji, coOf, fkEmoji, tkEmoji,
 } from '@/content';
 import { AreaField, Inline, TextField } from '@/components/Field';
 import Avisos from '@/components/Avisos';
@@ -303,7 +303,7 @@ function DiaTags({ iso }: { iso: string }) {
         const v = num(t.amount);
         return (
           <span key={t.id} className={`dtg tk-${t.kind}${t.bought ? ' pgo' : ''}`}>
-            {TKE[t.kind]} {t.name}
+            {tkEmoji(t.kind)} {t.name}
             {v ? <> <b>{t.currency === 'brl' ? brl(v) : eur(v)}</b></> : null}
           </span>
         );
@@ -320,7 +320,7 @@ function DiaTags({ iso }: { iso: string }) {
       })}
       {f.map((it) => (
         <span key={it.id} className={`dtg fk-${FKCLS[it.kind]}`}>
-          {FKE[it.kind]} {it.name}
+          {fkEmoji(it.kind)} {it.name}
         </span>
       ))}
       {totE || totB ? (
@@ -448,7 +448,7 @@ function CartaoTransporte({ iso }: { iso: string }) {
               const v = num(t.amount);
               return (
                 <div key={t.id} className={`atr pkd${v ? '' : ' free'}`}>
-                  <div className="nm">{TKE[t.kind]} {t.name}</div>
+                  <div className="nm">{tkEmoji(t.kind)} {t.name}</div>
                   <div className="vl">
                     {v ? (t.currency === 'brl' ? brl(v) : eur(v)) : 'sem valor'}
                   </div>
@@ -494,7 +494,7 @@ function CartaoTransporte({ iso }: { iso: string }) {
                 style={{ ['--cc' as string]: 'var(--c-fr)' }}
                 onClick={() => setSelTPick(x)}
               >
-                {TKE[x]} {TKPL[x]}<span className="cn">{fn}</span>
+                {tkEmoji(x)} {TKPL[x]}<span className="cn">{fn}</span>
               </button>
             );
           })}
@@ -514,7 +514,7 @@ function CartaoTransporte({ iso }: { iso: string }) {
                 return (
                   <div key={t.id} className="sgr">
                     <div className="nm">
-                      {TKE[pk]} {t.name}
+                      {tkEmoji(pk)} {t.name}
                       {t.bought ? <> <span className={`stg tkc-${pk}`}>comprado</span></> : null}
                     </div>
                     <div className="vl">
@@ -721,10 +721,10 @@ function CartaoComidas({ iso }: { iso: string }) {
           <div className="at">
             {mine.map((it) => (
               <div key={it.id} className="atr pkd">
-                <div className="nm">{FKE[it.kind]} {it.name}</div>
+                <div className="nm">{fkEmoji(it.kind)} {it.name}</div>
                 <div className="vl">
                   <span className={`stg fkc-${FKCLS[it.kind]}`}>
-                    {FKE[it.kind]} {FKROT[it.kind]}
+                    {fkEmoji(it.kind)} {FKROT[it.kind]}
                   </span>
                 </div>
                 <button
@@ -779,7 +779,7 @@ function CartaoComidas({ iso }: { iso: string }) {
               {livres.map((it) => (
                 <div key={it.id} className="sgr">
                   <div className="nm">
-                    {FKE[it.kind]} {it.name}{' '}
+                    {fkEmoji(it.kind)} {it.name}{' '}
                     <span className={`stg fkc-${FKCLS[it.kind]}`}>{FKROT[it.kind]}</span>
                   </div>
                   {/* Comida nao tem preco. Nenhum (regra 5.9). */}

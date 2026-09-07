@@ -19,7 +19,7 @@
 // `usarPuxar` para gravar. Copiar o padrao em seis lugares diferentes e
 // como se cada um ganha um jeito proprio de falhar.
 // ============================================================
-import { CO, FOOD, HOSP_SUG, ATR_SUG, TRANSP_SUG, SUGGRES, SUGTABS, TKE, AKE, CT, coOf } from '@/content';
+import { CO, FOOD, HOSP_SUG, ATR_SUG, TRANSP_SUG, SUGGRES, SUGTABS, AKE, CT, coOf, tkEmoji } from '@/content';
 import type { SugKey } from '@/content';
 import { Nota } from '@/components/Field';
 import Fita from '@/components/Fita';
@@ -309,7 +309,7 @@ function SegTransporte() {
             sid={sid}
             titulo={t.n}
             nota={deHtml(t.w)}
-            emoji={TKE[t.k]}
+            emoji={tkEmoji(t.k)}
             puxar={() => void puxar('leg', {
               position: proxima(), name: t.n, note: deHtml(t.w), kind: t.k,
               amount: null, currency: 'eur', bought: false, day_iso: null,

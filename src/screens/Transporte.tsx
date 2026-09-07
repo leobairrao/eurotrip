@@ -4,7 +4,7 @@
 // os 12 trechos SAO a sequencia da viagem, quebrar por tipo
 // embaralha isso. O tipo aparece na barra colorida e na etiqueta.
 // ============================================================
-import { TK, TKE, TKPL } from '@/content';
+import { TK, TKPL, tkEmoji } from '@/content';
 import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import { useApp, useOrdemEstavel } from '@/lib/store';
@@ -61,7 +61,7 @@ export default function Transporte() {
       <div className="filt">
         {TIPOS.map((k) => (
           <span key={k} className="fchip" aria-pressed="false">
-            {TKE[k]} {TKPL[k]}
+            {tkEmoji(k)} {TKPL[k]}
             <span className="cn">{C.legsOfKind(s, k).length}</span>
           </span>
         ))}
@@ -146,7 +146,7 @@ function Linhas() {
           >
             {TIPOS.map((k) => (
               <option key={k} value={k}>
-                {TKE[k]} {TK[k]}
+                {tkEmoji(k)} {TK[k]}
               </option>
             ))}
           </select>
@@ -288,7 +288,7 @@ function Acrescentar() {
       <select ref={tipo} defaultValue="trem" aria-label="tipo do trecho novo">
         {TIPOS.map((k) => (
           <option key={k} value={k}>
-            {TKE[k]} {TK[k]}
+            {tkEmoji(k)} {TK[k]}
           </option>
         ))}
       </select>

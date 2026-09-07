@@ -15,7 +15,7 @@
 // ============================================================
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -26,7 +26,8 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 /** Todo .tsx de tela e de componente — onde o JSX mora. */
 function arquivosDeTela() {
   const out = [];
-  for (const pasta of ['src/screens', 'src/components']) {
+  for (const pasta of ['src/screens', 'src/screens/roteiro', 'src/components']) {
+    if (!existsSync(join(RAIZ, pasta))) continue;   // a pasta nasce na Tarefa 6
     for (const f of readdirSync(join(RAIZ, pasta))) {
       if (f.endsWith('.tsx')) out.push(join(pasta, f));
     }
@@ -121,34 +122,32 @@ test('toda grade .addrow tem o par que vira coluna unica no celular', () => {
 });
 
 /**
- * Nenhuma tela pode ler `AKE[...]` direto.
+ * Nenhuma tela pode ler `AKE[...]`, `TKE[...]` ou `FKE[...]` direto.
  *
- * Desde 06/09 o tema da atracao e TEXTO LIVRE, entao `AKE['museu']` e
+ * O tema da atracao e TEXTO LIVRE desde 06/09, entao `AKE['museu']` e
  * `undefined` — e `{undefined} {nome}` no JSX nao quebra nada: desenha um
- * espaco solto antes do nome e segue. Eram QUATRO lugares (tres no Roteiro,
- * um em Atracoes), e nenhum deles daria erro de build, de teste ou de tela.
+ * espaco solto e segue. Transporte e comida ainda tem lista fechada, mas o
+ * dado vem do BANCO, e banco com valor fora da lista e questao de tempo.
  *
- * `akEmoji(kind)` tem a saida `?? '📍'`. Este teste faz usar ela ser
- * obrigatorio, do mesmo jeito que o teste do `CT[...]` cru.
- *
- * `AKE.passeio` e `AKE.tour` continuam permitidos: sao as duas chaves que
- * existem de verdade, e a legenda do Roteiro as escreve na mao.
+ * As funcoes com `??` sao `akEmoji`, `tkEmoji` e `fkEmoji`, em @/content.
+ * `AKE.passeio` / `TKE.trem` continuam permitidos: sao chaves literais, e a
+ * legenda do Roteiro as escreve na mao.
  */
-const AKE_CRU = /\bAKE\[[^\]]+\]/;
+const EMOJI_CRU = /\b(AKE|TKE|FKE)\[[^\]]+\]/;
 
-test('nenhuma tela le AKE[...] direto — tema livre nao tem emoji proprio', () => {
+test('nenhuma tela le AKE/TKE/FKE[...] direto — o dado vem do banco', () => {
   const achados = [];
   for (const rel of arquivosDeTela()) {
     const linhas = readFileSync(join(RAIZ, rel), 'utf8').split('\n');
     linhas.forEach((l, i) => {
       if (l.trimStart().startsWith('//') || l.trimStart().startsWith('*')) return;
-      if (AKE_CRU.test(l)) achados.push(`${rel}:${i + 1}  ${l.trim()}`);
+      if (EMOJI_CRU.test(l)) achados.push(`${rel}:${i + 1}  ${l.trim()}`);
     });
   }
   assert.deepEqual(
     achados,
     [],
-    `Tela lendo AKE direto. Troque por akEmoji(kind), de @/content:\n${achados.join('\n')}`,
+    `Tela lendo o dicionario de emoji direto. Troque por akEmoji/tkEmoji/fkEmoji, de @/content:\n${achados.join('\n')}`,
   );
 });
 

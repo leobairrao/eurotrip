@@ -10,7 +10,7 @@
 // Comida NAO tem campo de valor — nenhum (regra 5.9). O que se come
 // vive na estimativa e na Caixa, nunca no custo real.
 // ============================================================
-import { CO, FK, FKCLS, FKE, FKPL, coOf } from '@/content';
+import { CO, FK, FKCLS, FKPL, coOf, fkEmoji } from '@/content';
 import { useState } from 'react';
 import { TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
@@ -114,7 +114,7 @@ function Cartao({ kind, cor }: { kind: FoodKind; cor: string }) {
   return (
     <div className="card" style={{ ['--cc' as string]: `var(${cor})` }}>
       <div className="h">
-        <h3>{FKE[kind]} {TITULO[kind]}</h3>
+        <h3>{fkEmoji(kind)} {TITULO[kind]}</h3>
         <div className="m">
           {co.n} · {n} {n === 1 ? FK[kind] : FKPL[kind]} · {SUB[kind]}
         </div>
@@ -183,7 +183,7 @@ function Linha({ it }: { it: Food }) {
         }}
       >
         {KINDS.map((k) => (
-          <option key={k} value={k}>{FKE[k]} {FK[k]}</option>
+          <option key={k} value={k}>{fkEmoji(k)} {FK[k]}</option>
         ))}
       </select>
       {/* o x grava o seed_id em killed_seed para o item nao ressuscitar (regra 5.14) */}
@@ -305,7 +305,7 @@ function Acrescentar({
             onChange={(e) => setKind(e.currentTarget.value as FoodKind)}
           >
             {KINDS.map((k) => (
-              <option key={k} value={k}>{FKE[k]} {FK[k]}</option>
+              <option key={k} value={k}>{fkEmoji(k)} {FK[k]}</option>
             ))}
           </select>
           <button onClick={() => void por()} disabled={indo}>

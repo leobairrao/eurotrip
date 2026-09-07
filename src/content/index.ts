@@ -156,6 +156,15 @@ export const AKE: Record<string, string> = { passeio: '🚶', tour: '🏛️' };
  * do Roteiro, e ninguem descobre. Use SEMPRE esta funcao.
  */
 export const akEmoji = (kind: string): string => AKE[kind] ?? '📍';
+/** O emoji do transporte, com saida. Irma de `akEmoji` — mesma razao. */
+export const tkEmoji = (kind: string): string => TKE[kind] ?? '🚉';
+/** O emoji da comida, com saida. */
+export const fkEmoji = (kind: string): string => FKE[kind] ?? '🍴';
+/**
+ * O item que ELE escreve direto no dia. 📌 le como "coisa presa neste dia",
+ * e nao colide com nenhum dos outros tres tipos.
+ */
+export const DI_EMOJI = '📌';
 
 export const FK = { prato: 'prato', restaurante: 'restaurante', cafe: 'café' } as const;
 export const FKE: Record<string, string> = { prato: '🍲', restaurante: '🍽️', cafe: '☕' };
