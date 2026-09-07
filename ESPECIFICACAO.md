@@ -427,16 +427,20 @@ create table day_item (
   day_pos     int not null default 0,         -- a ordem DENTRO do dia (etapa 2)
   done        boolean not null default false, -- "eu fiz" — diferente de "eu paguei"
   created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  updated_at  timestamptz not null default now(),
+  updated_by  uuid references app_user(id)
 );
 create index on day_item (day_iso, day_pos);
 ```
 
-**Esta seção está atrasada em quatro tabelas de fases anteriores a esta:** `adopted`, `aviso`,
-`city` e `stay_option` existem no banco e são descritas em prosa noutras partes deste
-documento (seções 5.6, 5.13 e 10.6), mas nunca chegaram a esta lista de `create table`.
-Não foram acrescentadas agora — não são desta etapa. **`supabase/00-tudo.sql` é a fonte da
-verdade do esquema**; se esta seção e ele discordarem, ele manda.
+**Esta seção está atrasada em quatro tabelas de fases anteriores a esta.** `aviso` está
+descrita em prosa, pelo nome (5.6, e na tabela da seção 6.3); `stay_option` também (10.6).
+`adopted` não é citada pelo nome em lugar nenhum, mas a regra que ela existe para impor está
+escrita (5.13 — sugestão só vira dele quando ele clica no `+`). **`city` é a que falta de
+verdade**: nem a tabela, nem a funcionalidade que ela sustenta (ele pode cadastrar uma cidade
+nova — ver `COMO-MEXER.md`, "O que mudou em 06/09") aparecem em lugar nenhum deste documento.
+Nenhuma das quatro foi acrescentada agora — não são desta etapa. **`supabase/00-tudo.sql` é a
+fonte da verdade do esquema**; se esta seção e ele discordarem, ele manda.
 
 ### 6.3 — Conteúdo que NÃO vai para o banco
 
@@ -1012,8 +1016,10 @@ totalReal =  VOO
            + ( atracoesEur('escolhida')
              + hospedagemEur
              + extrasEmEuro
+             + itemLivreEmEuro
              + transporteEur(todos) ) × câmbio
            + extrasEmReal
+           + itemLivreEmReal
            + transporteEmReal(todos)
            + burocraciaBrl(todos)
 
@@ -1021,6 +1027,16 @@ aindaPorGastar = totalReal − jaPago
 ```
 Note que **transporte e burocracia entram no total inteiros**, comprados ou não. A caixinha só
 move o dinheiro entre "já pago" e "previsto".
+
+> **Estendida em 07/09/2026 (item 11 da lista do Leo — a visualização do dia).**
+> `itemLivreEmEuro`/`itemLivreEmReal` são a soma do valor dos `day_item`, na moeda de cada um
+> (regra 5.11: sem moeda escolhida, cai em euro). Entram em `totalReal` do mesmo jeito que
+> `extrasEmEuro`/`extrasEmReal` — mas, por decisão registrada, o item livre **não aparece na
+> aba Custos** (10.9): apareceria nos dois lugares, dois lugares para mexer no mesmo dinheiro
+> (ver `COMO-MEXER.md`, item 11). O dinheiro dele conta na viagem sem contar de novo ali.
+> **`jaPago` não muda:** o item livre não tem caixinha de "já paguei", só o `done` de "já
+> fiz" — marcar feito não move dinheiro nenhum, então não há termo de `day_item` para
+> acrescentar ali.
 
 ### 11.8 — Caixa
 
