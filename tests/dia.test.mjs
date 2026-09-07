@@ -48,15 +48,29 @@ const item = (id, pos, o = {}) => ({
 
 test('junta as quatro origens do dia, e so as do dia', () => {
   const s = snap({
-    attractions: [attr('a1', 1), attr('a2', 9, { day_iso: '2026-12-17' })],
-    legs: [leg('t1', 0)],
-    foods: [food('f1', 2)],
-    dayItems: [item('d1', 3), item('d2', 9, { day_iso: '2026-12-17' })],
+    attractions: [attr('a1', 1, { note: 'ver com antecedencia' }),
+                  attr('a2', 9, { day_iso: '2026-12-17' })],
+    legs: [leg('t1', 0, { note: 'comprar bilhete' })],
+    foods: [food('f1', 2, { note: 'reservar mesa' })],
+    dayItems: [item('d1', 3, { note: 'lembrar de anotar' }),
+               item('d2', 9, { day_iso: '2026-12-17' })],
   });
   const l = D.itensDoDia(s, ISO);
   assert.deepEqual(l.map((x) => x.id), ['t1', 'a1', 'f1', 'd1']);
   assert.deepEqual(l.map((x) => x.tabela),
     ['leg', 'attraction', 'food', 'day_item']);
+
+  // O mapeamento coluna->campo, preso por origem: `nome`, `nota` e `sub` nao
+  // tem nenhuma asserção em outro lugar do arquivo. Sem isto, `nome: t.note`
+  // no lugar de `nome: t.name` compila limpo (os dois lados sao string) e
+  // passa em todos os outros testes — igual ao defeito que load.ts:121-123
+  // ja fechou para os normalizadores.
+  assert.deepEqual(l.map((x) => x.nome),
+    ['trecho t1', 'atr a1', 'comida f1', 'livre d1']);
+  assert.deepEqual(l.map((x) => x.nota),
+    ['comprar bilhete', 'ver com antecedencia', 'reservar mesa',
+     'lembrar de anotar']);
+  assert.deepEqual(l.map((x) => x.sub), ['trem', 'Madrid', 'restaurante', 'seu']);
 });
 
 test('ordena por day_pos', () => {
@@ -111,6 +125,10 @@ test('o total do dia soma os dois lados, de todas as origens', () => {
            leg('t2', 2, { amount: 22, currency: 'eur' })],
     dayItems: [item('d1', 3, { amount: 40, currency: 'eur' }),
                item('d2', 4, { amount: 35, currency: 'brl' })],
+    // comida nao tem campo de valor: ela entra na soma com 0 dos dois
+    // lados, sempre. Sem este fixture o `totalDoDia` nunca roda com uma
+    // comida presente e "food contribui 0" fica sem prova nenhuma.
+    foods: [food('f1', 5)],
   });
   assert.deepEqual(D.totalDoDia(s, ISO), { eur: 82, brl: 835 });
   assert.deepEqual(D.totalDoDia(snap(), ISO), { eur: 0, brl: 0 });
@@ -120,9 +138,29 @@ test('feitasDoDia conta o que esta marcado', () => {
   const s = snap({
     attractions: [attr('a1', 0, { done: true }), attr('a2', 1)],
     dayItems: [item('d1', 2, { done: true })],
+    // as duas origens que faltavam: sem elas, um `done` de leg ou de food
+    // que a funcao esquecesse de contar passaria por aqui sem ser notado.
+    legs: [leg('t1', 3, { done: true }), leg('t2', 4)],
+    foods: [food('f1', 5, { done: true }), food('f2', 6)],
   });
-  assert.deepEqual(D.feitasDoDia(s, ISO), { feitas: 2, total: 3 });
+  assert.deepEqual(D.feitasDoDia(s, ISO), { feitas: 4, total: 7 });
   assert.deepEqual(D.feitasDoDia(snap(), ISO), { feitas: 0, total: 0 });
+});
+
+test('eur e brl sao 0, nunca null, quando o amount e null', () => {
+  // src/lib/dia.ts:38 promete 0 quando nao ha valor, nunca null, para quem
+  // soma nao precisar checar. leg e day_item nascem com amount: null nos
+  // fixtures deste arquivo — o caso normal antes de qualquer preenchimento.
+  const s = snap({
+    legs: [leg('t1', 0)],
+    dayItems: [item('d1', 1)],
+  });
+  for (const x of D.itensDoDia(s, ISO)) {
+    assert.equal(x.eur, 0);
+    assert.equal(x.brl, 0);
+    assert.equal(typeof x.eur, 'number');
+    assert.equal(typeof x.brl, 'number');
+  }
 });
 
 test('emoji nunca vem vazio, nem com tema inventado', () => {
