@@ -95,7 +95,7 @@ function snapshotDoLeo() {
     },
     contributions: [],
     avisos: [],
-  avisos: [],
+    dayItems: [],
     me: { id: 'x', email: 'leo@x', who: 'leo' },
     hoje: '2026-09-04',
   };
@@ -876,4 +876,32 @@ test('10.1 — a tabela do roteiro tem 8 linhas e nenhuma data', () => {
   assert.equal(C.baseOut('Madrid', true, bases[7]), 'último dia — o voo de volta é 23h35');
   assert.equal(C.baseOut('Lisboa', false, bases[1]), 'Sintra e Cascais');
   assert.equal(C.baseOut('Metz', false, bases[3]), 'Luxemburgo, Estrasburgo, Trier, Nancy ou Colmar');
+});
+
+/**
+ * O item livre entra no total da viagem.
+ *
+ * Ele escolheu que o item que escreve no dia tem valor e moeda. A hora de
+ * ligar isso na conta e AGORA, quando ainda nao existe nenhum: se ficar
+ * para a etapa 2, o formulario nasce guardando dinheiro que nao soma em
+ * lugar nenhum, e a diferenca so aparece quando o total nao bater com o que
+ * ele lembra ter lancado.
+ */
+test('11.7 — o item livre do dia entra no total da viagem', () => {
+  const antes = C.totalBrl(S, CIDADES_STAY);
+
+  const s2 = structuredClone(S);
+  s2.dayItems = [
+    { id: 'd1', day_iso: '2026-12-16', name: 'Presente', note: '',
+      amount: 40, currency: 'eur', day_pos: 0, done: false },
+    { id: 'd2', day_iso: '2026-12-16', name: 'Lavanderia', note: '',
+      amount: 35, currency: 'brl', day_pos: 1, done: false },
+  ];
+  assert.equal(C.dayItemEur(s2), 40);
+  assert.equal(C.dayItemBrl(s2), 35);
+  assert.equal(
+    Math.round(C.totalBrl(s2, CIDADES_STAY)),
+    Math.round(antes + 40 * C.rate(s2) + 35),
+    'euro vira real pelo cambio; real entra direto',
+  );
 });

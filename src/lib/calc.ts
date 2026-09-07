@@ -418,6 +418,21 @@ export const extraEur = (s: Snapshot) =>
 export const extraBrl = (s: Snapshot) =>
   s.extras.reduce((a, x) => (x.currency === 'brl' ? a + num(x.amount) : a), 0);
 
+/**
+ * O item que ele escreve dentro de um dia (`day_item`), somado.
+ *
+ * ENTRA no total da viagem e NAO entra na aba Custos — decisao registrada
+ * na spec: aparecer nos dois lugares seria dois lugares para mexer no mesmo
+ * dinheiro, e na primeira vez que discordassem ninguem saberia qual esta
+ * certo. O item se edita so dentro do dia.
+ *
+ * A moeda padrao e EURO, como em transporte (regra 5.11).
+ */
+export const dayItemEur = (s: Snapshot) =>
+  s.dayItems.reduce((a, x) => (x.currency !== 'brl' ? a + num(x.amount) : a), 0);
+export const dayItemBrl = (s: Snapshot) =>
+  s.dayItems.reduce((a, x) => (x.currency === 'brl' ? a + num(x.amount) : a), 0);
+
 // ---------------- 11.7 os dois totais do dinheiro ----------------
 export const rate = (s: Snapshot) => num(s.settings.eur_rate);
 
@@ -458,8 +473,9 @@ export function totalBrl(s: Snapshot, cities: string[]): number {
   const x = legSum(s, '');
   return (
     VOO +
-    (attrEurAll(s, 'roteiro') + stayTotalAll(s, cities) + extraEur(s) + x.eur) * rate(s) +
-    extraBrl(s) +
+    (attrEurAll(s, 'roteiro') + stayTotalAll(s, cities) + extraEur(s)
+      + dayItemEur(s) + x.eur) * rate(s) +
+    extraBrl(s) + dayItemBrl(s) +
     x.brl +
     bookingBrl(s, '')
   );

@@ -52,6 +52,9 @@ const stayOpt    = await g('stay_option');
 // As cidades que ELE criou (05/09). As 11 de sempre continuam no arquivo.
 const cidades = await g('city').catch(() => []);
 const extra      = await g('extra');
+// Fase 7: o item que ele escreve dentro de um dia. Entra no total da viagem
+// e nao aparece na aba Custos.
+const dayItem    = await g('day_item').catch(() => []);
 
 const rate = num(settings?.eur_rate);
 
@@ -88,6 +91,8 @@ const marcadas = stayOpt.filter((o) => o.chosen);
 const stayTot = marcadas.reduce((a, o) => a + valorOpc(o), 0);
 const xEur = extra.reduce((a, x) => (x.currency !== 'brl' ? a + num(x.amount) : a), 0);
 const xBrl = extra.reduce((a, x) => (x.currency === 'brl' ? a + num(x.amount) : a), 0);
+const diEur = dayItem.filter((r) => r.currency !== 'brl').reduce((a, r) => a + num(r.amount), 0);
+const diBrl = dayItem.filter((r) => r.currency === 'brl').reduce((a, r) => a + num(r.amount), 0);
 
 // Fase 5: atracao e hospedagem passaram a poder ser marcadas como pagas.
 const attrPago = noRoteiro.filter((a) => a.paid).reduce((a, x) => a + num(x.price_eur), 0);
@@ -135,6 +140,7 @@ linha(attraction.length >= 35, 'atracoes na lista DELE', '>= 35', attraction.len
 linha(pesquisa.length === 0, '  ... nenhuma sugestao minha aqui dentro', 0, pesquisa.length);
 linha(stay.length === 7, 'bases de hospedagem (tabela aposentada)', 7, stay.length);
 console.log(`       retrato de hoje: ${leg.length} trechos e ${stayOpt.length} opcoes de hospedagem que ELE puxou`);
+linha(true, 'itens escritos no dia', '(retrato)', `${dayItem.length} · ${eur(diEur)} + ${brl(diBrl)}`);
 
 console.log('\n  ================ A PESQUISA, QUE AGORA VIVE EM ARQUIVO ================\n');
 linha(soma(atrSugArq) === 69, 'atracoes que eu pesquisei', 69, soma(atrSugArq));
