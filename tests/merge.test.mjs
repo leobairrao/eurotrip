@@ -23,6 +23,7 @@ const base = () => ({
   stays: { lisboa: { city: 'lisboa', address: '', check_in: '', check_out: '',
     nightly_eur: null, nights: null, total_eur: null, link: '', notes: '' } },
   extras: [],
+  dayItems: [],
   settings: { id: 1, eur_rate: 6.2, flight_paid_brl: VOO },
   killed: [],
   adopted: [],
@@ -267,4 +268,53 @@ test('inserir e remover local', () => {
   assert.equal(s.extras.length, 1);
   s = removerLocal(s, 'extra', 'x1');
   assert.equal(s.extras.length, 0);
+});
+
+/**
+ * A tabela nova no tempo real. `inserirLocal` faz spread sobre a lista do
+ * Snapshot: se a chave `dayItems` nao existir em `vazio()` e em `LISTA`, o
+ * PRIMEIRO insert remoto e um TypeError e a tela inteira cai — nao e falha
+ * silenciosa, e queda. Este teste prova os dois lados.
+ */
+test('day_item: insert, update e delete remotos chegam na lista', () => {
+  let s = base();
+
+  s = aplicarRemoto(s, 'day_item', {
+    eventType: 'INSERT',
+    new: { id: 'd1', day_iso: '2026-12-12', name: 'Check-in no Airbnb', note: '',
+           amount: null, currency: 'eur', day_pos: 0, done: false },
+    old: {},
+  }, new Map());
+  assert.equal(s.dayItems.length, 1);
+  assert.equal(s.dayItems[0].name, 'Check-in no Airbnb');
+
+  s = aplicarRemoto(s, 'day_item', upd({
+    id: 'd1', day_iso: '2026-12-12', name: 'Check-in no Airbnb', note: '',
+    amount: null, currency: 'eur', day_pos: 0, done: true,
+  }), new Map());
+  assert.equal(s.dayItems[0].done, true, 'a Lu marcou feito e ele ve');
+
+  s = aplicarRemoto(s, 'day_item', {
+    eventType: 'DELETE', new: {}, old: { id: 'd1' },
+  }, new Map());
+  assert.equal(s.dayItems.length, 0);
+});
+
+test('day_item: escrita local pendente nao e sobrescrita pelo remoto', () => {
+  let s = base();
+  s = aplicarRemoto(s, 'day_item', {
+    eventType: 'INSERT',
+    new: { id: 'd1', day_iso: '2026-12-12', name: 'Lavanderia', note: '',
+           amount: null, currency: 'eur', day_pos: 0, done: false },
+    old: {},
+  }, new Map());
+
+  // ele acabou de digitar o valor e ainda esta na fila
+  const pend = new Map([[chave('day_item', 'd1', 'amount'), 35]]);
+  s = mesclar(s, 'day_item', 'd1', { amount: 35 });
+  s = aplicarRemoto(s, 'day_item', upd({
+    id: 'd1', day_iso: '2026-12-12', name: 'Lavanderia', note: '',
+    amount: null, currency: 'eur', day_pos: 0, done: false,
+  }), pend);
+  assert.equal(s.dayItems[0].amount, 35, 'o que ele digitou sobrevive');
 });

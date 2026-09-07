@@ -125,6 +125,26 @@ export interface Booking {
   done: boolean;
   seed_id: string | null;
 }
+/**
+ * O item que ELE escreve direto no dia: check-in, lavanderia, comprar
+ * presente. E o unico dos quatro tipos do dia que so existe dentro do dia
+ * — por isso o `x` dele APAGA, enquanto o das atracoes so tira do dia.
+ *
+ * Nao tem `seed_id` de proposito: pesquisa minha nunca nasce dentro das
+ * tabelas dele (a regra de 06/09), e isto aqui e so dele.
+ */
+export interface DayItem {
+  id: string;
+  day_iso: string;
+  name: string;
+  note: string;
+  amount: number | null;
+  currency: Currency;
+  /** A ordem DENTRO do dia. Ver o comentario em supabase/10-o-dia-em-ordem.sql. */
+  day_pos: number;
+  /** "eu fiz" — nao e "eu paguei". */
+  done: boolean;
+}
 export interface Stay {
   city: string;
   address: string;
@@ -247,6 +267,12 @@ export interface Snapshot {
   /** So as cidades que ELE criou. As 11 fixas estao em CT. Junte com C.cidadesDe. */
   cities: CityRow[];
   extras: Extra[];
+  /**
+   * A chave TEM que existir aqui e em `vazio()`: `inserirLocal` faz spread
+   * sobre ela no primeiro INSERT remoto, e spread sobre `undefined` derruba
+   * a tela inteira.
+   */
+  dayItems: DayItem[];
   settings: Settings;
   killed: string[];
   adopted: string[];

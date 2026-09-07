@@ -20,15 +20,16 @@ export const PK: Record<string, string> = {
   savings: 'who',
   contribution: 'id',
   aviso: 'id',
+  day_item: 'id',
 };
 
 export type Tabela =
   | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'stay_option'
   | 'city' | 'extra' | 'settings' | 'savings' | 'contribution' | 'killed_seed'
-  | 'adopted' | 'aviso';
+  | 'adopted' | 'aviso' | 'day_item';
 
 type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'stayOptions'
-  | 'cities' | 'extras' | 'contributions' | 'avisos';
+  | 'cities' | 'extras' | 'contributions' | 'avisos' | 'dayItems';
 export const LISTA: Record<string, Lista> = {
   attraction: 'attractions',
   food: 'foods',
@@ -44,6 +45,7 @@ export const LISTA: Record<string, Lista> = {
   // mais caso especial nenhum aqui: e uma lista igual as outras.
   contribution: 'contributions',
   aviso: 'avisos',
+  day_item: 'dayItems',
 };
 
 export const chave = (t: string, pk: string, col: string) => `${t}|${pk}|${col}`;

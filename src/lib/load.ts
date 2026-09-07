@@ -7,7 +7,7 @@ import { STAYS, VOO } from '@/content';
 import { EMPTY_STAY } from './types';
 import { AK_MAX } from './types';
 import type {
-  AppUser, Attraction, Aviso, Booking, Contribution, Extra, Food, Leg,
+  AppUser, Attraction, Aviso, Booking, Contribution, DayItem, Extra, Food, Leg,
   CityRow, Savings, Settings, Snapshot, Stay, StayOption, Tone, Who,
 } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -36,6 +36,7 @@ const vazio = (): Snapshot => ({
   stayOptions: [],
   cities: [],
   extras: [],
+  dayItems: [],
   settings: { id: 1, eur_rate: 6, flight_paid_brl: VOO },
   killed: [],
   adopted: [],
@@ -62,7 +63,7 @@ function hojeIso(): string {
 export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<Snapshot> {
   const [
     day, attraction, food, leg, booking, stay, stayOption, city, extra, settings,
-    killed, adopted, savings, contribution, aviso,
+    killed, adopted, savings, contribution, aviso, dayItem,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
     // `.order('name')`: sem isto a ordem e a que o Postgres devolveu, e ele
@@ -82,6 +83,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('savings').select('*'),
     db.from('contribution').select('*').order('on_date'),
     db.from('aviso').select('*').order('position'),
+    db.from('day_item').select('*').order('day_pos'),
   ]);
 
   const s = vazio();
@@ -110,6 +112,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
   // A tabela pode nao existir ainda (antes de rodar 04-avisos.sql): o
   // erro nao derruba a pagina, a tela so fica sem aviso nenhum.
   s.avisos = (aviso.data ?? []).map(normAviso);
+  s.dayItems = (dayItem.data ?? []).map(normDayItem);
   return s;
 }
 
@@ -176,6 +179,12 @@ const normAporte = (r: Record<string, unknown>): Contribution => ({
   amount: n(r.amount),
   currency: r.currency === 'eur' ? 'eur' : 'brl',
   created_at: r.created_at ? String(r.created_at) : undefined,
+});
+const normDayItem = (r: Record<string, unknown>): DayItem => ({
+  id: String(r.id), day_iso: String(r.day_iso), name: String(r.name),
+  note: String(r.note ?? ''),
+  amount: n(r.amount), currency: r.currency as DayItem['currency'],
+  day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 });
 const normStay = (r: Record<string, unknown>): Stay => ({
   city: String(r.city), address: String(r.address ?? ''),
