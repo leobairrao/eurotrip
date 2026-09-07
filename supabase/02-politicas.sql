@@ -1,6 +1,22 @@
 -- ============================================================
 -- Eurotrip 2026 — RLS, Realtime e a Caixa privada
--- (ESPECIFICACAO.md secoes 7 e 8). Rode DEPOIS de 01-schema.sql.
+-- (ESPECIFICACAO.md secoes 7 e 8).
+--
+-- APOSENTADO — NÃO USE ESTE ARQUIVO PARA MONTAR UM BANCO NOVO.
+--
+-- Este arquivo cobre só as tabelas que existiam quando ele foi escrito.
+-- Ficou incompleto e parou de ser atualizado junto com `00-tudo.sql`:
+-- não tem `stay_option`, não tem `city`, não tem `attraction.paid` e,
+-- agora, não tem `day_item`. Rodar este arquivo depois de
+-- `01-schema.sql` (que também está aposentado, ver o cabeçalho dele) num
+-- banco novo deixa essas tabelas SEM `enable row level security`. No
+-- Supabase o privilégio padrão dá `all` para o papel `anon`, então
+-- qualquer pessoa com a anon key passa a ler e escrever nelas — no caso
+-- de `day_item`, os itens do dia de qualquer um.
+--
+-- O arquivo correto e único testado para montar um banco novo é
+-- `supabase/00-tudo.sql`, que já inclui RLS, realtime e replica identity
+-- para todas as tabelas, `day_item` incluída.
 -- ============================================================
 
 -- ------------------------------------------------------------

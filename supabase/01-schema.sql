@@ -1,6 +1,24 @@
 -- ============================================================
 -- Eurotrip 2026 — esquema (ESPECIFICACAO.md secao 6.2)
--- Rode este arquivo primeiro, no SQL Editor do Supabase.
+--
+-- APOSENTADO — NÃO USE ESTE ARQUIVO PARA MONTAR UM BANCO NOVO.
+--
+-- Este arquivo (e o `02-politicas.sql` que o seguia) ficou incompleto e
+-- parou de ser atualizado junto com `00-tudo.sql`: faltam aqui a tabela
+-- `stay_option`, a tabela `city`, a coluna `attraction.paid` e, agora, o
+-- RLS/realtime da tabela `day_item` (ela existe abaixo, mas SEM
+-- `enable row level security`, SEM policy e SEM publicação realtime —
+-- essas três linhas só estão em `00-tudo.sql`).
+--
+-- Se alguém rodar este arquivo (e `02-politicas.sql` em seguida) para
+-- criar um banco do zero, `day_item` — e qualquer tabela nova que não
+-- tenha entrado em `02-politicas.sql` — nasce SEM RLS. No Supabase o
+-- privilégio padrão dá `all` para o papel `anon`, então qualquer pessoa
+-- com a anon key passa a ler e escrever os itens do dia de qualquer um.
+--
+-- O arquivo correto e único testado para montar um banco novo é
+-- `supabase/00-tudo.sql`. Ele é a cópia colada e completa, e é o que os
+-- testes deste projeto conferem coluna a coluna contra este arquivo.
 -- ============================================================
 
 -- ---------- quem pode entrar ----------

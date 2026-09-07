@@ -211,30 +211,107 @@ test('as listas de sugestao nao escondem chave de comentario', () => {
   assert.deepEqual(ruins, [], `Sugestao com chave que nao e lista:\n${ruins.join('\n')}`);
 });
 
+// tira comentario, espaco de sobra e virgula final de cada linha do corpo
+// de um `create table`, pra sobrar so a lista de definicoes de coluna
+function colunasDoCorpo(corpo) {
+  return corpo
+    .split('\n')
+    .map((linha) => linha.split('--')[0].trim())
+    .filter((linha) => linha.length > 0)
+    .map((linha) => linha.replace(/\s+/g, ' ').replace(/,$/, ''));
+}
+
+// o corpo (as colunas) do `create table if not exists <tabela>` num SQL.
+// null se a tabela nao existir nesse arquivo
+function corpoDaTabela(sql, tabela) {
+  const bloco = sql.split(`create table if not exists ${tabela} (`)[1];
+  if (!bloco) return null;
+  return colunasDoCorpo(bloco.split('\n);')[0]);
+}
+
+// compara duas listas de colunas linha a linha; devolve as diferencas,
+// cada uma dizendo QUAL linha e o que tinha de cada lado
+function difColunas(a, b) {
+  const max = Math.max(a.length, b.length);
+  const difs = [];
+  for (let i = 0; i < max; i++) {
+    if (a[i] !== b[i]) {
+      difs.push(`linha ${i + 1}: "${a[i] ?? '(faltando)'}" vs "${b[i] ?? '(faltando)'}"`);
+    }
+  }
+  return difs;
+}
+
 /**
- * `dados/` e `src/content/` sao copias que precisam bater, e as DUAS copias
+ * `dados/` e `src/content/` sao copias que precisam bater, e as copias
  * do esquema tambem: `00-tudo.sql` e a colada unica, `01-schema.sql` e a
- * fatiada. Quem mexe numa e esquece a outra cria um banco novo diferente do
- * banco de producao, e a diferenca so aparece quando alguem roda o seed do
+ * fatiada, e a tabela `day_item` tem ainda uma TERCEIRA copia, em
+ * `10-o-dia-em-ordem.sql` — a migracao que ele roda de verdade no banco.
+ * Quem mexe numa e esquece a outra cria um banco novo diferente do banco
+ * de producao, e a diferenca so aparece quando alguem roda o seed do
  * zero — meses depois.
+ *
+ * Nao basta achar a palavra `day_pos` em cada copia (isso passa mesmo se
+ * uma copia tiver `currency default 'brl'` e a outra `default 'eur'`).
+ * Este teste extrai as colunas de cada `create table` e compara as
+ * copias LINHA A LINHA, pra pegar justamente esse tipo de divergencia
+ * silenciosa — o mesmo defeito de "R$ 257 virou R$ 1.595" descrito no
+ * SQL, só que agora entre arquivos em vez de entre moedas.
  */
 test('as duas copias do esquema conhecem o dia em ordem', () => {
-  const copias = ['supabase/00-tudo.sql', 'supabase/01-schema.sql']
-    .map((f) => [f, readFileSync(join(RAIZ, f), 'utf8')]);
+  const arquivos = {
+    'supabase/00-tudo.sql': null,
+    'supabase/01-schema.sql': null,
+    'supabase/10-o-dia-em-ordem.sql': null,
+  };
+  for (const rel of Object.keys(arquivos)) {
+    arquivos[rel] = readFileSync(join(RAIZ, rel), 'utf8');
+  }
 
   const faltando = [];
-  for (const [nome, sql] of copias) {
+
+  // 1. o basico: a tabela e as seis colunas tem que existir em cada
+  // copia. Roda mesmo antes de as copias existirem (ou existirem por
+  // completo), pra dar um erro legivel nesse estagio tambem.
+  for (const [nome, sql] of [
+    ['supabase/00-tudo.sql', arquivos['supabase/00-tudo.sql']],
+    ['supabase/01-schema.sql', arquivos['supabase/01-schema.sql']],
+  ]) {
     if (!/create table if not exists day_item/.test(sql)) {
       faltando.push(`${nome}: sem a tabela day_item`);
     }
     for (const t of ['attraction', 'food', 'leg']) {
-      // a coluna tem que estar DENTRO do create table daquela tabela
-      const bloco = sql.split(`create table if not exists ${t} (`)[1];
-      if (!bloco) { faltando.push(`${nome}: sem a tabela ${t}`); continue; }
-      const corpo = bloco.split('\n);')[0];
-      if (!/day_pos/.test(corpo)) faltando.push(`${nome}: ${t} sem day_pos`);
-      if (!/\bdone\b/.test(corpo)) faltando.push(`${nome}: ${t} sem done`);
+      const corpo = corpoDaTabela(sql, t);
+      if (corpo === null) { faltando.push(`${nome}: sem a tabela ${t}`); continue; }
+      if (!corpo.some((l) => /day_pos/.test(l))) faltando.push(`${nome}: ${t} sem day_pos`);
+      if (!corpo.some((l) => /\bdone\b/.test(l))) faltando.push(`${nome}: ${t} sem done`);
     }
   }
-  assert.deepEqual(faltando, [], `Esquema pela metade:\n${faltando.join('\n')}`);
+
+  // 2. a comparacao de verdade: 00-tudo.sql e 01-schema.sql tem que
+  // descrever EXATAMENTE as mesmas colunas para attraction/food/leg/day_item
+  if (faltando.length === 0) {
+    const tudo = arquivos['supabase/00-tudo.sql'];
+    const fatiado = arquivos['supabase/01-schema.sql'];
+    for (const t of ['attraction', 'food', 'leg', 'day_item']) {
+      const corpoTudo = corpoDaTabela(tudo, t);
+      const corpoFatiado = corpoDaTabela(fatiado, t);
+      for (const dif of difColunas(corpoTudo, corpoFatiado)) {
+        faltando.push(`${t} (00-tudo.sql vs 01-schema.sql), ${dif}`);
+      }
+    }
+
+    // 3. day_item tem uma terceira copia: a migracao que ele roda
+    const corpoMigracao = corpoDaTabela(arquivos['supabase/10-o-dia-em-ordem.sql'], 'day_item');
+    if (corpoMigracao === null) {
+      faltando.push('supabase/10-o-dia-em-ordem.sql: sem a tabela day_item');
+    } else {
+      const corpoTudoDayItem = corpoDaTabela(tudo, 'day_item');
+      for (const dif of difColunas(corpoTudoDayItem, corpoMigracao)) {
+        faltando.push(`day_item (00-tudo.sql vs 10-o-dia-em-ordem.sql), ${dif}`);
+      }
+    }
+  }
+
+  assert.deepEqual(faltando, [], `Esquema pela metade ou copias divergindo:\n${faltando.join('\n')}`);
 });

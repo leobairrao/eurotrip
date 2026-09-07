@@ -88,24 +88,33 @@ begin
   raise notice 'ok: day_item grava e apaga';
 end $$;
 
--- O resultado que aparece na tela do Supabase: uma linha, tudo `true` e
--- `sobrou_lixo = 0`.
+-- O resultado que aparece na tela do Supabase: uma linha com
+-- `colunas_da_tabela_nova = 11`, `colunas_novas_nas_tres = 6`,
+-- `realtime_ligado = true`, `linha_inteira_no_delete = true`,
+-- `rls_ligada = true` e `sobrou_lixo = 0`.
 select
   (select count(*) from information_schema.columns
-    where table_name = 'day_item')                     as colunas_da_tabela_nova,
+    where table_schema = 'public'
+      and table_name = 'day_item')                     as colunas_da_tabela_nova,
   (select count(*) from information_schema.columns
-    where table_name in ('attraction','food','leg')
+    where table_schema = 'public'
+      and table_name in ('attraction','food','leg')
       and column_name in ('day_pos','done'))           as colunas_novas_nas_tres,
   (select count(*) from pg_publication_tables
     where pubname = 'supabase_realtime'
       and tablename = 'day_item') = 1                  as realtime_ligado,
   (select relreplident from pg_class
     where oid = 'day_item'::regclass) = 'f'            as linha_inteira_no_delete,
-  (select count(*) from pg_policies
-    where tablename = 'day_item') >= 1                 as rls_com_politica,
+  -- NAO conta pg_policies: uma tabela pode ter policy e estar com
+  -- `relrowsecurity = false` — a policy fica inerte e a tabela aberta,
+  -- e contar policy diria `true` mesmo assim. Isto le se o RLS esta
+  -- LIGADO de fato.
+  (select relrowsecurity from pg_class
+    where oid = 'day_item'::regclass)                  as rls_ligada,
   (select count(*) from day_item
     where name = '__teste do dia__')                   as sobrou_lixo;
 
+-- `colunas_da_tabela_nova` tem que ser 11 (as colunas de day_item).
 -- `colunas_novas_nas_tres` tem que ser 6: day_pos e done em attraction,
 -- food e leg.
 
