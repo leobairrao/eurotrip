@@ -346,4 +346,16 @@ test('day_pos e done atravessam o tempo real nas tres tabelas', () => {
   assert.equal(s.legs[0].position, 0, 'position continua sendo a ordem da VIAGEM');
   assert.equal(s.legs[0].done, true);
   assert.equal(s.legs[0].bought, false, 'done nao e bought');
+
+  // base() nao tem comida nenhuma: chega como INSERT, igual ao caso de
+  // atracao nova (teste 'linha nova do outro entra na lista').
+  s = aplicarRemoto(s, 'food', {
+    eventType: 'INSERT',
+    new: { id: 'f1', country: 'pt', name: 'Pastel de nata', note: '',
+           kind: 'prato', day_iso: '2026-12-12', seed_id: null,
+           day_pos: 2, done: true },
+    old: {},
+  }, new Map());
+  assert.equal(s.foods[0].day_pos, 2);
+  assert.equal(s.foods[0].done, true);
 });

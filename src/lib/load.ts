@@ -118,7 +118,10 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
 
 const n = (v: unknown): number | null => (v === null || v === undefined ? null : Number(v));
 
-const normAttr = (r: Record<string, unknown>): Attraction => ({
+// Exportados so para o teste alcancar o mapeamento coluna->campo: e o unico
+// lugar onde uma coluna trocada (ex.: `day_pos: Number(r.position ?? 0)`)
+// compila limpo e nao quebra nenhum outro teste. Ver tests/load.test.mjs.
+export const normAttr = (r: Record<string, unknown>): Attraction => ({
   id: String(r.id), city: String(r.city), name: String(r.name),
   price_eur: Number(r.price_eur ?? 0), note: String(r.note ?? ''),
   status: r.status as Attraction['status'], kind: r.kind as Attraction['kind'],
@@ -142,14 +145,16 @@ const normStayOption = (r: Record<string, unknown>): StayOption => ({
   position: Number(r.position ?? 0),
   seed_id: r.seed_id ? String(r.seed_id) : null,
 });
-const normFood = (r: Record<string, unknown>): Food => ({
+// Exportado pelo mesmo motivo de normAttr: ver tests/load.test.mjs.
+export const normFood = (r: Record<string, unknown>): Food => ({
   id: String(r.id), country: String(r.country), name: String(r.name),
   note: String(r.note ?? ''), kind: r.kind as Food['kind'],
   day_iso: r.day_iso ? String(r.day_iso) : null,
   seed_id: r.seed_id ? String(r.seed_id) : null,
   day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 });
-const normLeg = (r: Record<string, unknown>): Leg => ({
+// Exportado pelo mesmo motivo de normAttr: ver tests/load.test.mjs.
+export const normLeg = (r: Record<string, unknown>): Leg => ({
   id: String(r.id), position: Number(r.position ?? 0), name: String(r.name),
   note: String(r.note ?? ''), kind: r.kind as Leg['kind'],
   amount: n(r.amount), currency: r.currency as Leg['currency'],

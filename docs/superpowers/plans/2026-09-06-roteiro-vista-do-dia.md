@@ -498,6 +498,18 @@ test('day_pos e done atravessam o tempo real nas tres tabelas', () => {
 Run: `npm test 2>&1 | grep -A4 "atravessam o tempo real"`
 Expected: FAIL — `undefined !== 3`.
 
+> **CORREÇÃO (rodada de revisão da Tarefa 3):** esta expectativa está
+> ERRADA, e não há como corrigi-la mudando o teste — é a natureza de
+> `aplicarRemoto`/`mesclar` que impede a falha. As duas fazem spread cru
+> (`{ ...p.new }`, `{ ...x, ...cols }`), sem lista branca nenhuma: qualquer
+> campo que a linha remota tiver atravessa o tempo real, existindo ou não
+> no tipo TypeScript. Como o teste roda em JavaScript puro (a checagem de
+> tipos não existe em tempo de execução), `day_pos`/`done` já passavam por
+> `aplicarRemoto` ANTES de qualquer mudança em `types.ts`/`load.ts`. Rodar
+> este teste antes do Passo 3 dá PASS, não FAIL — e isso é esperado, não é
+> sinal de erro de implementação. O teste continua correto como guarda de
+> regressão; só a promessa de "ver falhar" não se sustenta aqui.
+
 - [ ] **Passo 3: os tipos e os normalizadores**
 
 Em `src/lib/types.ts`, acrescentar a `Attraction`, `Food` e `Leg` (nos três):
@@ -519,7 +531,28 @@ Em `src/lib/load.ts`, acrescentar aos três normalizadores:
   day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 ```
 
-O `tsc` vai apontar **todos** os outros lugares que constroem um `Attraction`/`Food`/`Leg` (o caminho de demonstração em `load.ts`, e os testes). Corrigir cada um com `day_pos: 0, done: false`.
+O `tsc` vai apontar **todos** os outros lugares de PRODUÇÃO que constroem um `Attraction`/`Food`/`Leg` — na prática, só o caminho de demonstração em `load.ts` (`carregarDemo`, três construções: atração, comida e trecho). Corrigir cada um com `day_pos: 0, done: false`.
+
+> **CORREÇÃO (rodada de revisão da Tarefa 3):** o parágrafo original dizia
+> que o `tsc` apontaria "os testes" também. Isso é falso, e não é um
+> detalhe: `tsconfig.json` tem `"include": ["next-env.d.ts", "**/*.ts",
+> "**/*.tsx", ".next/types/**/*.ts"]` — arquivos `.mjs` (TODOS os testes
+> deste projeto, inclusive `tests/merge.test.mjs` e `tests/calc.test.mjs`)
+> ficam fora do programa TypeScript e nunca são type-checados, com ou sem
+> o campo obrigatório no tipo. `npx tsc --noEmit` roda limpo tocando só o
+> código de produção em `.ts`/`.tsx`.
+>
+> A consequência é a que motivou a rodada de revisão: um fixture de teste
+> desatualizado, ou um normalizador com a coluna errada mas do MESMO tipo
+> (ex.: `day_pos: Number(r.position ?? 0)` em `normLeg` — `position` e
+> `day_pos` são ambos `number`), não é acusado por ninguém — nem pelo
+> `tsc` (tests fora do programa; e mesmo dentro dele, tipo bate com tipo),
+> nem por um teste que não confira o valor campo a campo com fixtures
+> realistas. Por isso a Tarefa 3 ganhou `tests/load.test.mjs`, testando os
+> três normalizadores (`normAttr`, `normFood`, `normLeg`, exportados só
+> para isso) contra linhas cruas no formato do PostgREST, com `position` e
+> `day_pos` em valores DIFERENTES de propósito — só assim uma troca das
+> duas colunas fica evidente.
 
 - [ ] **Passo 4: rodar e ver passar**
 
