@@ -616,6 +616,25 @@ export function proxAviso(s: Snapshot, spot: string): number {
   return avisosDe(s, spot).reduce((a, x) => Math.max(a, x.position), -1) + 1;
 }
 
+/**
+ * O aviso de um dia. Desde 05/09 ele vem do BANCO, nao do arquivo: e
+ * dele, edita e apaga. O calendario e o cartao do dia mostram so o
+ * primeiro, que e o que cabe; a tela do dia mostra todos.
+ */
+export const avisoDoDia = (s: Snapshot, iso: string) => avisosDe(s, `roteiro:${iso}`)[0];
+/**
+ * O que aparece no calendario e na linha do bloco SEM ele clicar no dia
+ * (Fase 4, 05/09). Eram os dois unicos lugares assim, e o Leo pediu o dia
+ * limpo — mas so os `alert` podem arruinar um dia se ele nao os vir NAQUELE
+ * dia: o transporte de Luxemburgo parando as 20h no 24, a perna mais cara
+ * no 29, a Epifania no 6. Dia limpo e dia sem triangulo e sem etiqueta de
+ * dica; nao e dia sem alerta. O resto virou a aba Dicas.
+ */
+export const alertaDoDia = (s: Snapshot, iso: string) => {
+  const av = avisoDoDia(s, iso);
+  return av && av.tone === 'alert' ? av : undefined;
+};
+
 // ---------------- a base do dia acha a cidade (secao 10.2) ----------------
 /**
  * Casa o texto livre da base de um dia com uma cidade.
