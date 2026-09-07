@@ -8,11 +8,12 @@
 // ============================================================
 import type { ReactNode } from 'react';
 import {
-  AKE, FKCLS, FKE, ISOS, TKE, akEmoji, fkEmoji, tkEmoji,
+  AKE, DI_EMOJI, FKCLS, FKE, ISOS, TKE, akEmoji, fkEmoji, tkEmoji,
 } from '@/content';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
+import * as D from '@/lib/dia';
 import { brl, eur, num, shortDt, wdOf } from '@/lib/fmt';
 import Editor from './roteiro/Editor';
 import Vista from './roteiro/Vista';
@@ -91,6 +92,18 @@ export default function Roteiro() {
         {idx > 0 ? (
           <button className="chip" onClick={() => irParaDia(ISOS[idx - 1])}>
             ← {shortDt(ISOS[idx - 1])}
+          </button>
+        ) : null}
+        {/* So durante a viagem: fora dela, `s.hoje` nao esta nos 34 dias e o
+            botao apontaria para lugar nenhum. Nao troca o dia sozinho — se ele
+            fechou o app planejando o dia 20, reabrir no dia 20 e o certo. */}
+        {ISOS.includes(s.hoje) ? (
+          <button
+            className="chip"
+            aria-pressed={selDay === s.hoje ? true : undefined}
+            onClick={() => irParaDia(s.hoje)}
+          >
+            hoje
           </button>
         ) : null}
         <button
@@ -242,6 +255,10 @@ function DiaLinha({ iso }: { iso: string }) {
           ? <p>{d?.plan}</p>
           : <p style={{ color: 'var(--muted)' }}>clique para escrever</p>}
         <DiaTags iso={iso} />
+        {(() => {
+          const { feitas, total } = D.feitasDoDia(s, iso);
+          return total ? <div className="dfeitas">{feitas} de {total} feitas</div> : null;
+        })()}
         {av ? (
           <div className="ntags"><span className={`ntg nt-${av.tone}`}>{av.title}</span></div>
         ) : null}
@@ -259,7 +276,11 @@ function DiaTags({ iso }: { iso: string }) {
   const a = C.attrsOfDay(s, iso);
   const f = C.foodsOfDay(s, iso);
   const tr = C.legsOfDay(s, iso);
-  if (!a.length && !f.length && !tr.length) return null;
+  // Filtro local, no mesmo formato de attrsOfDay/foodsOfDay/legsOfDay em
+  // calc.ts: nao existe um dayItemsOfDay la porque so este lugar precisa
+  // dele (a tarefa 8 ja recusou criar esse helper por um unico uso).
+  const di = s.dayItems.filter((x) => x.day_iso === iso).sort((x, y) => x.day_pos - y.day_pos);
+  if (!a.length && !f.length && !tr.length && !di.length) return null;
 
   // OS DOIS LADOS, nao so o euro (06/09). Ate aqui a etiqueta somava
   // `dayAttrTotal + dayLegEur` e imprimia `eur(tot)`: um trem de R$ 800 no
@@ -267,8 +288,13 @@ function DiaTags({ iso }: { iso: string }) {
   // dizia "EUR 20 no dia". Nao contava errado (o total geral sempre esteve
   // certo); escondia. O cartao de transporte do mesmo dia ja mostrava os
   // dois lados, o que prova que foi esquecimento, nao decisao.
-  const totE = C.dayAttrTotal(s, iso) + C.dayLegEur(s, iso);
-  const totB = C.dayLegBrl(s, iso);
+  //
+  // O `day_item` tinha o MESMO defeito: sua grana nao entrava aqui, so no
+  // total da viagem (calc.ts). Mesmo bloco, mesma correcao.
+  const diEur = di.reduce((acc, x) => (x.currency !== 'brl' ? acc + num(x.amount) : acc), 0);
+  const diBrl = di.reduce((acc, x) => (x.currency === 'brl' ? acc + num(x.amount) : acc), 0);
+  const totE = C.dayAttrTotal(s, iso) + C.dayLegEur(s, iso) + diEur;
+  const totB = C.dayLegBrl(s, iso) + diBrl;
 
   return (
     <div className="dtags">
@@ -296,6 +322,15 @@ function DiaTags({ iso }: { iso: string }) {
           {fkEmoji(it.kind)} {it.name}
         </span>
       ))}
+      {di.map((it) => {
+        const v = num(it.amount);
+        return (
+          <span key={it.id} className="dtg di">
+            {DI_EMOJI} {it.name}
+            {v ? <> <b>{it.currency === 'brl' ? brl(v) : eur(v)}</b></> : null}
+          </span>
+        );
+      })}
       {totE || totB ? (
         <span className="dtg tot">
           {totE ? eur(totE) : ''}{totE && totB ? ' + ' : ''}{totB ? brl(totB) : ''} no dia

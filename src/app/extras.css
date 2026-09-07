@@ -626,3 +626,7 @@
   .dvit .ck { width: 24px; height: 24px; }
   .dvit { grid-template-columns: 28px 1fr; grid-template-areas: "ck nm" ". vl" ". nt" ". sb"; }
 }
+
+/* "N de M feitas" na lista de blocos, embaixo da nota do dia (tarefa 9) */
+.dfeitas { font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+  letter-spacing: .08em; margin-top: 4px; }

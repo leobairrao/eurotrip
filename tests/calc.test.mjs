@@ -905,3 +905,14 @@ test('11.7 — o item livre do dia entra no total da viagem', () => {
     'euro vira real pelo cambio; real entra direto',
   );
 });
+
+/**
+ * O chip `hoje` so pode aparecer durante a viagem. Fora dela ele apontaria
+ * para um dia que nao existe na lista, e clicar nao faria nada — um botao
+ * morto na tela principal.
+ */
+test('o chip hoje so existe se hoje cair dentro dos 34 dias', () => {
+  assert.equal(ISOS.includes('2026-09-06'), false, 'hoje, na vida real, e antes da viagem');
+  assert.equal(ISOS.includes('2026-12-16'), true);
+  assert.equal(ISOS.includes('2027-02-01'), false, 'depois da viagem tambem nao');
+});
