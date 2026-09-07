@@ -257,7 +257,7 @@ function DiaLinha({ iso }: { iso: string }) {
         {base ? null : <h4>— sem base</h4>}
         {plano
           ? <p>{d?.plan}</p>
-          : <p style={{ color: 'var(--muted)' }}>clique para ver o itinerário</p>}
+          : <p style={{ color: 'var(--muted)' }}>clique para ver o dia</p>}
         <DiaTags iso={iso} />
         {(() => {
           const { feitas, total } = D.feitasDoDia(s, iso);

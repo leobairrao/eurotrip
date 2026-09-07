@@ -304,14 +304,14 @@ src/components/
   Login.tsx      105    a tela de entrada
 
 src/screens/           uma tela por arquivo, na ordem das abas
-  Painel.tsx     278    Roteiro.tsx    350   ← encolheu: virou calendario,
+  Painel.tsx     278    Roteiro.tsx    354   ← encolheu: virou calendario,
   Atracoes.tsx   293    Comidas.tsx    284     blocos e navegacao. O editor
   Transporte.tsx 258    Hospedagem.tsx 400     e a vista saem daqui, abaixo
   Reservas.tsx   247    Caixa.tsx      457
   Custos.tsx     306
 
 src/screens/roteiro/  o Roteiro se partiu em tres (Tarefas 6 e 7)
-  Editor.tsx     513   os quatro cartoes de hoje, movidos sem mudar
+  Editor.tsx     512   os quatro cartoes de hoje, movidos sem mudar
                        comportamento — o antigo corpo do Roteiro
   Vista.tsx      106   a visualizacao do dia, so-leitura — nasceu nova
 
