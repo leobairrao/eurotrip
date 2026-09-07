@@ -7,6 +7,7 @@
 //   (c) com um dia selecionado, o editor de QUATRO cartoes.
 // ============================================================
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import {
   AKE, FKCLS, FKE, ISOS, TKE, akEmoji, fkEmoji, tkEmoji,
 } from '@/content';
@@ -15,6 +16,7 @@ import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import { brl, eur, num, shortDt, wdOf } from '@/lib/fmt';
 import Editor from './roteiro/Editor';
+import Vista from './roteiro/Vista';
 
 const WDS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
 
@@ -25,6 +27,7 @@ const WDS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
 export default function Roteiro() {
   const { s } = useApp();
   const { selDay, irParaDia } = useUi();
+  const [editando, setEditando] = useState<string | null>(null);
 
   const bl = C.blocks(s);
   const fd = C.filledDays(s);
@@ -107,7 +110,16 @@ export default function Roteiro() {
       </div>
 
       {selDay ? (
-        <Editor iso={selDay} />
+        editando === selDay ? (
+          <>
+            <div className="chips" style={{ marginBottom: 12 }}>
+              <button className="chip" onClick={() => setEditando(null)}>← pronto</button>
+            </div>
+            <Editor iso={selDay} />
+          </>
+        ) : (
+          <Vista iso={selDay} onEditar={() => setEditando(selDay)} />
+        )
       ) : !bl.length && !loose.length ? (
         <div className="empty">Nada no calendário.</div>
       ) : (
