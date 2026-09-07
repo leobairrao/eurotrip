@@ -210,3 +210,31 @@ test('as listas de sugestao nao escondem chave de comentario', () => {
   }
   assert.deepEqual(ruins, [], `Sugestao com chave que nao e lista:\n${ruins.join('\n')}`);
 });
+
+/**
+ * `dados/` e `src/content/` sao copias que precisam bater, e as DUAS copias
+ * do esquema tambem: `00-tudo.sql` e a colada unica, `01-schema.sql` e a
+ * fatiada. Quem mexe numa e esquece a outra cria um banco novo diferente do
+ * banco de producao, e a diferenca so aparece quando alguem roda o seed do
+ * zero — meses depois.
+ */
+test('as duas copias do esquema conhecem o dia em ordem', () => {
+  const copias = ['supabase/00-tudo.sql', 'supabase/01-schema.sql']
+    .map((f) => [f, readFileSync(join(RAIZ, f), 'utf8')]);
+
+  const faltando = [];
+  for (const [nome, sql] of copias) {
+    if (!/create table if not exists day_item/.test(sql)) {
+      faltando.push(`${nome}: sem a tabela day_item`);
+    }
+    for (const t of ['attraction', 'food', 'leg']) {
+      // a coluna tem que estar DENTRO do create table daquela tabela
+      const bloco = sql.split(`create table if not exists ${t} (`)[1];
+      if (!bloco) { faltando.push(`${nome}: sem a tabela ${t}`); continue; }
+      const corpo = bloco.split('\n);')[0];
+      if (!/day_pos/.test(corpo)) faltando.push(`${nome}: ${t} sem day_pos`);
+      if (!/\bdone\b/.test(corpo)) faltando.push(`${nome}: ${t} sem done`);
+    }
+  }
+  assert.deepEqual(faltando, [], `Esquema pela metade:\n${faltando.join('\n')}`);
+});

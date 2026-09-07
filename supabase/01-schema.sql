@@ -39,6 +39,11 @@ create table if not exists attraction (
               check (length(btrim(kind)) between 1 and 24),
   day_iso     date references day(iso) on delete set null,   -- null = sem dia
   seed_id     text unique,                   -- 'm:lisboa:0' | 's:roma:4'. Null se ele criou
+  -- a ordem DENTRO do dia (nao confundir com `position`, que em `leg` e a
+  -- sequencia da viagem inteira). Ver supabase/10-o-dia-em-ordem.sql
+  day_pos     int not null default 0,
+  -- "eu fiz". `paid`/`bought` sao "eu paguei" — coisas diferentes.
+  done        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   updated_by  uuid references app_user(id)
@@ -56,6 +61,11 @@ create table if not exists food (
               check (kind in ('prato','restaurante','cafe')),
   day_iso     date references day(iso) on delete set null,   -- sempre null se kind='prato'
   seed_id     text unique,
+  -- a ordem DENTRO do dia (nao confundir com `position`, que em `leg` e a
+  -- sequencia da viagem inteira). Ver supabase/10-o-dia-em-ordem.sql
+  day_pos     int not null default 0,
+  -- "eu fiz". `paid`/`bought` sao "eu paguei" — coisas diferentes.
+  done        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   updated_by  uuid references app_user(id)
@@ -80,6 +90,11 @@ create table if not exists leg (
   bought      boolean not null default false, -- a caixinha "comprado" (regra 5.10)
   day_iso     date references day(iso) on delete set null,
   seed_id     text unique,                   -- 't:0' .. 't:11'
+  -- a ordem DENTRO do dia (nao confundir com `position`, que em `leg` e a
+  -- sequencia da viagem inteira). Ver supabase/10-o-dia-em-ordem.sql
+  day_pos     int not null default 0,
+  -- "eu fiz". `paid`/`bought` sao "eu paguei" — coisas diferentes.
+  done        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   updated_by  uuid references app_user(id)
@@ -215,3 +230,23 @@ create table if not exists adopted (
   seed_id     text primary key,              -- 'Fpt|3' | 'R|7'
   adopted_at  timestamptz not null default now()
 );
+
+-- ---------- 12. o dia em ordem (supabase/10-o-dia-em-ordem.sql) ----------
+create table if not exists day_item (
+  id         uuid primary key default gen_random_uuid(),
+  -- os 34 dias são fixos e ninguém apaga um `day`. O cascade existe para
+  -- não deixar item órfão apontando para um dia que não existe mais.
+  day_iso    date not null references day(iso) on delete cascade,
+  name       text not null,
+  note       text not null default '',
+  amount     numeric(10,2),
+  -- regra 5.11: item sem moeda cai no lado pré-selecionado. Euro, igual a
+  -- transporte. Foi assim que R$ 257 virou R$ 1.595 uma vez.
+  currency   text not null default 'eur' check (currency in ('eur','brl')),
+  day_pos    int  not null default 0,   -- a ordem DENTRO do dia
+  done       boolean not null default false,  -- "eu fiz", não "eu paguei"
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  updated_by uuid references app_user(id)
+);
+create index if not exists day_item_day_idx on day_item (day_iso, day_pos);

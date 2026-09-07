@@ -45,6 +45,11 @@ create table if not exists attraction (
               check (length(btrim(kind)) between 1 and 24),
   day_iso     date references day(iso) on delete set null,   -- null = sem dia
   seed_id     text unique,                   -- 'm:lisboa:0' | 's:roma:4'. Null se ele criou
+  -- a ordem DENTRO do dia (nao confundir com `position`, que em `leg` e a
+  -- sequencia da viagem inteira). Ver supabase/10-o-dia-em-ordem.sql
+  day_pos     int not null default 0,
+  -- "eu fiz". `paid`/`bought` sao "eu paguei" — coisas diferentes.
+  done        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   updated_by  uuid references app_user(id)
@@ -62,6 +67,11 @@ create table if not exists food (
               check (kind in ('prato','restaurante','cafe')),
   day_iso     date references day(iso) on delete set null,   -- sempre null se kind='prato'
   seed_id     text unique,
+  -- a ordem DENTRO do dia (nao confundir com `position`, que em `leg` e a
+  -- sequencia da viagem inteira). Ver supabase/10-o-dia-em-ordem.sql
+  day_pos     int not null default 0,
+  -- "eu fiz". `paid`/`bought` sao "eu paguei" — coisas diferentes.
+  done        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   updated_by  uuid references app_user(id)
@@ -86,6 +96,11 @@ create table if not exists leg (
   bought      boolean not null default false, -- a caixinha "comprado" (regra 5.10)
   day_iso     date references day(iso) on delete set null,
   seed_id     text unique,                   -- 't:0' .. 't:11'
+  -- a ordem DENTRO do dia (nao confundir com `position`, que em `leg` e a
+  -- sequencia da viagem inteira). Ver supabase/10-o-dia-em-ordem.sql
+  day_pos     int not null default 0,
+  -- "eu fiz". `paid`/`bought` sao "eu paguei" — coisas diferentes.
+  done        boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   updated_by  uuid references app_user(id)
@@ -584,3 +599,74 @@ alter table city replica identity full;
 -- As 11 cidades de sempre não estão aqui: elas continuam no arquivo
 -- `dados/paises-cidades.json`, que este arquivo não toca. Desfazer isto
 -- devolve o app ao estado de antes, e só perde as cidades que ele criou.
+
+-- ============================================================
+-- 10 — O dia em ordem, e o item que ele escreve  (06/09/2026)
+--
+-- O PEDIDO: "quero ver o itinerario do dia mais detalhado", com ordem, com
+-- o que ele já fez marcado, e com uma linha para escrever o que não é
+-- atração nem transporte nem comida (check-in, lavanderia).
+--
+-- `day_pos` (a ordem DENTRO do dia) e `done` ("eu fiz") já entraram direto
+-- nas tabelas `attraction`, `food` e `leg` acima. Aqui nasce só a tabela
+-- nova, para o item que não é nenhuma das três.
+-- ============================================================
+
+create table if not exists day_item (
+  id         uuid primary key default gen_random_uuid(),
+  -- os 34 dias são fixos e ninguém apaga um `day`. O cascade existe para
+  -- não deixar item órfão apontando para um dia que não existe mais.
+  day_iso    date not null references day(iso) on delete cascade,
+  name       text not null,
+  note       text not null default '',
+  amount     numeric(10,2),
+  -- regra 5.11: item sem moeda cai no lado pré-selecionado. Euro, igual a
+  -- transporte. Foi assim que R$ 257 virou R$ 1.595 uma vez.
+  currency   text not null default 'eur' check (currency in ('eur','brl')),
+  day_pos    int  not null default 0,   -- a ordem DENTRO do dia
+  done       boolean not null default false,  -- "eu fiz", não "eu paguei"
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  updated_by uuid references app_user(id)
+);
+create index if not exists day_item_day_idx on day_item (day_iso, day_pos);
+
+-- ------------------------------------------------------------
+-- As três listas do banco que ninguém lembra na hora, e que falham em
+-- silêncio — mesmo padrão de `stay_option` e `city` acima.
+-- ------------------------------------------------------------
+
+-- 1. RLS
+alter table day_item enable row level security;
+drop policy if exists "so os dois" on day_item;
+create policy "so os dois" on day_item
+  for all using (is_member()) with check (is_member());
+
+-- 2. Realtime
+do $$
+begin
+  alter publication supabase_realtime add table day_item;
+exception when duplicate_object then null;
+end $$;
+
+-- 3. A linha inteira no DELETE
+alter table day_item replica identity full;
+
+-- ------------------------------------------------------------
+-- CONFERIR
+-- ------------------------------------------------------------
+-- select count(*) from day_item;                                    -- 0, nasce vazia
+-- select tablename from pg_publication_tables
+--   where pubname = 'supabase_realtime' and tablename = 'day_item';  -- 1 linha
+-- select relreplident from pg_class where relname = 'day_item';      -- 'f'
+
+-- ============================================================
+-- DESFAZER
+-- ============================================================
+-- drop table if exists day_item;
+-- alter table attraction drop column if exists day_pos,
+--                        drop column if exists done;
+-- alter table food       drop column if exists day_pos,
+--                        drop column if exists done;
+-- alter table leg        drop column if exists day_pos,
+--                        drop column if exists done;
