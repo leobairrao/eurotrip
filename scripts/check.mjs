@@ -56,15 +56,16 @@ const extra      = await g('extra');
 // e nao aparece na aba Custos.
 //
 // `g` usa `precisa`, que da process.exit(1) em qualquer erro — um .catch
-// aqui nunca rodaria de verdade (rodada de correcao 1 da revisao). A
-// tolerancia agora e explicita e so para o codigo que significa "esta
-// tabela nao existe" (42P01, undefined_table): antes de rodar a migracao
-// 10 e exatamente isso que acontece. Qualquer outro erro tem que aparecer
-// na linha de aceite, nao virar um zero silencioso.
-const diRes        = await db.from('day_item').select('*');
-const diSemTabela  = diRes.error?.code === '42P01';
-const diFalhou     = !!diRes.error && !diSemTabela;
-const dayItem      = diRes.data ?? [];
+// aqui nunca rodaria de verdade (rodada de correcao 1 da revisao). Por isso
+// a leitura e direta, sem passar por `g`/`precisa`: um erro aqui vira linha
+// de aceite reprovada, nao morte do script. A migracao 10 ja rodou em 07/09
+// e um banco novo nasce de `supabase/00-tudo.sql`, que ja cria `day_item` —
+// entao nao existe mais um estado legitimo em que esta leitura falhe. Se
+// falhar hoje, e um problema real que ele quer ver, nao um caso para
+// tolerar em silencio.
+const diRes    = await db.from('day_item').select('*');
+const diFalhou = !!diRes.error;
+const dayItem  = diRes.data ?? [];
 
 const rate = num(settings?.eur_rate);
 
@@ -154,11 +155,7 @@ linha(
   !diFalhou,
   'itens escritos no dia',
   '(retrato)',
-  diFalhou
-    ? `FALHOU: ${diRes.error.message}`
-    : diSemTabela
-      ? 'tabela ainda nao existe (rode a migracao 10)'
-      : `${dayItem.length} · ${eur(diEur)} + ${brl(diBrl)}`,
+  diFalhou ? `FALHOU: ${diRes.error.message}` : `${dayItem.length} · ${eur(diEur)} + ${brl(diBrl)}`,
 );
 
 console.log('\n  ================ A PESQUISA, QUE AGORA VIVE EM ARQUIVO ================\n');
