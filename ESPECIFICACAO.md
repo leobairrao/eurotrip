@@ -297,6 +297,8 @@ create table attraction (
               check (kind in ('passeio','tour')),
   day_iso     date references day(iso) on delete set null,   -- null = sem dia
   seed_id     text unique,                    -- 'm:lisboa:0' | 's:roma:4'. Null se ele criou
+  day_pos     int not null default 0,         -- a ordem DENTRO do dia (10.2, etapa 2)
+  done        boolean not null default false, -- "eu fiz" — diferente de "eu paguei"
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
@@ -313,6 +315,8 @@ create table food (
               check (kind in ('prato','restaurante','cafe')),
   day_iso     date references day(iso) on delete set null,   -- sempre null se kind='prato'
   seed_id     text unique,
+  day_pos     int not null default 0,         -- a ordem DENTRO do dia (10.2, etapa 2)
+  done        boolean not null default false, -- "eu fiz" — diferente de "eu paguei"
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
@@ -333,6 +337,8 @@ create table leg (
   bought      boolean not null default false, -- a caixinha "comprado" (regra 5.10)
   day_iso     date references day(iso) on delete set null,
   seed_id     text unique,                    -- 't:0' .. 't:11'
+  day_pos     int not null default 0,         -- a ordem DENTRO do dia (10.2, etapa 2)
+  done        boolean not null default false, -- "eu fiz" — diferente de "eu paguei"
   updated_at  timestamptz not null default now()
 );
 
@@ -405,7 +411,32 @@ create table killed_seed (
   seed_id     text primary key,
   killed_at   timestamptz not null default now()
 );
+
+-- ---------- 11. o item livre do dia ----------
+-- O que ele escreve dentro de um dia e não é atração, nem transporte, nem
+-- comida: check-in, lavanderia, comprar presente. Ver 10.2.
+create table day_item (
+  id          uuid primary key default gen_random_uuid(),
+  day_iso     date not null references day(iso) on delete cascade,
+  name        text not null,
+  note        text not null default '',
+  amount      numeric(10,2),
+  -- regra 5.11: item sem moeda cai no lado pré-selecionado. Euro, igual a
+  -- transporte.
+  currency    text not null default 'eur' check (currency in ('eur','brl')),
+  day_pos     int not null default 0,         -- a ordem DENTRO do dia (etapa 2)
+  done        boolean not null default false, -- "eu fiz" — diferente de "eu paguei"
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index on day_item (day_iso, day_pos);
 ```
+
+**Esta seção está atrasada em quatro tabelas de fases anteriores a esta:** `adopted`, `aviso`,
+`city` e `stay_option` existem no banco e são descritas em prosa noutras partes deste
+documento (seções 5.6, 5.13 e 10.6), mas nunca chegaram a esta lista de `create table`.
+Não foram acrescentadas agora — não são desta etapa. **`supabase/00-tudo.sql` é a fonte da
+verdade do esquema**; se esta seção e ele discordarem, ele manda.
 
 ### 6.3 — Conteúdo que NÃO vai para o banco
 
@@ -590,7 +621,7 @@ São escolhas em aberto que não travam nada. Mantenha o texto.
 
 ### 10.2 — Roteiro
 
-O coração do app. Três partes.
+O coração do app. Quatro partes.
 
 **(a) Calendário de dois meses** — dezembro/2026 e janeiro/2027, semana começando na segunda.
 Cada dia da viagem é clicável. Marcações no quadradinho:
@@ -608,9 +639,33 @@ lugar · 🍽️ restaurante · ☕ café.
 o texto dele, as etiquetas do que está marcado, e o aviso do dia se houver. Dias sem base caem
 num cartão separado, em ocre, chamado "Dias sem base".
 
-**(c) Com um dia selecionado: o editor**, no lugar dos blocos, com o calendário ainda visível
-em cima e chips de navegação (← dia anterior · ver o roteiro inteiro · dia seguinte →).
-O editor são **quatro cartões, nesta ordem**:
+**(c) Com um dia selecionado: a visualização do dia** — o que abre por padrão, no lugar dos
+blocos, com o calendário ainda visível em cima e os chips de navegação (← dia anterior · ver o
+roteiro inteiro · dia seguinte →).
+
+> **Mudou em 06–07/09/2026.** Até aqui clicar num dia era sempre entrar direto no editor. Ele
+> pediu: *"quando eu clicar em um dia não devo aparecer em editar, quero ver o itinerario do
+> dia mais detalhado"*. A vista é **só leitura** — nenhum campo de texto, nenhum `×`, nenhum
+> seletor; os dois únicos elementos clicáveis são a caixinha de cada item e o botão `editar`.
+> Ela mostra: a nota do dia **inteira**, nunca cortada; um item por linha juntando as
+> **quatro origens** do dia — transporte, atração, comida e o item livre que ele escreve
+> direto (`day_item`: check-in, lavanderia, comprar presente) — cada um com sua caixinha
+> **"já fiz"** (marcar risca o item **no lugar**, a lista nunca se reordena sozinha); e o
+> total do dia, em € e R$. A edição continua existindo, **atrás do botão `editar`** — é o
+> item (d) abaixo.
+>
+> **A ordem ainda não é dele.** As quatro origens entram numa lista só, ordenada por
+> `day_pos` — mas todo item nasce com `day_pos = 0`, e as setas de reordenar de verdade são a
+> **etapa 2**. Até lá o desempate é fixo (por origem — transporte, depois atração, depois o
+> item livre, depois comida — e por último o id), só para a lista sair **igual** no navegador
+> dele e no da Lu; a tela não numera, e diz por escrito que a ordem chega em seguida.
+>
+> **O item livre já entra na conta da viagem, mas ainda não tem formulário próprio.** O valor
+> de um `day_item` soma no custo real (seção 11.7) do mesmo jeito que os outros três; criar um
+> pela tela é a **etapa 2** — por enquanto ele só nasce por uma inserção direta no banco.
+
+**(d) O editor**, atrás do botão `editar` — o mesmo formulário que existia antes de 06/09,
+sem mudança de comportamento. **Quatro cartões, nesta ordem**:
 
 1. **O dia** — o aviso do dia (se houver, não editável), o campo "Onde eu durmo / qual é a
    base", o campo de texto livre "O que fazer neste dia — suas palavras", e um botão

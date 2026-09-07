@@ -226,6 +226,39 @@ porque tema inventado não tem emoji e `{undefined}` no JSX não quebra — só 
 
 ---
 
+## 11. Roteiro: a visualização do dia, separada da edição — ✅ NO AR (07/09/2026)
+
+> *"agora em roteiro eu quero melhorar a visualização, tanto para adicionar novos eventos
+> quanto para quando eu visualizar no dia que estiver usando na viagem. Quero ter uma
+> visualização em forma de view e uma em forma de edição. Quando eu clicar em um dia não
+> devo aparecer em editar, quero ver o itinerario do dia mais detalhado."*
+
+Diferente dos dez itens acima, este não nasceu corrigido no meio de uma conversa — foi
+desenhado e aprovado por ele ANTES de qualquer código, em
+`docs/superpowers/specs/2026-09-06-roteiro-vista-e-edicao-design.md`. As seis decisões dele
+estão lá — entre elas: ordem sem hora (`day_pos`), o item livre além dos três de sempre
+(`day_item`), marcar feito sem a lista se reordenar, e o item livre entrando na conta.
+
+**O que mudou:** clicar num dia passou a mostrar uma vista **só de leitura** — a nota inteira,
+uma caixinha "já fiz" por item, o total do dia — com a edição atrás de um botão `editar`. As
+quatro origens do dia (trecho, atração, comida, e agora o item livre que ele escreve) se
+juntam numa lista só, na mesma ordem nos dois navegadores mesmo com todo item empatado em
+`day_pos = 0` — as setas de reordenar de verdade ficam para a etapa 2. Detalhe completo na
+especificação, seção 10.2.
+
+- **Banco: SIM.** `supabase/10-o-dia-em-ordem.sql` — a tabela `day_item`, e `day_pos`/`done`
+  em `attraction`, `food` e `leg`. Ele rodou em 07/09 e conferiu.
+- **O dinheiro do item livre já entra no total real da viagem.** A tela para CRIAR um item
+  livre ainda não existe — hoje só nasce linha direto no banco. Isso é a etapa 2.
+- **Tamanho:** o maior item desta lista depois da aba Sugestões — nove tarefas de código, mais
+  esta, a décima, de documentação.
+
+Duas coisas ficaram para ELE decidir, não para consertar: o rodapé "Total" da aba Custos já
+soma o item livre, mas a tabela dela continua sem mostrá-lo linha a linha de propósito (a
+regra é que ele não pode aparecer nos dois lugares); e a cor do item livre na lista de blocos,
+que hoje usa a borda cinza genérica enquanto os outros tipos têm cor própria. Os dois estão
+escritos na íntegra em `COMO-MEXER.md`, item 11.
+
 ## A ordem que eu sugiro
 
 **1 ✅ → 4 ✅ → 2 ✅ → 5 ✅ → 3 ✅ → 8 ✅ → 6 ✅ → 7 ✅ → 9 ✅ → 10 ✅** — a lista inteira saiu,

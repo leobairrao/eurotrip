@@ -53,8 +53,9 @@ As 128 linhas que eram minhas foram apagadas em 06/09, com cópia em
 ### Os SQL que ele já rodou
 
 `05-hospedagem-e-pago` · `06-cidades` · **`07-metro`** (metrô como tipo de transporte) ·
-**`08-moeda-do-aporte`** (cada aporte guarda a própria moeda). Os dois últimos foram
-conferidos por fora depois de rodar.
+**`08-moeda-do-aporte`** (cada aporte guarda a própria moeda) · **`10-o-dia-em-ordem`** (a
+tabela `day_item`, e `day_pos`/`done` em `attraction`/`food`/`leg`, rodado em 07/09). Estes
+três foram conferidos por fora depois de rodar.
 
 **Esperando ele:** `09-tema-da-atracao` — tira a trava que só aceita `passeio` e `tour` na
 coluna `kind`. **Enquanto não rodar, tema escrito por ele é RECUSADO pelo banco** e a
@@ -75,6 +76,7 @@ atração não entra; a tela diz isso por escrito (é o único lugar onde essa r
 | **8** | Hospedagem: a estrutura de preencher, e dois defeitos medidos |
 | **9** | Hospedagem, **de tarde**: o formulário inteiro ANTES de salvar — ver abaixo |
 | **10** | Atrações: **o tema escolhido no registro**, e tema livre — ver abaixo |
+| **11** | Roteiro: **a visualização do dia** (só leitura) e o item livre (`day_item`) — ver abaixo |
 
 ### O item 9, da tarde: "ali está apenas um campo como que vou preencher isso"
 
@@ -130,6 +132,50 @@ e a última opção (`✏️ outro tema…`) abre o campo de escrever.
 quatro lugares. Virou `akEmoji(kind)`, com `?? '📍'`, e há teste que falha se alguém voltar a
 ler `AKE[...]` direto.
 
+### O item 11: a visualização do dia, e o item livre que ele escreve
+
+> *"agora em roteiro eu quero melhorar a visualização... Quero ter uma visualização em forma
+> de view e uma em forma de edição. Quando eu clicar em um dia não devo aparecer em editar,
+> quero ver o itinerario do dia mais detalhado."*
+
+Diferente dos outros dez, este não nasceu corrigido no meio de uma conversa — foi desenhado e
+aprovado por ele ANTES de qualquer código
+(`docs/superpowers/specs/2026-09-06-roteiro-vista-e-edicao-design.md`). Clicar num dia passou
+a mostrar uma vista **só de leitura** — nota inteira, uma caixinha "já fiz" por item, o total
+do dia — com a edição atrás do botão `editar`. As quatro origens do dia (trecho, atração,
+comida, e agora o item livre que ele escreve) se juntam numa lista só, estável nos dois
+navegadores mesmo com todo mundo empatado em `day_pos = 0` — as setas de reordenar de verdade
+são a etapa 2.
+
+**Banco: SIM.** `supabase/10-o-dia-em-ordem.sql` — a tabela `day_item` e `day_pos`/`done` em
+`attraction`, `food` e `leg`. Ele rodou em 07/09 e conferiu.
+
+**O dinheiro do item livre já entra no total real da viagem** (`C.totalBrl`, em `calc.ts`); a
+tela para CRIAR um item livre ainda não existe — hoje só nasce linha direto no banco. Isso é a
+etapa 2.
+
+**Um defeito de especificidade virou regra com teste.** `.dvista .h` (o cabeçalho da vista)
+empatava em especificidade com `.card > .h`, que `identidade.css` já usa — e no empate, quem
+carrega depois ganha (regra de sempre), então o cabeçalho nunca virava grid. A correção foi
+`.card.dvista > .h`, com especificidade maior de verdade. Agora há teste em
+`tests/telas.test.mjs` que falha se um seletor novo de `extras.css` empatar com algo que
+`identidade.css` já é dono dentro de `.card` — essa constraint estava escrita desde sempre e
+era a única regra global sem prova.
+
+**Duas coisas ficaram para ELE decidir, não para consertar:**
+
+- **Custos e o item livre.** O rodapé "Total" de `Custos.tsx` mostra `brl(tb)`, e `tb` (via
+  `C.totalBrl`) já inclui o dinheiro do item livre — mas as linhas da própria tabela
+  (Hospedagem, Atrações, Transportes, Burocracia) de propósito NÃO o mostram: a spec diz que
+  ele não pode aparecer nos dois lugares, "seria dois lugares para mexer no mesmo dinheiro".
+  Antes desta etapa o rodapé batia exatamente com a soma das linhas visíveis; a partir do
+  primeiro item livre com valor, deixa de bater. Hoje isso é invisível porque não existe
+  nenhum ainda. Três jeitos de deixar isso claro: uma nota de rodapé, uma linha só de leitura
+  na própria tabela, ou um total separado. Nenhum foi escolhido.
+- **A cor do item livre na lista de blocos.** Todo `.dtg.<tipo>` tem sua própria
+  `border-left-color` (verde para escolhida, ocre para backlog...) — menos `.dtg.di`, o item
+  livre, que fica na borda cinza genérica de sempre. Pequeno, e é dele para escolher.
+
 ### As armadilhas que 06/09 ensinou
 
 - **`input` herda `color`; `select` e `textarea` NÃO herdam o que precisam.** Três vezes no
@@ -156,18 +202,49 @@ ler `AKE[...]` direto.
   depois no arquivo. Foi o caso de `.form .cancelav` e de `.hopc .form button` (o alvo de
   toque de 44px no celular, que `.form button` nunca teve porque até hoje nenhum formulário
   com botão morava dentro de um cartão de lista).
+- **Quatro tabelas dividindo um espaço de numeração empatam por padrão.** Todo item do dia
+  nasce com `day_pos = 0`. Sem desempate fixo (`day_pos`, depois a origem, depois o id), a
+  lista sai numa ordem no navegador dele e noutra no da Lu. `src/lib/dia.ts` faz isso e
+  `tests/dia.test.mjs` prova com a mesma entrada embaralhada.
+- **Tela que não pode ser editada precisa ser tela sem campo.** A visualização do dia tem
+  exatamente dois elementos clicáveis: a caixinha e o `editar`. Qualquer campo de texto que
+  entre ali vira um toque acidental no metrô.
+- **`npx tsc --noEmit` não pega import morto.** O `tsconfig.json` não liga `noUnusedLocals`
+  nem `noUnusedParameters`, e o projeto não tem eslint (as `devDependencies` são só
+  `@types/*`, `dotenv` e `typescript`). Tirar código de um arquivo deixa o import velho para
+  trás, e nada reclama. Rodar `npx tsc --noEmit --noUnusedLocals --incremental false` uma vez
+  achou **sete** símbolos mortos espalhados pelo repositório — é a ferramenta certa para essa
+  checagem, mesmo fora do padrão de hoje do projeto.
+- **`src/app/extras.css` pode terminar DENTRO de um `@media (max-width: 700px)`.** Aconteceu
+  de verdade nesta etapa: por duas rodadas seguidas, a última linha do arquivo era o
+  fechamento desse bloco. Colar uma regra nova "no fim do arquivo" sem olhar onde a chave
+  fecha bota a regra escondida dentro do media — ela passa a valer só no celular, e no
+  desktop simplesmente não aparece nada de errado para avisar. Depois de colar, confira que a
+  chave de fechamento do `@media` veio ANTES da sua regra nova, e cheque a indentação.
+- **`precisa()` (em `scripts/_db.mjs`) chama `process.exit(1)` em qualquer erro — um
+  `.catch()` depois de `g()` em `scripts/check.mjs` nunca roda.** O supabase-js RESOLVE a
+  promessa com `{data, error}` em vez de rejeitar, então o processo já morreu dentro de
+  `precisa` antes de qualquer `.catch` ter a chance. `check.mjs:53`
+  (`g('city').catch(() => [])`) ainda tem um desses — sabido, não consertado. Para tolerar um
+  erro de verdade (banco novo, tabela que ainda não existe), leia direto com
+  `db.from(...).select(...)` e trate o `.error` na mão, sem passar por `g`/`precisa`.
 
-### Os seis testes de `tests/telas.test.mjs`
+### Os oito testes de `tests/telas.test.mjs`
 
 Nenhum roda React: leem o código-fonte e o CSS. **Todos foram provados falhando** antes de
-serem aceitos.
+serem aceitos. Os dois últimos (esquema, especificidade) chegaram com a etapa da visualização
+do dia — o de esquema na Tarefa 1, o de especificidade na correção da Tarefa 7.
 
 1. nenhuma tela indexa `CT[...]` cru
 2. a rede (`error.tsx` e `global-error.tsx`) existe e é client component
 3. toda grade `.addrow` tem o par que vira coluna única abaixo de 700px
-4. todo tipo de transporte tem os oito lugares preenchidos
-5. nenhuma lista de sugestão esconde a chave `_` de comentário
-6. nenhuma tela lê `AKE[...]` direto — tema livre não tem emoji próprio
+4. nenhum seletor novo de `extras.css` empata especificidade com o que `identidade.css` já é
+   dono dentro de `.card` — foi assim que `.dvista .h` nunca virava grid
+5. nenhuma tela lê `AKE`/`TKE`/`FKE[...]` direto — tema livre não tem emoji próprio
+6. todo tipo de transporte tem os oito lugares preenchidos
+7. nenhuma lista de sugestão esconde a chave `_` de comentário
+8. as três cópias do esquema (`00-tudo.sql`, `01-schema.sql`, `10-o-dia-em-ordem.sql`)
+   concordam sobre `day_item`
 
 ### O único item que continua esperando ELE
 
@@ -216,6 +293,9 @@ src/lib/
   ordem.ts        40    subir/descer numa lista ordenada por `position`
   entrar.ts       55    quem entra, e com que nome
   avisos-semente.ts ~76 os JSONs de aviso -> linhas da tabela `aviso`
+  dia.ts         119    junta trecho+atracao+item livre+comida do dia numa
+                        lista so, ordenada e deterministica — puro, sem
+                        React (nasceu na Tarefa 5 da etapa "vista do dia")
 
 src/components/
   Field.tsx      ~180   OS CAMPOS. Leia a seção 4 antes de tocar.
@@ -224,11 +304,16 @@ src/components/
   Login.tsx      105    a tela de entrada
 
 src/screens/           uma tela por arquivo, na ordem das abas
-  Painel.tsx     278    Roteiro.tsx    809   ← a maior, e a mais complexa
-  Atracoes.tsx   293    Comidas.tsx    284
-  Transporte.tsx 258    Hospedagem.tsx 400
+  Painel.tsx     278    Roteiro.tsx    350   ← encolheu: virou calendario,
+  Atracoes.tsx   293    Comidas.tsx    284     blocos e navegacao. O editor
+  Transporte.tsx 258    Hospedagem.tsx 400     e a vista saem daqui, abaixo
   Reservas.tsx   247    Caixa.tsx      457
   Custos.tsx     306
+
+src/screens/roteiro/  o Roteiro se partiu em tres (Tarefas 6 e 7)
+  Editor.tsx     513   os quatro cartoes de hoje, movidos sem mudar
+                       comportamento — o antigo corpo do Roteiro
+  Vista.tsx      106   a visualizacao do dia, so-leitura — nasceu nova
 
 src/app/
   estilo-atual.css 587  O CSS, sem a tag <style>. NÃO RENOMEIE CLASSE.
