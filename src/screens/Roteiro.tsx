@@ -279,7 +279,16 @@ function DiaTags({ iso }: { iso: string }) {
   // Filtro local, no mesmo formato de attrsOfDay/foodsOfDay/legsOfDay em
   // calc.ts: nao existe um dayItemsOfDay la porque so este lugar precisa
   // dele (a tarefa 8 ja recusou criar esse helper por um unico uso).
-  const di = s.dayItems.filter((x) => x.day_iso === iso).sort((x, y) => x.day_pos - y.day_pos);
+  //
+  // Desempate por id depois de day_pos: todo item nasce com day_pos = 0,
+  // entao empate e o caso normal, nao a excecao (ver o comentario em
+  // dia.ts sobre ORD). Sem isso, dois itens livres do mesmo dia podiam sair
+  // numa ordem aqui e noutra em Vista.tsx (que usa D.itensDoDia, com o
+  // mesmo desempate) — a mesma falha que a ordem estavel de dia.ts existe
+  // para evitar, so que reaberta aqui.
+  const di = s.dayItems
+    .filter((x) => x.day_iso === iso)
+    .sort((x, y) => x.day_pos - y.day_pos || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
   if (!a.length && !f.length && !tr.length && !di.length) return null;
 
   // OS DOIS LADOS, nao so o euro (06/09). Ate aqui a etiqueta somava
