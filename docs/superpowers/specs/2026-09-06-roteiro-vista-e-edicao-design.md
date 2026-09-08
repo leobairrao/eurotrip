@@ -368,3 +368,56 @@ Fora de escopo por decisão, não por esquecimento:
   não dependem de biblioteca.
 - **Item livre na aba Custos.** §1.
 - **Mexer no calendário ou nos blocos**, além do *"N de M feitas"*.
+
+---
+
+## 12. A etapa 2, fechada em 07–08/09/2026
+
+A etapa 1 está publicada e usável desde 07/09, que era a condição do §8. Ele disse
+*"vamos para a etapa 2"* e, depois de ver o desenho inteiro, *"pode seguir com tudo"*.
+
+### As três perguntas que o §3 deixou em aberto, e a resposta dele
+
+| # | pergunta | escolha dele | o que custa |
+|---|---|---|---|
+| 1 | como se conserta um item livre depois de criado | **editável na própria linha** da lista junta | a linha do 📌 é a única com campos; as outras três seguem com `↑ ↓ ×` |
+| 2 | os três cartões de seletor | **um cartão só, com três gavetas** | a chave `.liga` vira três; a tela do dia cai de 5 cartões para 3 |
+| 3 | a cor da etiqueta `.dtg.di` | **`var(--ink-2)`**, tinta escura | fecha a decisão B de `docs/2026-09-07-o-que-ficou-para-depois.md` |
+
+**O porquê da 1:** atração, trecho e comida se editam na aba delas. O item livre não tem
+aba nenhuma — se não der para editar dentro do dia, não dá em lugar nenhum, e um acento
+errado custaria a nota inteira.
+
+**O porquê da 2:** ele vai usar isto no celular. Hoje, para chegar no seletor de comida,
+rola a tela inteira. A gaveta também É a chave "vou usar transporte neste dia?" que ele
+pediu em 06/09 — generalizada para os três, com a contagem do que há disponível na testa.
+As três nascem fechadas.
+
+### O achado que este desenho produziu, e que não estava no §3
+
+**Nenhum dos quatro `+` escreve `day_pos`.** Hoje não aparece, porque tudo está empatado em
+zero e a Vista não numera (§8). Na etapa 2 aparece: ele arruma o dia na mão, puxa mais uma
+atração no dia seguinte, e ela **nasce no topo** — a lista parece se desarrumar sozinha, e
+nada na tela explica.
+
+Os quatro `+` e o `insert` do item livre passam a escrever `proximaPos(s, iso)`.
+
+**O contrário é para deixar acontecer:** o `×` deixa buraco na numeração, e a próxima seta
+renumera o dia inteiro (`ordem.ts` renumera 0..n-1, não troca dois números). Consertar na
+hora custaria N escritas no banco a cada `×`.
+
+### Duas armadilhas confirmadas lendo o código, antes de escrever qualquer linha
+
+- **`.addrow.di4` já é das Dicas** (`Dicas.tsx:170`). O formulário do item livre precisa de
+  sigla nova — e do par dentro do `@media (max-width: 700px)`, senão não cabe em 360px.
+  Há teste que cobre a classe inteira.
+- **`ordem.ts` ordena só por `position`; `dia.ts` desempata por posição, tipo e id.** O
+  `mover()` só acerta a linha certa se receber a lista **já na ordem de `itensDoDia`** — o
+  `sort` do JS é estável, e é só isso que segura. Lista crua move a linha errada, sem erro
+  nenhum.
+
+### O que a etapa 2 NÃO precisa
+
+**Nenhum SQL.** `day_item`, `day_pos` e `done` já estão no banco, na publicação do tempo
+real, no `merge.ts`, no `load.ts`, nos tipos e nos normalizadores — os dez lugares do §4
+foram todos preenchidos na etapa 1.
