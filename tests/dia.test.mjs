@@ -207,3 +207,72 @@ test('cada item traz a classe de cor da etiqueta, por origem', () => {
   assert.equal(porId.d1, 'di', 'o item livre tem classe propria');
   assert.equal(porId.f1, 'fk-rest', 'a comida usa a sigla do FKCLS, nao o kind cru');
 });
+
+// ---------------- as setas, sobre a lista junta (etapa 2) ----------------
+
+test('moverNoDia devolve a tabela certa de cada linha que mudou de lugar', () => {
+  const s = snap({
+    legs: [leg('t1', 0)],
+    attractions: [attr('a1', 1)],
+    foods: [food('f1', 2)],
+  });
+  const l = D.itensDoDia(s, ISO);
+  assert.deepEqual(l.map((x) => x.id), ['t1', 'a1', 'f1']);
+
+  // subir a comida uma casa troca ela com a atracao, e SO essas duas
+  assert.deepEqual(D.moverNoDia(l, 'f1', -1), [
+    { tabela: 'food', id: 'f1', day_pos: 1 },
+    { tabela: 'attraction', id: 'a1', day_pos: 2 },
+  ]);
+});
+
+test('a primeira nao sobe e a ultima nao desce', () => {
+  const s = snap({ legs: [leg('t1', 0)], attractions: [attr('a1', 1)] });
+  const l = D.itensDoDia(s, ISO);
+  assert.deepEqual(D.moverNoDia(l, 't1', -1), [], 'ja e a primeira');
+  assert.deepEqual(D.moverNoDia(l, 'a1', 1), [], 'ja e a ultima');
+});
+
+test('o dia inteiro empatado em zero se renumera na primeira seta', () => {
+  // O CASO NORMAL hoje, e nao a excecao: todo item nasce com day_pos = 0
+  // porque a etapa 1 nao tinha como ordenar. A primeira seta que ele
+  // aperta num dia tem que arrumar o dia INTEIRO, nao so duas linhas —
+  // e e isso que `ordem.ts` faz ao renumerar 0..n-1.
+  const s = snap({
+    legs: [leg('t1', 0)],
+    attractions: [attr('a1', 0)],
+    dayItems: [item('d1', 0)],
+    foods: [food('f1', 0)],
+  });
+  const l = D.itensDoDia(s, ISO);
+  assert.deepEqual(l.map((x) => x.id), ['t1', 'a1', 'd1', 'f1'],
+    'o desempate de dia.ts: leg, attraction, day_item, food');
+
+  // subir o item livre: t1 fica em 0 e nao entra na escrita
+  assert.deepEqual(D.moverNoDia(l, 'd1', -1), [
+    { tabela: 'day_item', id: 'd1', day_pos: 1 },
+    { tabela: 'attraction', id: 'a1', day_pos: 2 },
+    { tabela: 'food', id: 'f1', day_pos: 3 },
+  ]);
+});
+
+test('moverNoDia depende de a lista VIR na ordem de itensDoDia', () => {
+  // A armadilha central desta etapa. `ordem.ts` ordena so por `position`;
+  // `dia.ts` desempata por posicao, TIPO e id. Com tudo empatado em zero,
+  // quem decide e a ordem de ENTRADA — o sort do JS e estavel, e e so
+  // isso que segura. Lista crua move a linha errada, sem erro nenhum.
+  const s = snap({
+    legs: [leg('t1', 0)],
+    attractions: [attr('a1', 0)],
+    dayItems: [item('d1', 0)],
+    foods: [food('f1', 0)],
+  });
+  const certo = D.itensDoDia(s, ISO);
+  const embaralhado = [certo[3], certo[1], certo[0], certo[2]];
+
+  assert.notDeepEqual(
+    D.moverNoDia(embaralhado, 'd1', -1),
+    D.moverNoDia(certo, 'd1', -1),
+    'a tela TEM que passar itensDoDia — lista fora de ordem move outra linha',
+  );
+});

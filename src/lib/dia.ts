@@ -11,6 +11,7 @@
 // ============================================================
 import { akEmoji, fkEmoji, tkEmoji, DI_EMOJI, FK, FKCLS, TK } from '@/content';
 import * as C from './calc';
+import { mover } from './ordem';
 import { num } from './fmt';
 import type { Snapshot } from './types';
 
@@ -131,4 +132,29 @@ export function totalDoDia(s: Snapshot, iso: string): { eur: number; brl: number
 export function feitasDoDia(s: Snapshot, iso: string): { feitas: number; total: number } {
   const l = itensDoDia(s, iso);
   return { feitas: l.filter((x) => x.feito).length, total: l.length };
+}
+
+/** Uma casa nova para uma linha: qual tabela, qual id, qual `day_pos`. */
+export interface EscritaDeOrdem { tabela: Origem; id: string; day_pos: number }
+
+/**
+ * Subir ou descer uma linha DENTRO do dia, atravessando as quatro tabelas.
+ *
+ * `ordem.ts` devolve `{ id, position }` e nao sabe de que tabela cada id e —
+ * ele serve o transporte e a burocracia, onde a lista e de uma tabela so.
+ * Aqui a lista tem quatro origens, e a escrita precisa voltar para a tabela
+ * certa. E so isso que esta funcao faz.
+ *
+ * A LISTA TEM QUE VIR DE `itensDoDia`. `mover` ordena so por `position`, e
+ * com tudo empatado em zero quem decide e a ordem de ENTRADA (o sort do JS
+ * e estavel). Lista crua move a linha errada e nada acusa — ha teste.
+ */
+export function moverNoDia(
+  lista: ItemDoDia[], id: string, dir: -1 | 1,
+): EscritaDeOrdem[] {
+  const porId = new Map(lista.map((x) => [x.id, x]));
+  return mover(lista, id, dir).flatMap((m) => {
+    const it = porId.get(m.id);
+    return it ? [{ tabela: it.tabela, id: m.id, day_pos: m.position }] : [];
+  });
 }
