@@ -21,7 +21,20 @@ export default function Fita({
 }: {
   sel: string;
   onSel: (k: string) => void;
-  /** O que aparece embaixo do nome. Devolva string vazia para não mostrar nada. */
+  /**
+   * O que aparece embaixo do nome. String vazia não mostra nada.
+   *
+   * ZERO NÃO É VAZIO (08/09/2026). Ele pediu olhando a tela: *"deixe zerado
+   * se não tiver nada adicionado, e não um espaço em branco"*. As seis
+   * chamadas de `valor` no app devolvem `String(n)` — nunca `n || ''` nem
+   * `n ? String(n) : ''`, que escondiam o zero e deixavam a bandeira muda
+   * justamente no país onde ele ainda não pôs nada.
+   *
+   * A decisão fica nas TELAS, não aqui: a string `"0"` é truthy, então o
+   * `{v ? …}` abaixo já a desenha. Se alguém trocar esse teste por
+   * `Number(v)`, o zero some de novo — há teste em `telas.test.mjs` para os
+   * dois lados.
+   */
   valor: (k: string) => string;
 }) {
   return (

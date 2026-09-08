@@ -483,3 +483,60 @@ test('a tira de etiquetas do dia sai do dia.ts, e nao se remonta na tela', () =>
     'a classe da etiqueta sai do `classe` do ItemDoDia, nao do FKCLS na tela',
   );
 });
+
+test('a fita mostra ZERO, nunca um espaco em branco', () => {
+  // Pedido dele em 08/09, olhando a tela: "deixe zerado se nao tiver nada
+  // adicionado, e nao um espaco em branco".
+  //
+  // A `Fita` desenha `{v ? <span> : null}`, entao QUALQUER caminho que
+  // devolva string vazia apaga o numero — e o `|| ''` fazia exatamente isso
+  // com o zero, que e um valor legitimo ("nao registrei nada aqui ainda").
+  // Sao seis chamadas em cinco telas; se uma voltar a esconder o zero, a
+  // aba dela passa a discordar das outras quatro em silencio.
+  const CHAMAM = ['src/screens/Atracoes.tsx', 'src/screens/Hospedagem.tsx',
+                  'src/screens/Comidas.tsx', 'src/screens/Dicas.tsx',
+                  'src/screens/Sugestoes.tsx'];
+
+  let total = 0;
+  for (const rel of CHAMAM) {
+    const bruto = readFileSync(join(RAIZ, rel), 'utf8');
+    // sem comentarios: eles citam o `|| ''` de proposito ao contar a historia
+    const src = bruto.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+    // O BLOCO da Fita, e nao todo `valor=` do arquivo: `Sugestoes.tsx` tem
+    // dois `valor=` de OUTRO componente (o preco do cartao de sugestao, que
+    // mostra "gratis" e pode ser vazio de proposito). A primeira versao
+    // deste teste contou 8 em vez de 6 por causa deles.
+    const blocos = src.match(/<Fita[\s\S]*?\/>/g) ?? [];
+    assert.ok(blocos.length > 0, `${rel} deveria montar uma <Fita>`);
+    total += blocos.length;
+
+    for (const c of blocos) {
+      assert.match(c, /valor=\{/, `${rel}: <Fita> sem valor=`);
+      assert.doesNotMatch(
+        c, /\|\|\s*''/,
+        `${rel}: \`|| ''\` no valor= da Fita esconde o zero. Ele pediu o zero na tela.`,
+      );
+      assert.doesNotMatch(
+        c, /\?\s*String\([^)]*\)\s*:\s*''/,
+        `${rel}: o ternario que devolve '' esconde o zero. Devolva String(n) sempre.`,
+      );
+    }
+  }
+  assert.equal(total, 6, 'sao seis fitas no app; se mudou, revise a regra aqui');
+});
+
+test('a Fita continua desenhando o que recebe — inclusive "0"', () => {
+  // O outro lado da regra de cima: as telas passam "0", e a Fita tem que
+  // pintar. Ela filtra com `{v ? ... : null}`, e a STRING "0" e truthy —
+  // e por isso que a correcao pode morar so nas telas. Se alguem trocar
+  // esse teste por `{v !== '' ? ...}` nada muda; se trocar por
+  // `{Number(v) ? ...}` o zero some de novo, e ai este teste cai.
+  const src = readFileSync(join(RAIZ, 'src/components/Fita.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(
+    src, /Number\(\s*v\s*\)/,
+    'Fita.tsx nao pode converter o valor para numero antes de decidir se desenha',
+  );
+  assert.match(src, /\{v\s*\?/, 'a Fita decide pela string, e "0" e truthy');
+});

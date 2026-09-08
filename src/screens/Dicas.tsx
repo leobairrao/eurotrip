@@ -68,7 +68,7 @@ export default function Dicas() {
         valor={(k: string) => {
           const n = C.avisosDe(s, `dicas:${k}`).length
             + C.cidadesDe(s, k).reduce((a, city) => a + C.avisosDe(s, `dicas:${city}`).length, 0);
-          return String(n || '');
+          return String(n);
         }}
       />
 

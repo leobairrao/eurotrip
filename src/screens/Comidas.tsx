@@ -73,7 +73,7 @@ export default function Comidas() {
       <Fita
         sel={selCO}
         onSel={setSelCO}
-        valor={(k: string) => String(C.foodsOf(s, k).length || '')}
+        valor={(k: string) => String(C.foodsOf(s, k).length)}
       />
 
       {/* UM formulario para os tres (06/09). A chave leva o pais: trocar de pais

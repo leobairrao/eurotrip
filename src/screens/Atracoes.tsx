@@ -64,11 +64,21 @@ export default function Atracoes() {
         </p>
       </div>
 
-      {/* ---- a fita de paises, com o € do que esta no roteiro em cada ---- */}
+      {/* ---- a fita de paises, com QUANTAS ele registrou em cada (08/09) ----
+          Era o € do que ja esta num dia do roteiro. Ele pediu a contagem,
+          apontando para Comidas: "quero que voce deixe esse numerozinho
+          embaixo tambem na aba atracoes e hospedagem".
+
+          O dinheiro nao sumiu: ele esta logo abaixo, no `bigsum`, que e onde
+          ele mesmo mandou por em 06/09. O que se perde e comparar dois paises
+          de relance sem clicar — dito a ele antes, e escolhido assim.
+
+          `'dele'` e nao o total: esta aba e so dele desde 06/09, e minha
+          pesquisa se conta na aba Sugestoes. */}
       <Fita
         sel={selCO}
         onSel={setSelCO}
-        valor={(k: string) => { const e = C.attrEurCountry(s, k, 'roteiro'); return e ? eur(e) : ''; }}
+        valor={(k: string) => String(C.attrCountCountry(s, k, 'dele'))}
       />
 
       {/* ---- os numeros da viagem, LOGO ABAIXO das bandeiras (06/09) ----

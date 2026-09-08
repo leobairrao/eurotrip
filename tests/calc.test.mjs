@@ -969,3 +969,96 @@ test('11.9 — a soma das linhas do Custos da o total do rodape', () => {
     'dayItemTudoBrl = euro x cambio + real, igual ao legBrl',
   );
 });
+
+// ---------------- o numerozinho embaixo da bandeira (08/09/2026) ----------------
+//
+// Ele pediu: "em comida aparece quantas coisas registrei em cada pais. Quero
+// que voce deixe esse numerozinho embaixo tambem na aba atracoes e hospedagem".
+//
+// O espaco NAO estava livre: as duas fitas ja mostravam DINHEIRO ali, e
+// mostravam nada so porque o dinheiro dele ainda e zero nas duas. Trocar um
+// numero por outro no mesmo lugar e barato de errar e caro de perceber, entao
+// cada um dos dois significados fica preso aqui.
+
+test('a fita de Atracoes conta as atracoes DELE, e o pais soma as cidades', () => {
+  const soma = (k) => C.cidadesDe(S, k).reduce((a, c) => a + C.attrsDele(S, c).length, 0);
+
+  assert.ok(soma('pt') > 0, 'a fixture tem atracoes dele em Portugal');
+  assert.equal(C.attrCountCountry(S, 'pt', 'dele'), soma('pt'));
+  assert.equal(C.attrCountCountry(S, 'es', 'dele'), soma('es'));
+
+  // 'dele' e 'pesquisa' PARTEM o total: nenhuma atracao fica de fora dos dois,
+  // e nenhuma e contada duas vezes. E o que garante que a fita nao minta.
+  for (const k of ['pt', 'es', 'fr']) {
+    assert.equal(
+      C.attrCountCountry(S, k, 'dele') + C.attrCountCountry(S, k, 'pesquisa'),
+      C.attrCountCountry(S, k),
+      `${k}: dele + pesquisa tem que dar o total`,
+    );
+  }
+
+  // A aba Atracoes e SO dele (regra de 06/09). Minha pesquisa nao pode
+  // inflar o numero da bandeira — ela tem contagem propria em Sugestoes.
+  assert.ok(C.attrCountCountry(S, 'pt', 'pesquisa') > 0, 'ha pesquisa minha em Portugal');
+  assert.notEqual(C.attrCountCountry(S, 'pt', 'dele'), C.attrCountCountry(S, 'pt'));
+});
+
+test('a fita de Atracoes enxerga cidade que ELE criou, nao so as 11 fixas', () => {
+  // `CT[cidade]` cru so conhece as 11: a cidade nova ficaria meio dentro
+  // meio fora, com cartao numa tela e nada na bandeira. Ja mordeu antes.
+  const s = structuredClone(S);
+  s.cities = [{ id: 'c1', k: 'evora', n: 'Évora', co: 'pt', position: 0 }];
+  const antes = C.attrCountCountry(s, 'pt', 'dele');
+  s.attractions.push({
+    id: 'a-evora', city: 'evora', name: 'Templo de Diana', price_eur: 0,
+    note: '', status: 'backlog', kind: 'passeio', day_iso: null, seed_id: null,
+  });
+  assert.equal(C.attrCountCountry(s, 'pt', 'dele'), antes + 1);
+});
+
+test('a fita de Hospedagem conta OPCOES — stayCount conta BASES FECHADAS', () => {
+  // Os dois numeros sao pequenos, ficam a dois cliques um do outro e dizem
+  // coisas diferentes. Este teste existe para nunca trocarem de lugar.
+  const s = structuredClone(S);
+  s.stayOptions = [
+    opcao('madrid', { name: 'Chamberí', chosen: true, address: 'Rua X, 1' }),
+    opcao('madrid', { name: 'Argüelles' }),
+    opcao('madrid', { name: 'Tetuán' }),
+    opcao('lisboa', { name: 'Alfama' }),
+  ];
+
+  assert.equal(C.opcoesCount(s, ['madrid']), 3, 'as tres de Madrid, marcada ou nao');
+  assert.equal(C.opcoesCount(s, ['lisboa']), 1);
+  assert.equal(C.opcoesCount(s, CIDADES_STAY), 4, 'o pais soma as bases dele');
+  assert.equal(C.opcoesCount(s, []), 0, 'pais sem base nenhuma');
+
+  // e o numero que a fita NAO usa:
+  assert.equal(C.stayCount(s, CIDADES_STAY), 1, 'so Madrid tem endereco na marcada');
+  assert.notEqual(C.opcoesCount(s, CIDADES_STAY), C.stayCount(s, CIDADES_STAY));
+
+  // opcao sem endereco e sem valor CONTA: o numero e "quantas eu registrei",
+  // nao "quantas estao prontas".
+  assert.equal(C.opcoesCount(s, ['lisboa']), 1);
+  assert.equal(C.stayTotal(s, 'lisboa'), 0);
+});
+
+test('"dele" NAO e "fora do roteiro" — por num dia nao tira da lista dele', () => {
+  // Sem este caso o teste de cima e VAZIO: na fixture nenhuma atracao esta
+  // num dia, entao `!ehPesquisa` e `foraDoRoteiro` dao o mesmo numero e
+  // trocar um pelo outro passa despercebido. Descoberto sabotando, 08/09.
+  const s = structuredClone(S);
+  const antes = C.attrCountCountry(s, 'pt', 'dele');
+
+  const dele = s.attractions.find((x) => x.city === 'lisboa' && x.status !== 'sugerida');
+  dele.day_iso = '2026-12-12';
+  assert.equal(C.attrCountCountry(s, 'pt', 'dele'), antes, 'por num dia nao tira da lista dele');
+  assert.equal(C.attrCountCountry(s, 'pt', 'fora'), antes - 1, 'mas sai do "ainda sem dia"');
+
+  // A regra 5.13 ao contrario: pesquisa minha que ele poe num dia deixa de
+  // ser pesquisa e passa a ser dele — e a bandeira tem que subir.
+  const pesq = s.attractions.find((x) => x.city === 'lisboa' && x.status === 'sugerida');
+  const pAntes = C.attrCountCountry(s, 'pt', 'pesquisa');
+  pesq.day_iso = '2026-12-13';
+  assert.equal(C.attrCountCountry(s, 'pt', 'dele'), antes + 1, 'adotada num dia vira dele');
+  assert.equal(C.attrCountCountry(s, 'pt', 'pesquisa'), pAntes - 1, 'e sai da pesquisa');
+});

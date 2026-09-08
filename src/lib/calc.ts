@@ -159,12 +159,16 @@ export const ehPesquisa = (a: Attraction) => a.status === 'sugerida' && !a.day_i
 /** Dele, mas ainda sem dia. E o "backlog" de verdade. */
 export const foraDoRoteiro = (a: Attraction) => !a.day_iso && a.status !== 'sugerida';
 
-export type AttrFiltro = '' | 'roteiro' | 'fora' | 'pesquisa';
+export type AttrFiltro = '' | 'roteiro' | 'fora' | 'pesquisa' | 'dele';
 
 const CASA: Record<Exclude<AttrFiltro, ''>, (a: Attraction) => boolean> = {
   roteiro: noRoteiro,
   fora: foraDoRoteiro,
   pesquisa: ehPesquisa,
+  // O AVESSO EXATO de `pesquisa`, e nao "backlog": os dois PARTEM a lista,
+  // entao `dele + pesquisa` sempre da o total. `fora` nao serve aqui — ele
+  // tira o que esta num dia, e o que esta num dia continua sendo dele.
+  dele: (a) => !ehPesquisa(a),
 };
 const passa = (a: Attraction, f?: AttrFiltro) => (!f ? true : CASA[f](a));
 
@@ -238,6 +242,19 @@ export function attrCount(s: Snapshot, f?: AttrFiltro): number {
 export function attrCountCity(s: Snapshot, city: string, f?: AttrFiltro): number {
   return attrsOf(s, city).filter((x) => passa(x, f)).length;
 }
+/**
+ * Quantas atracoes o PAIS tem — o numerozinho embaixo da bandeira em
+ * Atracoes (08/09/2026).
+ *
+ * A fita chama com `'dele'`: a aba Atracoes e so dele desde 06/09, e a
+ * minha pesquisa tem contagem propria na aba Sugestoes. Contar tudo aqui
+ * faria a bandeira prometer uma lista que a tela nao mostra.
+ *
+ * Passa por `cidadesDe`, entao cidade que ELE criou conta igual as fixas.
+ */
+export function attrCountCountry(s: Snapshot, k: string, f?: AttrFiltro): number {
+  return cidadesDe(s, k).reduce((a, c) => a + attrCountCity(s, c, f), 0);
+}
 
 /** As atracoes de um dia, ordenadas por situacao. */
 export function attrsOfDay(s: Snapshot, iso: string) {
@@ -303,6 +320,23 @@ export function stayTotalAll(s: Snapshot, cities: string[]): number {
  */
 export function stayCount(s: Snapshot, cities: string[]): number {
   return cities.filter((c) => (stayChosen(s, c)?.address ?? '').trim()).length;
+}
+/**
+ * Quantas OPCOES ele registrou nestas cidades — o numerozinho embaixo da
+ * bandeira em Hospedagem (08/09/2026).
+ *
+ * NAO e o `stayCount` logo acima, e a diferenca importa: aquele conta
+ * BASES FECHADAS (a marcada, com endereco) e vive no bloco de numeros
+ * grandes da mesma tela, a dois cliques deste. Sao dois numeros pequenos e
+ * parecidos dizendo coisas diferentes — por isso este nao se chama
+ * `staysCount`, que ficaria a uma letra do outro, e por isso os dois estao
+ * presos por teste.
+ *
+ * Conta opcao sem endereco e sem valor: a pergunta e "quantas eu
+ * registrei", nao "quantas estao prontas".
+ */
+export function opcoesCount(s: Snapshot, cities: string[]): number {
+  return s.stayOptions.filter((o) => cities.includes(o.city)).length;
 }
 /**
  * As noites que o ROTEIRO tem nesta cidade, UMA POR PASSAGEM.

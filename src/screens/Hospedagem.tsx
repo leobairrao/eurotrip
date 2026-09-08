@@ -72,14 +72,17 @@ export default function Hospedagem() {
         </p>
       </div>
 
-      {/* a mesma fita de Atracoes, Comidas e Dicas */}
+      {/* a mesma fita de Atracoes, Comidas e Dicas — e desde 08/09 as quatro
+          dizem a MESMA coisa embaixo do nome: quantas coisas ele registrou.
+          Aqui era o € da opcao marcada, e ele pediu a contagem.
+
+          `opcoesCount` e nao `stayCount`: este numero conta OPCOES, inclusive
+          a que ainda nao tem endereco nem valor. "Bases com endereco da
+          fechada" e outro numero, e esta logo abaixo no `bigsum`. */}
       <Fita
         sel={selCO}
         onSel={setSelCO}
-        valor={(k: string) => {
-          const v = basesDe(k).reduce((a, city) => a + C.stayTotal(s, city), 0);
-          return v ? eur(v) : '';
-        }}
+        valor={(k: string) => String(C.opcoesCount(s, basesDe(k)))}
       />
 
       <div className="bigsum">

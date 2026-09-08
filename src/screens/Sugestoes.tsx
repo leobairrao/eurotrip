@@ -134,7 +134,7 @@ function SegAtracoes() {
         valor={(k: string) => {
           const n = C.cidadesDe(s, k)
             .reduce((a, c) => a + (ATR_SUG[c] ?? []).filter((_, i) => !adotada(s, `s:${c}:${i}`)).length, 0);
-          return n ? String(n) : '';
+          return String(n);
         }}
       />
       {!cidades.length ? (
@@ -185,7 +185,7 @@ function SegComidas() {
         valor={(k: string) => {
           const g = FOOD.find((x) => x.pais === k);
           const n = (g?.reg ?? []).filter((_, i) => !adotada(s, `F${k}|${i}`)).length;
-          return n ? String(n) : '';
+          return String(n);
         }}
       />
       {!f ? (
