@@ -540,3 +540,61 @@ test('a Fita continua desenhando o que recebe — inclusive "0"', () => {
   );
   assert.match(src, /\{v\s*\?/, 'a Fita decide pela string, e "0" e truthy');
 });
+
+test('todo + do dia escreve day_pos junto com day_iso', () => {
+  // Sem isto o item novo nasce em zero e vai para o TOPO de um dia que ele
+  // ja arrumou. A lista parece se desarrumar sozinha e nada na tela explica.
+  for (const rel of ['src/screens/roteiro/Editor.tsx',
+                     'src/screens/roteiro/Acrescentar.tsx']) {
+    if (!existsSync(join(RAIZ, rel))) continue;   // Acrescentar nasce na tarefa 3
+    const src = readFileSync(join(RAIZ, rel), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+    const chamadas = src.match(/now(?:Many)?\([\s\S]{0,300}?\)\s*[,;)\n]/g) ?? [];
+    const poeNoDia = chamadas.filter((c) => /day_iso['"]?\s*[:,]\s*iso\b/.test(c));
+    assert.ok(poeNoDia.length > 0, `${rel}: nenhum + poe no dia? o teste ficou cego`);
+    for (const c of poeNoDia) {
+      assert.match(
+        c, /day_pos/,
+        `${rel}: um + poe no dia sem escrever day_pos — o item vai nascer no topo.`
+        + ` Use D.proximaPos(s, iso). Chamada: ${c.slice(0, 120)}`,
+      );
+    }
+  }
+});
+
+test('a ordem do dia sai do dia.ts, e a tela nao reordena por conta propria', () => {
+  const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Ordem.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+  assert.match(src, /D\.itensDoDia\s*\(/, 'a lista tem que vir de dia.ts');
+  assert.match(src, /D\.moverNoDia\s*\(/, 'as setas tem que passar por dia.ts');
+  assert.doesNotMatch(
+    src, /\.sort\s*\(/,
+    'Ordem.tsx nao pode ordenar sozinho: `mover` depende da ordem de itensDoDia,'
+    + ' e um sort proprio aqui move a linha errada sem erro nenhum',
+  );
+  assert.doesNotMatch(
+    src, /[^.]\bmover\s*\(/,
+    'chame D.moverNoDia, nao o mover de ordem.ts — este nao sabe a tabela de cada id',
+  );
+});
+
+test('a lista do dia nao existe em dois lugares', () => {
+  // A licao do DiaTags, de 07/09: duas implementacoes do mesmo dia
+  // discordam na primeira vez que uma delas mudar. Os cartoes de
+  // acrescentar sao SO seletores desde a etapa 2.
+  for (const rel of ['src/screens/roteiro/Editor.tsx',
+                     'src/screens/roteiro/Acrescentar.tsx']) {
+    if (!existsSync(join(RAIZ, rel))) continue;
+    const src = readFileSync(join(RAIZ, rel), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const PROIBIDOS = ['attrsOfDay', 'foodsOfDay', 'legsOfDay'];
+    const achados = PROIBIDOS.filter((f) => new RegExp(`\\b${f}\\b`).test(src));
+    assert.deepEqual(
+      achados, [],
+      `${rel} voltou a montar a lista do dia com: ${achados.join(', ')}.`
+      + ' Ela mora em Ordem.tsx, e uma so.',
+    );
+  }
+});

@@ -340,6 +340,40 @@
 .mrow.at6 .kv { color: var(--ink-2); }
 .mrow.at6.st-esc .kv { border-color: var(--pine); }
 
+/* ============================================================
+   A ORDEM DO DIA (etapa 2, 08/09/2026) — a lista junta, no editor.
+
+   `.mrow` de proposito, e nao uma grade nova: ela ja traz o fundo, o
+   foco, o hover, a borda entre linhas e os alvos de 44px do celular,
+   todos medidos. O que muda por sigla e so a grade.
+
+   A AREA `cu` TEM QUE EXISTIR, mesmo com tres das quatro linhas sem
+   seletor: `estilo-atual.css:311` manda TODO `.mrow select` para
+   `grid-area: cu`, e o item livre tem o seletor de moeda. Sem a area
+   ele cai numa faixa implicita e a linha desmonta calada.
+   ============================================================ */
+.mrow.do5 {
+  grid-template-columns: 62px 20px 1fr 92px 56px 34px;
+  grid-template-areas: "od n nm pr cu x" "wh wh wh wh wh wh";
+}
+.mrow.do5 .ordb { grid-area: od; }
+.mrow.do5 .don {
+  grid-area: n;
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.mrow.do5 .donm {
+  grid-area: nm; font-size: 15px; font-weight: 600; line-height: 1.35;
+}
+.mrow.do5 .dovl {
+  grid-area: pr;
+  font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+/* feito risca no lugar, igual a visualizacao — a lista nunca se reordena */
+.mrow.do5.feito .donm { text-decoration: line-through; color: var(--muted); }
+.mrow.do5.feito .dovl { opacity: .55; }
+
 
 /* "e esta": o botao que decide o que entra no custo da viagem */
 .esta {
@@ -369,6 +403,24 @@
   .mrow.at6 .pv { font-size: 13px; padding: 7px 4px; max-width: none; }
   /* WCAG 2.2 pede 24px de alvo; a caixinha herdada tem 18. */
   .mrow.at6 .ck { width: 24px; height: 24px; }
+
+  /* A ordem do dia no celular: as setas seguram a coluna da esquerda nas
+     duas linhas, e o valor com a moeda desce para a segunda. `od` e `n`
+     ocupam duas linhas cada — areas de grade tem que ser retangulares. */
+  .mrow.do5 {
+    grid-template-columns: 62px 18px 1fr 34px;
+    grid-template-areas: "od n nm x" "od n pr cu" "wh wh wh wh";
+  }
+  .mrow.do5 .ordb { align-self: start; }
+  /* AS SETAS SAO A FUNCIONALIDADE desta tela, e sairam com 21px de largura
+     no celular — abaixo dos 24px que o proprio projeto adota como piso
+     (ver a caixinha, tres regras acima). A regra `.ordb { min-width: 30px }`
+     de `identidade.css` mira o CONTAINER, que ja e largo por ter dois
+     botoes dentro; quem precisa de minimo e o BOTAO.
+     30 + 2 de gap + 30 = 62px, que e exatamente a coluna `od`.
+     Medido num iframe de 328px, nao no olho. */
+  .mrow.do5 .ordb button { min-width: 30px; min-height: 30px; }
+  .mrow.do5 .pv { font-size: 13px; padding: 7px 4px; max-width: none; }
 }
 
 /* ---------------------------------------------------------------

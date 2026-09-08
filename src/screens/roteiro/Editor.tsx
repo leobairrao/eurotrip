@@ -17,9 +17,11 @@ import {
 } from '@/content';
 import { AreaField, Inline, TextField } from '@/components/Field';
 import Avisos from '@/components/Avisos';
+import Ordem from './Ordem';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
+import * as D from '@/lib/dia';
 import { brl, eur, longDt, marcado, num, wdOf } from '@/lib/fmt';
 import type { Attraction, Food, Leg } from '@/lib/types';
 
@@ -43,6 +45,10 @@ export default function Editor({ iso }: { iso: string }) {
   return (
     <>
       <CartaoDia iso={iso} />
+      {/* A lista do dia mora AQUI agora, e uma so. Ate 07/09 cada cartao abaixo
+          tinha a propria — e com quatro listas nao ha como por um restaurante
+          entre duas atracoes. */}
+      <Ordem iso={iso} />
       {/* a chave por dia e de proposito: "vou usar transporte neste dia?" e uma
           pergunta por DIA, entao a resposta nao pode vazar para o dia seguinte */}
       <CartaoTransporte key={iso} iso={iso} />
@@ -101,21 +107,22 @@ function CartaoDia({ iso }: { iso: string }) {
 
 /** 2. "Como eu me movo neste dia" (--c-fr). */
 function CartaoTransporte({ iso }: { iso: string }) {
-  const { s, now } = useApp();
+  const { s, nowMany } = useApp();
   const { selTPick, setSelTPick } = useUi();
   /**
    * O liga/desliga que ele pediu em 06/09: "deve ter um on/off assim: vou
    * usar transporte esse dia? Se eu ativar, abre a seleção e eu coloco qual
    * transporte vou usar".
    *
-   * Comeca LIGADO se o dia ja tem trecho marcado — nesse caso ele ja
-   * respondeu que sim, e esconder a selecao seria esconder o unico jeito de
-   * marcar o segundo trecho do mesmo dia (o 16 tem carro e voo).
+   * NASCE FECHADO desde a etapa 2 (08/09). Ate aqui comecava ligado se o dia
+   * ja tivesse trecho, porque a lista do dia morava DENTRO deste cartao e
+   * esconde-la esconderia o unico jeito de marcar o segundo trecho. Isso
+   * deixou de valer: o que ja esta no dia mora em `Ordem.tsx`, acima, e nao
+   * passa mais por aqui. O cartao virou so o seletor.
    */
-  const [usaTransporte, setUsaTransporte] = useState(C.legsOfDay(s, iso).length > 0);
+  const [usaTransporte, setUsaTransporte] = useState(false);
 
   const pk = selTPick && TKROT[selTPick] ? selTPick : 'trem';
-  const mine = C.legsOfDay(s, iso);
   const te = C.dayLegEur(s, iso);
   const tb = C.dayLegBrl(s, iso);
   const mt = te || tb
@@ -135,44 +142,9 @@ function CartaoTransporte({ iso }: { iso: string }) {
     <div className="card" style={{ ['--cc' as string]: 'var(--c-fr)' }}>
       <div className="h">
         <h3>Como eu me movo neste dia</h3>
-        <div className="m">
-          {mine.length}{mine.length === 1 ? ' trecho marcado' : ' trechos marcados'} · {mt}
-        </div>
+        <div className="m">o que você já pôs neste dia está na ordem, acima · {mt}</div>
       </div>
       <div className="b">
-        {!mine.length ? (
-          <div className="empty">
-            Nenhum trecho neste dia. Se você pega trem, metrô ou voo, ligue a chave
-            abaixo.
-          </div>
-        ) : (
-          <div className="at">
-            {mine.map((t) => {
-              const v = num(t.amount);
-              return (
-                <div key={t.id} className={`atr pkd${v ? '' : ' free'}`}>
-                  <div className="nm">{tkEmoji(t.kind)} {t.name}</div>
-                  <div className="vl">
-                    {v ? (t.currency === 'brl' ? brl(v) : eur(v)) : 'sem valor'}
-                  </div>
-                  <button
-                    className="xb"
-                    title="tirar deste dia"
-                    aria-label="tirar deste dia"
-                    onClick={() => now('leg', t.id, 'day_iso', null)}
-                  >
-                    ×
-                  </button>
-                  <div className="wh">
-                    <span className={`stg tkc-${t.kind}`}>{TKROT[t.kind]}</span> ·{' '}
-                    {t.bought ? <b>comprado</b> : 'ainda não comprado'}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         <button
           className="liga"
           role="switch"
@@ -227,7 +199,9 @@ function CartaoTransporte({ iso }: { iso: string }) {
                       className="plus"
                       title="pôr neste dia"
                       aria-label="pôr neste dia"
-                      onClick={() => now('leg', t.id, 'day_iso', iso)}
+                      onClick={() =>
+                        nowMany('leg', t.id, { day_iso: iso, day_pos: D.proximaPos(s, iso) })
+                      }
                     >
                       +
                     </button>
@@ -252,12 +226,11 @@ function CartaoTransporte({ iso }: { iso: string }) {
 
 /** 3. "Atrações deste dia" (--ochre). A cidade da base vem pre-selecionada. */
 function CartaoAtracoes({ iso }: { iso: string }) {
-  const { s, now, nowMany } = useApp();
+  const { s, nowMany } = useApp();
   const { selPick, setSelPick } = useUi();
 
   const bk = C.cityOfBase(s, s.days[iso]?.base ?? '');
   const pk = selPick && C.temCidade(s, selPick) ? selPick : bk;
-  const mine = C.attrsOfDay(s, iso);
   const tot = C.dayAttrTotal(s, iso);
   const cs = C.pickCities(s, bk);
 
@@ -279,40 +252,11 @@ function CartaoAtracoes({ iso }: { iso: string }) {
       <div className="h">
         <h3>Atrações deste dia</h3>
         <div className="m">
-          {mine.length}{mine.length === 1 ? ' marcada' : ' marcadas'}
+          o que você já marcou está na ordem, acima
           {tot ? ` · ${eur(tot)} · ${brl(tot * C.rate(s))}` : ' · nada a pagar'}
         </div>
       </div>
       <div className="b">
-        {!mine.length ? (
-          <div className="empty">Nada marcado para este dia ainda. Escolha abaixo.</div>
-        ) : (
-          <div className="at">
-            {mine.map((it) => {
-              const pr = num(it.price_eur);
-              return (
-                <div key={it.id} className={`atr pkd${pr ? '' : ' free'}`}>
-                  <div className="nm">{akEmoji(it.kind)} {it.name}</div>
-                  <div className="vl">{pr ? eur(pr) : 'grátis'}</div>
-                  {/* Tirar do dia NAO desfaz a escolha (regra 5.3). */}
-                  <button
-                    className="xb"
-                    title="tirar deste dia"
-                    aria-label="tirar deste dia"
-                    onClick={() => now('attraction', it.id, 'day_iso', null)}
-                  >
-                    ×
-                  </button>
-                  <div className="wh">
-                    {C.nomeCidade(s, it.city)} ·{' '}
-                    <span className={`stg st-${ORIGCLS(it)}`}>{ORIGEM(it)}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         {!bk && !pk ? (
           <div className="n warn" style={{ maxWidth: 'none', marginTop: 18 }}>
             <b>escreva a base primeiro</b>
@@ -362,7 +306,9 @@ function CartaoAtracoes({ iso }: { iso: string }) {
                         title="pôr neste dia"
                         aria-label="pôr neste dia"
                         onClick={() =>
-                          nowMany('attraction', it.id, { day_iso: iso, status: 'escolhida' })
+                          nowMany('attraction', it.id, {
+                            day_iso: iso, status: 'escolhida', day_pos: D.proximaPos(s, iso),
+                          })
                         }
                       >
                         +
@@ -389,13 +335,12 @@ function CartaoAtracoes({ iso }: { iso: string }) {
 
 /** 4. "Onde comer neste dia" (--c-nl). Prato NAO aparece aqui (regra 5.8). */
 function CartaoComidas({ iso }: { iso: string }) {
-  const { s, now } = useApp();
+  const { s, nowMany } = useApp();
   const { selCO, selFPick, setSelFPick } = useUi();
 
   const bk = C.cityOfBase(s, s.days[iso]?.base ?? '');
   const dco = C.paisDaCidade(s, bk);
   const pk = selFPick && coOf(selFPick).k === selFPick ? selFPick : (dco || selCO);
-  const mine = C.foodsOfDay(s, iso);
 
   const livres: Food[] = [];
   let other = 0;
@@ -411,39 +356,10 @@ function CartaoComidas({ iso }: { iso: string }) {
       <div className="h">
         <h3>Onde comer neste dia</h3>
         <div className="m">
-          {mine.length}{mine.length === 1 ? ' lugar marcado' : ' lugares marcados'} · prato
-          {' '}típico fica só na aba Comidas
+          o que você já marcou está na ordem, acima · prato típico fica só na aba Comidas
         </div>
       </div>
       <div className="b">
-        {!mine.length ? (
-          <div className="empty">
-            Nada marcado. Escolha abaixo, ou anote antes na aba <b>Comidas</b>.
-          </div>
-        ) : (
-          <div className="at">
-            {mine.map((it) => (
-              <div key={it.id} className="atr pkd">
-                <div className="nm">{fkEmoji(it.kind)} {it.name}</div>
-                <div className="vl">
-                  <span className={`stg fkc-${FKCLS[it.kind]}`}>
-                    {fkEmoji(it.kind)} {FKROT[it.kind]}
-                  </span>
-                </div>
-                <button
-                  className="xb"
-                  title="tirar deste dia"
-                  aria-label="tirar deste dia"
-                  onClick={() => now('food', it.id, 'day_iso', null)}
-                >
-                  ×
-                </button>
-                {it.note ? <Inline html={marcado(it.note)} className="wh" /> : null}
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className="sechead">pôr neste dia</div>
         <div className="subtabs">
           {CO.map((c) => {
@@ -491,7 +407,9 @@ function CartaoComidas({ iso }: { iso: string }) {
                     className="plus"
                     title="pôr neste dia"
                     aria-label="pôr neste dia"
-                    onClick={() => now('food', it.id, 'day_iso', iso)}
+                    onClick={() =>
+                      nowMany('food', it.id, { day_iso: iso, day_pos: D.proximaPos(s, iso) })
+                    }
                   >
                     +
                   </button>
