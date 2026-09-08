@@ -24,12 +24,12 @@
 // ============================================================
 import { useApp, useOrdemEstavel } from '@/lib/store';
 import { useApagarLinha } from '@/lib/apagar';
-import { Inline } from '@/components/Field';
+import { Inline, NumField, TextField } from '@/components/Field';
 import * as D from '@/lib/dia';
 import { brl, eur, marcado } from '@/lib/fmt';
 
 export default function Ordem({ iso }: { iso: string }) {
-  const { s, now } = useApp();
+  const { s, now, patch } = useApp();
   const apagar = useApagarLinha();
 
   // `useOrdemEstavel` segura o rearranjo enquanto o dedo esta num campo do
@@ -89,13 +89,58 @@ export default function Ordem({ iso }: { iso: string }) {
                   </span>
                   <div className="don">{ix + 1}</div>
 
-                  <div className="donm">{x.emoji} {x.nome}</div>
+                  {/* O ITEM LIVRE E A UNICA LINHA COM CAMPOS, e foi escolha
+                      dele entre tres opcoes: atracao, trecho e comida se
+                      editam na aba delas; o 📌 nao tem aba nenhuma. Se nao
+                      der para consertar aqui, nao da em lugar nenhum, e um
+                      acento errado custaria a nota inteira. */}
+                  {livre ? (
+                    /* O emoji fica FORA do campo, e nao dentro do valor: ele e
+                       marcador de TIPO, igual ao das outras tres linhas, e nao
+                       texto que ele escreveu. Sem isto a linha do item livre
+                       nasce sem marcador nenhum e para de se parecer com uma
+                       linha da mesma lista — so a tela mostra isso. */
+                    <div className="donm dolivre">
+                      <span aria-hidden="true">{x.emoji}</span>
+                      <TextField
+                        fk={`day_item|${x.id}|name`}
+                        value={x.nome}
+                        onCommit={(v) => patch('day_item', x.id, 'name', v)}
+                        className="nv"
+                        aria-label="o que é este item"
+                      />
+                    </div>
+                  ) : (
+                    <div className="donm">{x.emoji} {x.nome}</div>
+                  )}
 
-                  <div className="dovl">
-                    {x.eur ? eur(x.eur) : ''}
-                    {x.eur && x.brl ? ' + ' : ''}
-                    {x.brl ? brl(x.brl) : ''}
-                  </div>
+                  {livre ? (
+                    <>
+                      <NumField
+                        fk={`day_item|${x.id}|amount`}
+                        value={x.eur || x.brl || null}
+                        onCommit={(v) => patch('day_item', x.id, 'amount', v)}
+                        className="pv"
+                        placeholder="quanto custa"
+                        aria-label="quanto custa"
+                      />
+                      {/* regra 5.11: a moeda ao lado do valor, sempre visivel */}
+                      <select
+                        value={x.brl ? 'brl' : 'eur'}
+                        onChange={(e) => now('day_item', x.id, 'currency', e.currentTarget.value)}
+                        aria-label="moeda"
+                      >
+                        <option value="eur">€</option>
+                        <option value="brl">R$</option>
+                      </select>
+                    </>
+                  ) : (
+                    <div className="dovl">
+                      {x.eur ? eur(x.eur) : ''}
+                      {x.eur && x.brl ? ' + ' : ''}
+                      {x.brl ? brl(x.brl) : ''}
+                    </div>
+                  )}
 
                   {/* O x, e ele NAO e o mesmo botao nas quatro origens. */}
                   <button
@@ -115,7 +160,18 @@ export default function Ordem({ iso }: { iso: string }) {
 
                   <div className="wh nt">
                     <span className={`dtg ${x.classe}`}>{x.sub}</span>
-                    {x.nota ? <Inline html={marcado(x.nota)} className="wv" /> : null}
+                    {livre ? (
+                      <TextField
+                        fk={`day_item|${x.id}|note`}
+                        value={x.nota}
+                        onCommit={(v) => patch('day_item', x.id, 'note', v)}
+                        className="wv"
+                        placeholder="uma nota sua"
+                        aria-label="nota"
+                      />
+                    ) : x.nota ? (
+                      <Inline html={marcado(x.nota)} className="wv" />
+                    ) : null}
                   </div>
                 </div>
               );

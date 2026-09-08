@@ -20,11 +20,13 @@
 //     escolheu isso sabendo que continua rolando para achar a proxima; a
 //     troca foi "a lista nao danca debaixo do meu dedo".
 //
-// A ORDEM AINDA NAO E DELE. Todo item nasce com `day_pos = 0`, e as setas
-// so chegam na etapa 2. Ate la a lista sai pelo desempate de dia.ts, que e
-// estavel mas nao foi escolhida por ninguem — por isso ela NAO NUMERA, e o
-// rodape diz que a ordem chega em seguida. Numerar seria a tela afirmando
-// uma sequencia que ele nao montou.
+// A ORDEM E DELE desde a etapa 2 (08/09/2026): ele a monta com as setas do
+// editor, e o rodape parou de prometer o que ja chegou.
+//
+// Esta tela continua NAO NUMERANDO, e isso nao mudou nem vai mudar: a
+// caixinha de feito E o marcador da linha, e dois marcadores diriam a mesma
+// coisa duas vezes. Os numeros aparecem so no editor, ao lado das setas,
+// que e onde saber "esta e a terceira" importa para mover.
 // ============================================================
 import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
@@ -98,7 +100,6 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
               <b>{te ? eur(te) : ''}{te && tb ? ' + ' : ''}{tb ? brl(tb) : ''}</b> no dia
             </>
           ) : 'nada a pagar neste dia'}
-          {itens.length ? ' · a ordem do dia chega em seguida' : ''}
         </div>
       </div>
     </div>

@@ -556,7 +556,21 @@ test('todo + do dia escreve day_pos junto com day_iso', () => {
     const src = readFileSync(join(RAIZ, rel), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
-    const chamadas = src.match(/(?:now(?:Many)?|insert)\([\s\S]{0,320}?\)\s*[,;)\n]/g) ?? [];
+    // Fatiar a chamada CONTANDO PARENTESES, e nao com regex nao-guloso: o
+    // `insert` do item livre tem `parseNum(valor.get())` no meio, e o
+    // nao-guloso fechava ali — dava o alarme falso de "sem day_pos" na
+    // unica chamada que o tinha. (Aconteceu ao escrever a tarefa 4.)
+    const chamadas = [];
+    for (const m of src.matchAll(/(?:now(?:Many)?|insert)\(/g)) {
+      let i = m.index + m[0].length;
+      let n = 1;
+      while (i < src.length && n > 0) {
+        if (src[i] === '(') n++;
+        else if (src[i] === ')') n--;
+        i++;
+      }
+      chamadas.push(src.slice(m.index, i));
+    }
     const poeNoDia = chamadas.filter((c) => /day_iso['"]?\s*[:,]\s*iso\b/.test(c));
     achados += poeNoDia.length;
     for (const c of poeNoDia) {
@@ -603,5 +617,66 @@ test('a lista do dia nao existe em dois lugares', () => {
       `${rel} voltou a montar a lista do dia com: ${achados.join(', ')}.`
       + ' Ela mora em Ordem.tsx, e uma so.',
     );
+  }
+});
+
+test('o x do item livre APAGA, e o das outras tres so tira do dia', () => {
+  // Sao dois comportamentos no MESMO botao. Trocar um pelo outro nao da erro:
+  // apagaria de vez uma atracao que ele so queria tirar do dia (e ela some do
+  // backlog junto), ou deixaria um item livre orfao, sem dia e sem tela.
+  const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Ordem.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+  assert.match(src, /apagar\s*\(\s*'day_item'/,
+    'o item livre tem que passar por useApagarLinha');
+  assert.match(src, /'day_iso'\s*,\s*null/,
+    'as outras tres tem que voltar para a aba delas com day_iso = null');
+  assert.doesNotMatch(src, /apagar\s*\(\s*x\.tabela/,
+    'nao apague pela tabela da linha: as outras tres NAO se apagam daqui');
+});
+
+test('so o item livre e editavel na ordem do dia', () => {
+  // A decisao dele de 08/09, e o custo de errar: dar campo a uma atracao aqui
+  // criaria um SEGUNDO lugar de editar o mesmo nome (o outro e a aba
+  // Atracoes), e a primeira vez que os dois discordassem ninguem saberia qual
+  // esta certo. Todo campo desta lista tem que ser `day_item|`.
+  const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Ordem.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+  const chaves = [...src.matchAll(/fk=\{`([a-z_]+)\|/g)].map((m) => m[1]);
+  assert.ok(chaves.length >= 3, `esperava 3+ campos na lista, achei ${chaves.length}`);
+  assert.deepEqual([...new Set(chaves)], ['day_item'],
+    `campo de outra tabela na ordem do dia: ${[...new Set(chaves)].join(', ')}`);
+
+  const escritas = [...src.matchAll(/(?:patch|now)\(\s*'([a-z_]+)'/g)].map((m) => m[1]);
+  const semDayPos = escritas.filter((t) => t !== 'day_item');
+  assert.deepEqual([...new Set(semDayPos)], [],
+    'so o day_item se escreve por nome/valor aqui; o resto so muda day_pos e day_iso');
+});
+
+test('a visualizacao nao promete mais a ordem — ela chegou', () => {
+  const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Vista.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(src, /chega em seguida/,
+    'a etapa 2 entregou a ordem; a tela nao pode continuar prometendo');
+});
+
+test('toda etiqueta .dtg de TIPO tem cor da paleta dele', () => {
+  // A do item livre era a unica sem, e ficava no cinza padrao — lia como
+  // esquecimento, nao como escolha. Ele decidiu a cor em 08/09. Este teste
+  // existe para a proxima etiqueta nova nao repetir o esquecimento.
+  const css = ['src/app/estilo-atual.css', 'src/app/extras.css']
+    .map((f) => readFileSync(join(RAIZ, f), 'utf8')).join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // as classes que `dia.ts` produz em `classe`, mais as de situacao
+  const usadas = [...readFileSync(join(RAIZ, 'src/lib/dia.ts'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+    .matchAll(/classe:\s*[`']([a-z-]+)/g)].map((m) => m[1]);
+  assert.ok(usadas.includes('di'), 'o item livre tem que continuar com a classe `di`');
+
+  for (const cls of ['di', 'st-esc']) {
+    const re = new RegExp(`\\.dtg\\.${cls}\\s*\\{[^}]*border-left-color`);
+    assert.match(css, re, `.dtg.${cls} sem border-left-color — a etiqueta cai no cinza padrao`);
   }
 });

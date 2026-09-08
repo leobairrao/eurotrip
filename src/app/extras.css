@@ -183,8 +183,13 @@
 .addrow.fo3 select { font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
 .addrow.tr5 { grid-template-columns: 1fr 1fr 116px 96px 62px auto; }
 .addrow.re4 { grid-template-columns: 1fr 1fr 96px 58px auto; }
+/* O item livre do dia: nome, quanto custa, a moeda, e o botao (08/09/2026).
+   `il4` e nao `di4`: aquela ja e das Dicas (`Dicas.tsx:170`), e duas telas
+   dividindo a mesma grade brigam na primeira vez que uma delas mudar. */
+.addrow.il4 { grid-template-columns: 1fr 116px 74px auto; }
 @media (max-width: 700px) {
-  .addrow.at3, .addrow.at4, .addrow.fo3, .addrow.di4, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  .addrow.at3, .addrow.at4, .addrow.fo3, .addrow.di4, .addrow.il4,
+  .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
   .mrow .wh.nt .wv, .bkr.rr .rb.nt .wv { flex: 1 1 100%; }
 }
 
@@ -373,6 +378,9 @@
 /* feito risca no lugar, igual a visualizacao — a lista nunca se reordena */
 .mrow.do5.feito .donm { text-decoration: line-through; color: var(--muted); }
 .mrow.do5.feito .dovl { opacity: .55; }
+/* a linha do item livre: o emoji e marcador de tipo e fica fora do campo */
+.mrow.do5 .dolivre { display: flex; align-items: center; gap: 6px; }
+.mrow.do5 .dolivre .nv { flex: 1 1 auto; min-width: 0; }
 
 
 /* "e esta": o botao que decide o que entra no custo da viagem */
@@ -432,6 +440,13 @@
    --------------------------------------------------------------- */
 .mrow.tr5.tk-metro { box-shadow: inset 3px 0 0 var(--c-it); }
 .dtg.tk-metro { border-left-color: var(--c-it); }
+
+/* A etiqueta do ITEM LIVRE (08/09/2026). Era a unica `.dtg` de tipo sem cor
+   da paleta dele: caia no cinza padrao e lia como esquecimento, nao como
+   escolha. Ele escolheu tinta escura entre tres opcoes — `--ink-2` porque
+   nenhuma outra `.dtg` usa, e porque o item livre nao e uma categoria
+   minha: e o que ELE escreveu. */
+.dtg.di { border-left-color: var(--ink-2); }
 .stg.tkc-metro { color: var(--c-it); }
 
 /* ---------------------------------------------------------------

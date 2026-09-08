@@ -31,12 +31,12 @@ import { useState } from 'react';
 import {
   CO, FK, FKCLS, TK, TKPL, akEmoji, coOf, fkEmoji, tkEmoji,
 } from '@/content';
-import { Inline } from '@/components/Field';
+import { Inline, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import * as D from '@/lib/dia';
-import { brl, eur, marcado, num } from '@/lib/fmt';
+import { brl, eur, marcado, num, parseNum } from '@/lib/fmt';
 import type { Attraction, Food, Leg } from '@/lib/types';
 
 const TKROT: Record<string, string> = TK;
@@ -98,6 +98,8 @@ export default function Acrescentar({ iso }: { iso: string }) {
         </div>
       </div>
       <div className="b">
+        <ItemLivre iso={iso} />
+
         <Gaveta
           rotulo={bk ? `da lista de ${C.nomeCidade(s, bk)}` : 'da sua lista de atrações'}
           n={nAtracoes}
@@ -393,6 +395,98 @@ function SeletorComidas({ iso }: { iso: string }) {
             </>
           )}
         </div>
+    </>
+  );
+}
+/**
+ * O ITEM LIVRE — o que nao e atracao, nem trecho, nem lugar de comer.
+ *
+ * "check-in no Airbnb", "lavanderia", "comprar presente para a mae". Ate a
+ * etapa 2 isso so cabia como frase solta no texto do dia: sem caixinha de
+ * feito, fora da ordem, e o que custava nao somava em lugar nenhum. Uma
+ * lavanderia de EUR 12 na Franca simplesmente nao existia na conta.
+ *
+ * A MOEDA FICA SEMPRE VISIVEL ao lado do valor, nunca atras de um
+ * "avancado" — e a regra 5.11, e foi ela que fez R$ 257 virar R$ 1.595 uma
+ * vez. O padrao e euro, igual a transporte, e esta tambem no `default` da
+ * coluna no banco.
+ *
+ * `await insert` e so limpa se `r.ok` (secao 8, promessa 3): o `insert` nao
+ * tem fila de repeticao, entao item novo que falha esta PERDIDO — e se a
+ * tela limpasse antes, ele nao teria nem o texto de volta para tentar.
+ *
+ * Nao ha `onKeyDown` de Enter no campo de valor por acaso: os dois campos
+ * tem, porque ele vai escrever "lavanderia", pular para o valor, digitar 12
+ * e apertar Enter sem tirar a mao do teclado.
+ */
+function ItemLivre({ iso }: { iso: string }) {
+  const { s, insert } = useApp();
+  const nome = useLocal();
+  const valor = useLocal();
+  const [moeda, setMoeda] = useState('eur');
+  const [aviso, setAviso] = useState('');
+  const [indo, setIndo] = useState(false);
+
+  const por = async () => {
+    const n = nome.get();
+    if (!n) { setAviso('escreva o que é, primeiro'); return; }
+
+    setAviso('');
+    setIndo(true);
+    const r = await insert('day_item', {
+      day_iso: iso,
+      name: n,
+      note: '',
+      amount: parseNum(valor.get()),
+      currency: moeda,
+      // entra no FIM da fila, como todo + deste dia
+      day_pos: D.proximaPos(s, iso),
+      done: false,
+    });
+    setIndo(false);
+    if (!r.ok) {
+      setAviso('não consegui guardar. O que você escreveu está aí — tente de novo.');
+      return;
+    }
+    nome.limpar();
+    valor.limpar();
+  };
+
+  return (
+    <>
+      <div className="addrow il4">
+        <input
+          ref={nome.ref as React.RefObject<HTMLInputElement>}
+          type="text"
+          placeholder="escrever um item seu… ex. check-in no Airbnb"
+          aria-label="o que é este item"
+          onKeyDown={(e) => { if (e.key === 'Enter') void por(); }}
+        />
+        <input
+          ref={valor.ref as React.RefObject<HTMLInputElement>}
+          type="text"
+          inputMode="decimal"
+          className="pv"
+          placeholder="quanto custa"
+          aria-label="quanto custa"
+          onKeyDown={(e) => { if (e.key === 'Enter') void por(); }}
+        />
+        {/* regra 5.11 — o EUR vem primeiro, e a moeda nunca se esconde */}
+        <select
+          value={moeda}
+          onChange={(e) => setMoeda(e.currentTarget.value)}
+          aria-label="moeda"
+        >
+          <option value="eur">€</option>
+          <option value="brl">R$</option>
+        </select>
+        <button onClick={() => void por()} disabled={indo}>
+          {indo ? 'guardando…' : '+'}
+        </button>
+      </div>
+      {aviso ? (
+        <div className="n warn" style={{ maxWidth: 'none', marginBottom: 12 }}>{aviso}</div>
+      ) : null}
     </>
   );
 }
