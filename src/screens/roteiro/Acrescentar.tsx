@@ -31,7 +31,7 @@ import { useState } from 'react';
 import {
   CO, FK, FKCLS, TK, TKPL, akEmoji, coOf, fkEmoji, tkEmoji,
 } from '@/content';
-import { Inline, NumField, TextField, useLocal } from '@/components/Field';
+import { Inline, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';

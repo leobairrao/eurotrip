@@ -4,9 +4,9 @@ A etapa 1 do Roteiro está no ar. Ao longo dela apareceram treze coisas que
 não entraram, de propósito. Nenhuma bloqueia nada hoje. Este arquivo existe
 para elas não se perderem.
 
-**Três eram decisão sua** e estão no fim — a primeira já foi resolvida. As outras dez são
-técnicas, e a revisão final do branch triou cada uma: o que vira tarefa e o
-que é para nunca mexer.
+**Três eram decisão sua** e estão no fim — **duas já foram resolvidas** (a aba Custos em
+07/09, a cor da etiqueta em 08/09). As outras dez são técnicas, e a revisão final do
+branch triou cada uma: o que vira tarefa e o que é para nunca mexer.
 
 Nada aqui começou.
 
@@ -195,14 +195,18 @@ nenhum item livre, e eu não crio um só para testar. A aritmética e a guarda
 estão trancadas por teste; o visual da linha se vê no primeiro item que você
 escrever.
 
-### B. A cor da etiqueta do item livre
+### B. A cor da etiqueta do item livre — ✅ **RESOLVIDA em 08/09**
 
-Toda etiqueta `.dtg` de tipo tem um `border-left-color` da sua paleta. A do
-item livre é a única sem — hoje ela cai no cinza padrão, e lê como
-esquecimento em vez de escolha.
+Era a única etiqueta `.dtg` de tipo sem `border-left-color` da sua paleta:
+caía no cinza padrão e lia como esquecimento, não como escolha.
 
-Não existe regra `.dtg.di` em nenhum CSS: a classe está lá e é inerte. O
-conserto é uma linha nova, quando você disser a cor.
+Você escolheu **tinta escura** (`--ink-2`) entre três opções, e o motivo é o
+que a torna certa: nenhuma outra etiqueta usa essa cor, e o item livre não é
+uma categoria minha — é o que **você** escreveu. As outras duas (roxo e
+tijolo) colidiam com o metrô e com o avião.
+
+Ficou um teste que exige `border-left-color` em toda `.dtg` de tipo, para a
+próxima etiqueta nova não repetir o esquecimento.
 
 ### C. Se vale fechar a dívida do esquema de uma vez
 

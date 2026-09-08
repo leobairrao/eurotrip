@@ -8,7 +8,28 @@ Se este arquivo e a [`ESPECIFICACAO.md`](ESPECIFICACAO.md) discordarem, a especi
 manda. Ela é a fonte; isto é o mapa.
 
 ---
-## 0. Onde eu parei — 06/09/2026, madrugada
+## 0. Onde eu parei — 08/09/2026
+
+**A ETAPA 2 DO ROTEIRO ESTÁ NO AR.** Clicar num dia e apertar `editar` abre três cartões,
+não mais quatro: *o dia*, **a ordem do dia** (uma lista só com atração, trecho, comida e
+item livre juntos, com setas ↑↓ e numeração) e *acrescentar* (o formulário do item livre
+mais três gavetas com os seletores). O que ela entregou, por que cada peça é assim, e as
+armadilhas que ela pagou estão em
+[`docs/superpowers/plans/2026-09-08-roteiro-etapa-2.md`](docs/superpowers/plans/2026-09-08-roteiro-etapa-2.md);
+as decisões dele estão na **seção 12** da
+[spec](docs/superpowers/specs/2026-09-06-roteiro-vista-e-edicao-design.md).
+
+**Três coisas dela que se quebram em silêncio, e valem antes de mexer no Roteiro:**
+
+- **A lista que vai para as setas tem que ser a que está na tela.** `ordem.ts` ordena só
+  por `position`; `dia.ts` desempata por posição, tipo e id. Como tudo nasce empatado em
+  zero, quem decide é a ordem de **entrada** — o `sort` do JS é estável, e é só isso que
+  segura. Lista crua move a linha errada, sem erro nenhum. Passe sempre `D.itensDoDia`.
+- **Todo `+` de um dia escreve `day_pos`.** Sem isso o item novo nasce em zero e vai para
+  o **topo** de um dia já arrumado — a lista parece se desarrumar sozinha e nada explica.
+- **Toda grade `.mrow` com `<select>` precisa da área `cu`.** `estilo-atual.css:311` manda
+  *todo* `.mrow select` para lá; sem a área, o seletor cai numa faixa implícita e a linha
+  desmonta calada.
 
 **A lista de oito coisas que ele pediu em 06/09 está toda no ar.** A lista, com o que ele
 disse em cada item e o que foi decidido, está em
@@ -18,13 +39,13 @@ mexer em qualquer uma delas.
 **Da etapa 1 do Roteiro (07/09) saíram dois arquivos que valem ler antes de mexer nela:**
 [`docs/2026-09-07-o-que-ficou-para-depois.md`](docs/2026-09-07-o-que-ficou-para-depois.md)
 — as treze pendências, com o que vira tarefa, o que é para nunca mexer, e as três que são
-decisão sua; e
+decisão sua (**duas já resolvidas**: a aba Custos em 07/09 e a cor da etiqueta em 08/09); e
 [`docs/2026-09-07-decisoes-da-etapa-1.md`](docs/2026-09-07-decisoes-da-etapa-1.md) — as 33
-decisões tomadas durante a execução, com o que custa se cada uma estiver errada. **Uma
-delas precisa acontecer antes da etapa 2:** o `DiaTags` ainda é uma segunda implementação
-do dia, com ordem própria.
+decisões tomadas durante a execução, com o que custa se cada uma estiver errada. A que
+precisava acontecer antes da etapa 2 — o `DiaTags` sendo uma segunda implementação do dia —
+**foi resolvida em 07/09**.
 
-`npm test` **150/150** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+`npm test` **171/171** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro
@@ -319,14 +340,19 @@ src/screens/           uma tela por arquivo, na ordem das abas
   Reservas.tsx   247    Caixa.tsx      457
   Custos.tsx     306
 
-src/screens/roteiro/  o Roteiro se partiu em tres (Tarefas 6 e 7)
-  Editor.tsx     512   os quatro cartoes de hoje, movidos sem mudar
-                       comportamento — o antigo corpo do Roteiro
-  Vista.tsx      106   a visualizacao do dia, so-leitura — nasceu nova
+src/screens/roteiro/  o Roteiro se partiu em QUATRO (etapa 2, 08/09)
+  Editor.tsx       82   so o cartao "o dia" e a montagem dos tres.
+                       Tinha 512 linhas ate a etapa 2 — o resto se mudou
+  Ordem.tsx       191   a lista junta das quatro origens, com setas,
+                       numeros e o x. A UNICA linha com campos e a do
+                       item livre: ele nao tem aba propria
+  Acrescentar.tsx 492   o formulario do item livre e as tres gavetas
+                       (os seletores que eram tres cartoes)
+  Vista.tsx       107   a visualizacao do dia, so-leitura
 
 src/app/
   estilo-atual.css 587  O CSS, sem a tag <style>. NÃO RENOMEIE CLASSE.
-  extras.css      632   o que o artefato não tinha: login, presença, o extrato
+  extras.css      723   o que o artefato não tinha: login, presença, o extrato
                         de aportes, os controles de linha, os avisos, e o bloco
                         de opção da Hospedagem (`.hopc`, no fim do arquivo)
   page.tsx              servidor: sessão → allowlist → carrega tudo
