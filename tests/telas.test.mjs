@@ -544,15 +544,21 @@ test('a Fita continua desenhando o que recebe — inclusive "0"', () => {
 test('todo + do dia escreve day_pos junto com day_iso', () => {
   // Sem isto o item novo nasce em zero e vai para o TOPO de um dia que ele
   // ja arrumou. A lista parece se desarrumar sozinha e nada na tela explica.
+  // Os arquivos JUNTOS, e nao um por um: os tres `+` ja mudaram de endereco
+  // uma vez (Editor -> Acrescentar, na etapa 2) e vao mudar de novo. Exigir
+  // um `+` em CADA arquivo prende o teste ao desenho de hoje, nao a regra —
+  // foi assim que ele quebrou sozinho na tarefa 3.
+  let achados = 0;
   for (const rel of ['src/screens/roteiro/Editor.tsx',
-                     'src/screens/roteiro/Acrescentar.tsx']) {
-    if (!existsSync(join(RAIZ, rel))) continue;   // Acrescentar nasce na tarefa 3
+                     'src/screens/roteiro/Acrescentar.tsx',
+                     'src/screens/roteiro/Ordem.tsx']) {
+    if (!existsSync(join(RAIZ, rel))) continue;
     const src = readFileSync(join(RAIZ, rel), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
-    const chamadas = src.match(/now(?:Many)?\([\s\S]{0,300}?\)\s*[,;)\n]/g) ?? [];
+    const chamadas = src.match(/(?:now(?:Many)?|insert)\([\s\S]{0,320}?\)\s*[,;)\n]/g) ?? [];
     const poeNoDia = chamadas.filter((c) => /day_iso['"]?\s*[:,]\s*iso\b/.test(c));
-    assert.ok(poeNoDia.length > 0, `${rel}: nenhum + poe no dia? o teste ficou cego`);
+    achados += poeNoDia.length;
     for (const c of poeNoDia) {
       assert.match(
         c, /day_pos/,
@@ -561,6 +567,7 @@ test('todo + do dia escreve day_pos junto com day_iso', () => {
       );
     }
   }
+  assert.ok(achados >= 3, `so achei ${achados} lugares que poem no dia; eram 3+. O teste ficou cego.`);
 });
 
 test('a ordem do dia sai do dia.ts, e a tela nao reordena por conta propria', () => {

@@ -473,6 +473,30 @@
   box-shadow: 0 0 0 3px var(--pine-wash), 0 0 0 1.5px var(--pine);
   border-color: var(--pine);
 }
+
+/* ---------------------------------------------------------------
+   AS TRES GAVETAS de "acrescentar a este dia" (08/09/2026).
+
+   A `.liga` era uma chave so, no transporte. Virou tres, e ganhou a
+   contagem do que ha dentro — o numero e o que evita o clique a toa.
+   --------------------------------------------------------------- */
+.gav { padding: 2px 0 16px; }
+.gav > .sechead:first-child { margin-top: 4px; }
+/* o resumo do que este tipo ja soma no dia, dentro da gaveta */
+.gavsum {
+  font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+  padding: 0 0 10px;
+}
+/* a contagem na testa da chave. `.chip .cn` nao alcanca aqui — aquela e
+   escopada em `.chip`, e esta linha nao e um chip. */
+.liga .lbl .cn {
+  margin-left: 8px; padding: 2px 7px;
+  border-radius: var(--raio-3);
+  background: var(--surface-2); color: var(--muted);
+  font-family: var(--mono); font-size: 11px; font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.liga[aria-checked="true"] .lbl .cn { background: var(--pine-wash); color: var(--pine); }
 @media (prefers-reduced-motion: reduce) {
   .liga .sw, .liga .sw::after { transition: none; }
 }
