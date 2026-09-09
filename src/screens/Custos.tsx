@@ -41,13 +41,28 @@ export default function Custos() {
         <h2>Custos</h2>
       </div>
 
-      <div className="bigsum">
+      <div className="bigsum b5">
         <div><b>{brl(tb)}</b><span>total real até agora</span></div>
         <div><b>{eur(somaEur)}</b><span>em euros</span></div>
         <div><b>{brl(C.pagoBrl(s, CIDADES))}</b><span>total já pago</span></div>
         {/* O artefato pinta brl(tb - VOO) na primeira vez e o refreshSums conserta
             depois. A secao 11.7 manda totalReal - jaPago, e e isso que fica. */}
         <div><b>{brl(C.aindaPorGastar(s, CIDADES))}</b><span>ainda por gastar</span></div>
+        {/* O NUMERO DO FIM DA VIAGEM (09/09). Pedido dele: "no final da
+            viagem quero saber qual foi o total de todas as coisas".
+
+            NAO E o "total real ate agora" ao lado: aquele soma o PLANEJADO
+            do que ainda nao aconteceu. Este soma so o que ele CONFERIU,
+            no valor que saiu do bolso — e por isso ele nasce pequeno, cresce
+            a cada check durante a viagem, e no dia 12 de janeiro e a
+            resposta da pergunta dele.
+
+            Comida entra aqui e nao no "total real": decisao dele de 09/09,
+            para nao contar duas vezes com a linha de comida desta tabela. */}
+        <div>
+          <b>{brl(C.gastoTotalBrl(s, CIDADES))}</b>
+          <span>gasto de verdade</span>
+        </div>
       </div>
 
       <div className="tw">

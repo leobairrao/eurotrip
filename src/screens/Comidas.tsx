@@ -12,7 +12,7 @@
 // ============================================================
 import { CO, FK, FKCLS, FKPL, coOf, fkEmoji } from '@/content';
 import { useState } from 'react';
-import { TextField, useLocal } from '@/components/Field';
+import { NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
@@ -157,7 +157,10 @@ function Linha({ it }: { it: Food }) {
   const apagar = useApagarLinha();
 
   return (
-    <div className={`mrow fk-${FKCLS[it.kind]}`}>
+    // `fk4` so em restaurante e cafe: a grade de quatro colunas com o
+    // preco. Prato tipico nao tem valor nem dia (regra 5.8), e continua
+    // na grade de tres.
+    <div className={`mrow fk-${FKCLS[it.kind]}${it.kind === 'prato' ? '' : ' fk4'}`}>
       <TextField
         fk={`food|${it.id}|name`}
         value={it.name}
@@ -180,6 +183,26 @@ function Linha({ it }: { it: Food }) {
           <option key={k} value={k}>{fkEmoji(k)} {FK[k]}</option>
         ))}
       </select>
+      {/* O DINHEIRO QUE COMIDA NUNCA TEVE (09/09). Ele pediu "um valor
+          estimado por lugar", e e o que faltava para o "Total estimado" do
+          Painel ter de onde tirar a parte da comida.
+
+          Vazio e vazio, nao zero (regra 10.0): a maioria dos lugares vai
+          ficar sem estimativa, e um "0" em cada linha desenharia borda em
+          todas elas.
+
+          NAO EM `prato`: ele e lista de desejo, nunca tem dia, e um valor
+          ali prometeria uma conta que nao existe. */}
+      {it.kind === 'prato' ? null : (
+        <NumField
+          fk={`food|${it.id}|price_eur`}
+          value={it.price_eur || null}
+          onCommit={(v) => patch('food', it.id, 'price_eur', v ?? 0)}
+          className="pv"
+          placeholder="€ 0"
+          aria-label="quanto deve custar, em euros"
+        />
+      )}
       {/* o x grava o seed_id em killed_seed para o item nao ressuscitar (regra 5.14) */}
       <button
         className="xb"

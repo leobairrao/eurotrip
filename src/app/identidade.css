@@ -587,3 +587,44 @@ button:active, .chip:active, .fchip:active, .fita-item:active { transform: scale
   cursor: default;
 }
 .apagarcidade:hover:not(:disabled) { color: var(--ink); }
+
+/* ------------------------------------------------------------
+   A ETIQUETA QUE SE CLICA — `.dtag.tgl`  (09/09/2026)
+
+   Nasceu para "compro antes / compro no dia" em Transporte e Atracoes. E
+   etiqueta e nao caixinha porque as duas abas JA TEM uma caixinha na linha
+   ("comprado", "ja paguei"), e duas caixinhas lado a lado seriam
+   indistinguiveis — a regua dele de 08/09 e "nao precisa ter tantos campos".
+
+   Herda tudo de `.dtag`: a fonte mono, o tamanho, o fundo pine no estado
+   ligado e a borda vazada no `.off`. Aqui so entra o que faz dela botao.
+   ------------------------------------------------------------ */
+.dtag.tgl {
+  border: 0;
+  cursor: pointer;
+  /* 24px E O MINIMO DE TOQUE deste projeto, e vale em TODA largura — nao
+     so no celular. A primeira versao desta regra vivia dentro do
+     `@media (max-width:700px)` e deixava a etiqueta com 19px num tablet
+     de 768px, que e dedo tambem. Medido num iframe, e foi assim que
+     apareceu. Ela e 5px mais alta que as etiquetas vizinhas, e isso esta
+     certo: as outras sao texto, esta e botao. */
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+}
+.dtag.tgl.off { border: 1px solid var(--hairline-2); }
+.dtag.tgl:hover { filter: brightness(1.12); }
+.dtag.tgl.off:hover { border-color: var(--ink-2); color: var(--ink); }
+
+/* O PRAZO, que so existe com a etiqueta ligada. Estreito de proposito: e
+   um numero de dois digitos, e um campo largo aqui empurraria a nota da
+   linha para baixo no celular. */
+.aheadd {
+  width: 74px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+  .dtag.tgl { padding: 4px 8px; }
+}

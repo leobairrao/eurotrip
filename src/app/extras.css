@@ -748,3 +748,39 @@
 /* "N de M feitas" na lista de blocos, embaixo da nota do dia (tarefa 9) */
 .dfeitas { font-family: var(--mono); font-size: 10.5px; color: var(--muted);
   letter-spacing: .08em; margin-top: 4px; }
+
+/* ============================================================
+   COMIDA COM DINHEIRO — a grade `fk4`  (09/09/2026)
+
+   A tabela `food` nao tinha campo de valor nenhum, e por isso uma comida
+   nao somava em lugar algum do app. Com o `price_eur` (SQL 11), a linha de
+   `restaurante` e `cafe` ganha uma coluna de preco; `prato` NAO ganha —
+   ele e lista de desejo, nao tem dia (regra 5.8) e nao entra em conta.
+
+   Aqui e nao no estilo-atual.css, como a `at6` de 05/09: aquele arquivo
+   continua byte a byte igual a referencia.
+
+   AS AREAS TEM QUE EXISTIR DOS DOIS LADOS. `.mrow .pv` manda o campo de
+   preco para a area `pr`; sem `pr` na grade ele cai numa faixa implicita e
+   a linha desmonta calada, sem erro nenhum. Foi assim que a area `cu`
+   mordeu na etapa 2 do Roteiro.
+   ============================================================ */
+.mrow.fk4 {
+  /* 134px no tipo e nao os 118px da grade de tres: com 118 o seletor
+     cortava "restaurante" no meio ("restauranı..."), porque o emoji e a
+     seta do <select> comem uns 34px. O preco cabe em 74px — "€ 250" e o
+     maior numero plausivel para um jantar. */
+  grid-template-columns: 1fr 134px 74px 34px;
+  grid-template-areas: "nm st pr x" "wh wh wh wh";
+}
+
+@media (max-width: 700px) {
+  /* O preco desce para a segunda faixa, ao lado do tipo, e fica LARGO:
+     com `"st st pr"` ele herdaria os 32px da coluna do x e nao caberia
+     "€ 25". Com `"st pr pr"` o tipo fica no 1fr e o preco nos 118+34. */
+  .mrow.fk4 {
+    grid-template-columns: 1fr 118px 34px;
+    grid-template-areas: "nm nm x" "st pr pr" "wh wh wh";
+  }
+  .mrow.fk4 .pv { max-width: none; }
+}

@@ -25,6 +25,9 @@ export default function Painel() {
   const comEndereco = C.stayCount(s, CIDADES);
   const bookPago = C.bookingBrl(s, 'pago');
   const trPago = C.legSum(s, 'pago');
+  const est = C.estimadoSides(s);
+  const meta = C.cxMetaBrl(s);
+  const trAntes = C.legAhead(s);
 
   return (
     <>
@@ -59,39 +62,45 @@ export default function Painel() {
         </div>
       </div>
 
-      {/* ---- os cinco numeros de dinheiro, nesta ordem (foi pedida) ---- */}
-      <div className="bigsum b5">
+      {/* ---- os TRES numeros de dinheiro (09/09) ----
+          Eram cinco, um por categoria. Ele os trocou na lista de 08/09, e
+          definiu os dois primeiros com as proprias palavras em 09/09:
+
+            "Total pago: o que eu ja paguei (a maioria das coisas com
+             antecedencia: hospedagem, aviao, documentos, seguros, voos NA
+             europa, trens entre paises da europa, atracoes que sao com
+             antecedencia)"
+
+            "O total estimado e para eu me preparar para o quanto vou ter
+             que levar em dinheiro para viver la esse periodo"
+
+          O ESTIMADO NAO E "O RESTO DO CUSTO": e dinheiro na mao. Por isso o
+          rodape dele mostra o lado em EURO — e isso que ele vai carregar.
+
+          O "total real ate agora" e o "ainda por gastar" sairam daqui e
+          NAO se perderam: os dois vivem na aba Custos, que e a aba de
+          dinheiro. Ver `estimadoSides` em calc.ts para as tres perguntas
+          que estes numeros respondem, e por que somar os tres da errado. */}
+      <div className="bigsum">
         <div>
           <b>{brl(C.pagoBrl(s, CIDADES))}</b>
-          <span>total já pago</span>
+          <span>total pago</span>
           <i>{bookPago ? `o voo + ${brl(bookPago)} de burocracia` : 'o voo internacional'}</i>
         </div>
         <div>
-          <b>{eur(hosp)}</b>
-          <span>hospedagem</span>
-          <i>{comEndereco} de {STAYS.length} bases lançadas</i>
+          <b>{brl(C.estimadoBrl(s))}</b>
+          <span>total estimado</span>
+          <i>
+            {est.eur ? eur(est.eur) : ''}
+            {est.eur && est.brl ? ' + ' : ''}
+            {est.brl ? brl(est.brl) : ''}
+            {!est.eur && !est.brl ? 'nada lançado ainda' : ' para levar'}
+          </i>
         </div>
         <div>
-          <b>{eur(C.attrEurAll(s, 'roteiro'))}</b>
-          <span>atrações</span>
-          <i>{C.attrCount(s, 'roteiro')} no roteiro</i>
-        </div>
-        <div>
-          {/* O NUMERO GRANDE E O TRANSPORTE INTEIRO (06/09). Antes era so a
-              parte em euro, e o que estava em real ia para o rodape pequeno
-              como "mais R$ X" — nada se perdia no total da viagem, mas o
-              numero embaixo do rotulo "transportes" nao era o transporte. */}
-          <b>
-            {legEur ? eur(legEur) : ''}{legEur && legBrlLado ? ' + ' : ''}
-            {legBrlLado ? brl(legBrlLado) : ''}{!legEur && !legBrlLado ? eur(0) : ''}
-          </b>
-          <span>transportes</span>
-          <i>{C.legDone(s)} de {s.legs.length} comprados</i>
-        </div>
-        <div>
-          <b>{brl(C.totalBrl(s, CIDADES))}</b>
-          <span>total real até agora</span>
-          <i>câmbio R$ {num(s.settings.eur_rate).toLocaleString('pt-BR')}</i>
+          <b>{brl(C.cxTotalBrl(s))}</b>
+          <span>valor acumulado</span>
+          <i>{meta > 0 ? `de ${brl(meta)} de meta` : 'sem meta na aba Caixa'}</i>
         </div>
       </div>
 
@@ -106,13 +115,11 @@ export default function Painel() {
           (hospedagem), esta marcada como comprada (transporte). Um conceito,
           nao tres.
 
-          A LINHA DO TRANSPORTE AINDA NAO E O QUE ELE PEDIU. Ele quer "so os
-          que compro antes — voos interpaises e trens intercidades", e o
-          `kind` nao sabe responder isso: dos 12 trechos que eu pesquisei,
-          tres sao TER regional (kind 'trem') que se compra no dia, e o
-          Luxemburgo -> Metz e onibus intercidades. Falta a coluna de
-          INTENCAO, que e o item mais pesado da lista dele. Por enquanto a
-          linha conta TODOS os trechos, e o rotulo nao promete outra coisa. */}
+          A LINHA DO TRANSPORTE conta so os que ele COMPRA ANTES, desde o
+          SQL 11 (09/09) — "voos interpaises e trens intercidades". O metro
+          do dia a dia nao entra em nenhum dos dois numeros, porque ele
+          nunca vai estar pendente. `legAhead` le `buy_ahead`, e ler
+          `bought` no lugar daria dois numeros plausiveis e errados. */}
       <div className="bigsum">
         <div>
           <b>{comEndereco} de {STAYS.length}</b>
@@ -120,8 +127,8 @@ export default function Painel() {
           <i>{eur(hosp)} nas fechadas</i>
         </div>
         <div>
-          <b>{C.legDone(s)} de {s.legs.length}</b>
-          <span>transportes comprados</span>
+          <b>{trAntes.pegos} de {trAntes.total}</b>
+          <span>transportes que compro antes</span>
           <i>
             {trPago.eur ? eur(trPago.eur) : ''}
             {trPago.eur && trPago.brl ? ' + ' : ''}

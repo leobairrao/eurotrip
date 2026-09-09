@@ -421,6 +421,36 @@ function Linha({ it }: { it: Attraction }) {
         {it.day_iso ? (
           <span className="dtag">{`${akEmoji(it.kind)} ${shortDt(it.day_iso)}`}</span>
         ) : null}
+        {/* "Comprar com antecedencia", e o TEMPO QUE PRECISA (09/09).
+            Pedido dele: "Atracoes que tiverem a tag 'Comprar com
+            antecedencia', e o tempo que precisa".
+
+            Etiqueta e nao caixinha: a linha ja tem a de "ja paguei", e duas
+            caixinhas lado a lado seriam indistinguiveis.
+
+            O campo de dias SO EXISTE COM A TAG LIGADA. Desligado ele nao
+            ocupa lugar nenhum — e o que impede a linha de crescer para as
+            atracoes que se paga na porta, que sao a maioria. */}
+        <button
+          type="button"
+          className={`dtag tgl${it.buy_ahead ? '' : ' off'}`}
+          onClick={() => now('attraction', it.id, 'buy_ahead', !it.buy_ahead)}
+          title={it.buy_ahead
+            ? 'precisa comprar com antecedência — clique para mudar'
+            : 'compra na hora, na porta — clique para mudar'}
+        >
+          {it.buy_ahead ? 'comprar antes' : 'compro na hora'}
+        </button>
+        {it.buy_ahead ? (
+          <NumField
+            fk={`attraction|${it.id}|ahead_days`}
+            value={it.ahead_days}
+            onCommit={(v) => patch('attraction', it.id, 'ahead_days', v)}
+            className="aheadd"
+            placeholder="dias antes"
+            aria-label="quantos dias antes"
+          />
+        ) : null}
         {/* NAO pode haver poda no que ENTRA: `stripTags` APAGA o trecho
             entre "<" e ">", e o texto sumia do BANCO. Quem escapa e a
             SAIDA — `marcado()` em fmt.ts. Ver tests/avisos.test.mjs. */}

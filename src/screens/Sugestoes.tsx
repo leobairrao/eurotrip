@@ -313,6 +313,10 @@ function SegTransporte() {
             puxar={() => void puxar('leg', {
               position: proxima(), name: t.n, note: deHtml(t.w), kind: t.k,
               amount: null, currency: 'eur', bought: false, day_iso: null,
+              // A sugestao de "compro antes" vem junto (09/09): nove dos
+              // doze. Assim ele nao precisa reclassificar na mao o que a
+              // pesquisa ja sabe — e muda com um clique na etiqueta.
+              buy_ahead: !!t.ba,
             }, sid)}
           />
         );

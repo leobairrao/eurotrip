@@ -8,7 +8,7 @@ import {
 } from '@/content';
 import { brl, eur, norm, num, saveMonths } from './fmt';
 import { AK_PADRAO } from './types';
-import type { Attraction, Aviso, Contribution, Snapshot, Status, Who } from './types';
+import type { Attraction, Aviso, Contribution, DayItem, Food, Leg, Snapshot, Status, Who } from './types';
 
 // ---------------- 11.2 blocos, noites e dias ----------------
 export interface Block { base: string; from: string; to: string; n: number }
@@ -152,6 +152,27 @@ export const cidadeDele = (s: Snapshot, k: string) => s.cities.find((c) => c.k =
 // `status` NAO mudou de forma no banco: mesma coluna, mesmo check, mesmos
 // tres valores. Mudou quem le e quem escreve.
 
+// ============================================================
+// O VALOR DE UMA LINHA — o real quando existe, o planejado quando nao.
+//
+// A regra que entrou em 09/09 com o "gasto real", e a que faz nenhum numero
+// de hoje mudar: as colunas novas nascem `null`, e `null ?? planejado` da o
+// planejado. O app continua contando igual ate ele conferir o primeiro.
+//
+// `??` E NAO `||`, e a diferenca aparece uma vez so — quando o valor real e
+// ZERO. O passeio que ele achava que custava EUR 20 e no fim era de graca
+// vale 0, e nao 20. Com `||` o zero cairia no planejado e a correcao dele
+// seria ignorada em silencio.
+//
+// O nome de cada campo real segue o planejado que ele corrige: `price_eur`
+// -> `spent_eur` (atracao, comida), `amount` -> `spent` (trecho, item do
+// dia). Nenhuma tabela com dois nomes para a mesma ideia.
+// ============================================================
+export const atrValor = (a: Attraction) => num(a.spent_eur ?? a.price_eur);
+export const comidaValor = (f: Food) => num(f.spent_eur ?? f.price_eur);
+export const legValor = (l: Leg) => num(l.spent ?? l.amount);
+export const diValor = (i: DayItem) => num(i.spent ?? i.amount);
+
 /** Esta num dia do roteiro. A unica coisa que move dinheiro agora. */
 export const noRoteiro = (a: Attraction) => !!a.day_iso;
 /** Da camada de pesquisa: nunca foi dele (regra 5.13). */
@@ -228,13 +249,13 @@ export function attrsSorted(s: Snapshot, city: string) {
 
 /** Soma de price_eur. O custo real usa 'roteiro'. */
 export function attrEur(s: Snapshot, city: string, f?: AttrFiltro): number {
-  return attrsOf(s, city).reduce((a, x) => (passa(x, f) ? a + num(x.price_eur) : a), 0);
+  return attrsOf(s, city).reduce((a, x) => (passa(x, f) ? a + atrValor(x) : a), 0);
 }
 export function attrEurCountry(s: Snapshot, k: string, f?: AttrFiltro): number {
   return cidadesDe(s, k).reduce((a, c) => a + attrEur(s, c, f), 0);
 }
 export function attrEurAll(s: Snapshot, f?: AttrFiltro): number {
-  return s.attractions.reduce((a, x) => (passa(x, f) ? a + num(x.price_eur) : a), 0);
+  return s.attractions.reduce((a, x) => (passa(x, f) ? a + atrValor(x) : a), 0);
 }
 export function attrCount(s: Snapshot, f?: AttrFiltro): number {
   return s.attractions.filter((x) => passa(x, f)).length;
@@ -285,7 +306,7 @@ export function attrsOfDay(s: Snapshot, iso: string) {
     .sort((a, b) => STORD[a.status] - STORD[b.status]);
 }
 export const dayAttrTotal = (s: Snapshot, iso: string) =>
-  attrsOfDay(s, iso).reduce((a, x) => a + num(x.price_eur), 0);
+  attrsOfDay(s, iso).reduce((a, x) => a + atrValor(x), 0);
 export const attrPlaced = (s: Snapshot) => s.attractions.filter((a) => a.day_iso).length;
 
 /**
@@ -442,7 +463,7 @@ export function legSum(s: Snapshot, mode: Mode = ''): Sides {
   for (const t of s.legs) {
     if (mode === 'pago' && !t.bought) continue;
     if (mode === 'falta' && t.bought) continue;
-    if (t.currency === 'brl') b += num(t.amount); else e += num(t.amount);
+    if (t.currency === 'brl') b += legValor(t); else e += legValor(t);
   }
   return { eur: e, brl: b };
 }
@@ -522,9 +543,9 @@ export const extraBrl = (s: Snapshot) =>
  * A moeda padrao e EURO, como em transporte (regra 5.11).
  */
 export const dayItemEur = (s: Snapshot) =>
-  s.dayItems.reduce((a, x) => (x.currency !== 'brl' ? a + num(x.amount) : a), 0);
+  s.dayItems.reduce((a, x) => (x.currency !== 'brl' ? a + diValor(x) : a), 0);
 export const dayItemBrl = (s: Snapshot) =>
-  s.dayItems.reduce((a, x) => (x.currency === 'brl' ? a + num(x.amount) : a), 0);
+  s.dayItems.reduce((a, x) => (x.currency === 'brl' ? a + diValor(x) : a), 0);
 /**
  * Os dois lados juntos, em real — o molde do `legBrl` (11.6).
  *
@@ -542,7 +563,7 @@ export const rate = (s: Snapshot) => num(s.settings.eur_rate);
 
 /** So o que esta no roteiro E com a caixinha marcada (Fase 5, 05/09). */
 export const attrEurPago = (s: Snapshot) =>
-  s.attractions.reduce((a, x) => (noRoteiro(x) && x.paid ? a + num(x.price_eur) : a), 0);
+  s.attractions.reduce((a, x) => (noRoteiro(x) && x.paid ? a + atrValor(x) : a), 0);
 
 /**
  * Ja saiu do bolso: o voo, a burocracia marcada, o trecho comprado — e,
@@ -583,6 +604,119 @@ export function totalBrl(s: Snapshot, cities: string[]): number {
     x.brl +
     bookingBrl(s, '')
   );
+}
+
+// ============================================================
+// 11.7b — OS TRES NUMEROS QUE NAO SAO O MESMO  (09/09/2026)
+//
+// Ele definiu os dois primeiros com as proprias palavras, e vale ler antes
+// de mexer em qualquer formula daqui:
+//
+//   TOTAL PAGO      "o que eu ja paguei (a maioria das coisas com
+//                    antecedencia: hospedagem, aviao, documentos, seguros,
+//                    voos NA europa, trens entre paises da europa, atracoes
+//                    que sao com antecedencia)"   -> `pagoBrl`, que ja existia
+//
+//   TOTAL ESTIMADO  "e para eu me preparar para o quanto vou ter que levar
+//                    em dinheiro para viver la esse periodo"  -> `estimadoBrl`
+//
+//   GASTO REAL      "no final da viagem quero saber qual foi o total de
+//                    todas as coisas"             -> `gastoSides`
+//
+// SOMAR OS TRES DA NUMERO ERRADO, e de proposito: comida entra no estimado
+// e no gasto mas nao no custo da viagem (decisao dele), e o acumulado da
+// aba Caixa e dinheiro guardado, nao gasto. Sao tres perguntas.
+// ============================================================
+
+/**
+ * DINHEIRO NA MAO: o que ele desembolsa LA, nos 34 dias.
+ *
+ * Nao e "o resto do custo da viagem" — e o que vai no bolso. Por isso sai
+ * de fora tudo que ele compra antes (`buy_ahead`) e tudo que ja saiu
+ * (`paid` / `bought` / `done`).
+ *
+ * Comida ENTRA, e tem que entrar: e o gasto diario que ele mais precisa
+ * prever. Atracao e comida so contam se estao NUM DIA — a regra de 05/09
+ * do app inteiro. O backlog nao e dinheiro: ele nem decidiu fazer.
+ */
+export function estimadoSides(s: Snapshot): Sides {
+  let e = 0, b = 0;
+  for (const a of s.attractions)
+    if (noRoteiro(a) && !a.buy_ahead && !a.paid) e += atrValor(a);
+  for (const f of s.foods)
+    if (f.day_iso && !f.done) e += comidaValor(f);
+  for (const l of s.legs)
+    if (!l.buy_ahead && !l.bought) { if (l.currency === 'brl') b += legValor(l); else e += legValor(l); }
+  for (const i of s.dayItems)
+    if (!i.done) { if (i.currency === 'brl') b += diValor(i); else e += diValor(i); }
+  return { eur: e, brl: b };
+}
+export const estimadoBrl = (s: Snapshot) => {
+  const x = estimadoSides(s);
+  return x.eur * rate(s) + x.brl;
+};
+
+/**
+ * O QUE SAIU DO BOLSO DE VERDADE — as linhas que ele CONFERIU, no valor
+ * real. "dou um check e ele entra para os gastos".
+ *
+ * O check e a caixinha que ja existia em cada aba: `paid` na atracao,
+ * `bought` no trecho, `done` na comida e no item do dia. Nao nasceu uma
+ * segunda caixinha de dinheiro — a licao de 08/09 e dele e e literal
+ * ("nao entendi porque tem dois campos de dinheiro").
+ *
+ * Sao as QUATRO LINHAS DO DIA e mais nada: hospedagem, burocracia e o voo
+ * entram em `gastoTotalBrl`, que e o numero da viagem inteira. Assim
+ * `gastoSidesDoDia` pode reusar exatamente esta conta.
+ *
+ * A linha conferida SEM valor real vale o planejado (`atrValor` e companhia
+ * resolvem isso): marcar por outro caminho — o eco do tempo real, um F5 no
+ * meio do clique — nao pode fazer a linha valer zero.
+ */
+export function gastoSides(s: Snapshot, iso?: string): Sides {
+  const doDia = (d: string | null) => (iso === undefined ? true : d === iso);
+  let e = 0, b = 0;
+  for (const a of s.attractions)
+    if (noRoteiro(a) && a.paid && doDia(a.day_iso)) e += atrValor(a);
+  for (const f of s.foods)
+    if (f.day_iso && f.done && doDia(f.day_iso)) e += comidaValor(f);
+  for (const l of s.legs)
+    if (l.bought && doDia(l.day_iso)) { if (l.currency === 'brl') b += legValor(l); else e += legValor(l); }
+  for (const i of s.dayItems)
+    if (i.done && doDia(i.day_iso)) { if (i.currency === 'brl') b += diValor(i); else e += diValor(i); }
+  return { eur: e, brl: b };
+}
+/** O gasto real de UM dia — o "planejado 47, gasto 52" do exemplo dele. */
+export const gastoSidesDoDia = (s: Snapshot, iso: string) => gastoSides(s, iso);
+
+/**
+ * O gasto real da VIAGEM INTEIRA, em real: as linhas conferidas mais o que
+ * nunca foi linha de dia nenhum — hospedagem paga, burocracia resolvida e o
+ * voo, que estava pago antes de o app existir.
+ */
+export function gastoTotalBrl(s: Snapshot, cities: string[]): number {
+  const x = gastoSides(s);
+  return (
+    VOO +
+    bookingBrl(s, 'pago') +
+    x.brl +
+    (x.eur + stayPagoEur(s, cities)) * rate(s)
+  );
+}
+
+/**
+ * Os trechos QUE ELE COMPRA ANTES: quantos ja comprou, de quantos.
+ *
+ * `total` conta so `buy_ahead` — a regua e dele: "voos interpaises e trens
+ * intercidades". O metro do dia a dia nao entra em nenhum dos dois numeros,
+ * porque ele nunca vai "estar pendente".
+ *
+ * LER `bought` NO LUGAR DE `buy_ahead` AQUI da dois numeros plausiveis e
+ * errados, e compila limpo. Ha teste com os cinco casos.
+ */
+export function legAhead(s: Snapshot): { pegos: number; total: number } {
+  const antes = s.legs.filter((l) => l.buy_ahead);
+  return { pegos: antes.filter((l) => l.bought).length, total: antes.length };
 }
 
 /** totalReal - jaPago (secao 11.7). */

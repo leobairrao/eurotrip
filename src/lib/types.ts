@@ -68,6 +68,38 @@ export interface Attraction {
   day_pos: number;
   /** "eu fiz". Nao e `paid` nem `bought`, que sao "eu paguei". */
   done: boolean;
+  /**
+   * "VOU COMPRAR ANTES DE VIAJAR" — intencao, nao estado (09/09/2026).
+   *
+   * NAO CONFUNDIR COM `paid`, que mora tres linhas acima e quer dizer "ja
+   * paguei". `buy_ahead` decide de que lado do Painel a linha cai (pago vs
+   * estimado); `paid` diz se ja saiu do bolso. Uma atracao pode ser
+   * `buy_ahead: true, paid: false` em setembro — e e exatamente esse par
+   * que enche a lista do "o que ainda esta aberto".
+   *
+   * Obrigatorio, e nao opcional, pelo motivo escrito no `paid` acima.
+   */
+  buy_ahead: boolean;
+  /**
+   * QUANTO TEMPO ANTES, em dias. Pedido dele: "a tag 'Comprar com
+   * antecedencia', e o tempo que precisa".
+   *
+   * `null` = marcou a tag e ainda nao sabe o prazo. Diferente de 0, que
+   * seria "no dia" — e "no dia" e o que a tag desligada ja diz.
+   */
+  ahead_days: number | null;
+  /**
+   * O QUE SAIU DO BOLSO, quando for diferente do planejado (09/09/2026).
+   *
+   * `price_eur` e o planejado; este e o real. Pedido dele: "estava
+   * planejado gastar 22E em um passeio... mas a alimentacao foi 30E (devo
+   * colocar o novo valor)".
+   *
+   * `null` = AINDA NAO ACONTECEU, e nao zero. Com zero, as 34 linhas nao
+   * gastas somariam igual e o total do fim da viagem nasceria completo.
+   * Quem le o valor de uma linha le `spent_eur ?? price_eur`.
+   */
+  spent_eur: number | null;
 }
 
 /**
@@ -107,6 +139,27 @@ export interface Food {
   country: string;
   name: string;
   note: string;
+  /**
+   * O DINHEIRO QUE COMIDA NUNCA TEVE (09/09/2026).
+   *
+   * Achado desta etapa: `food` nao tinha campo de valor nenhum, entao uma
+   * comida nao somava em lugar algum do app — e o "Total estimado" que ele
+   * pediu ("o que vou gastar la: passeios que nao comprar antes, comidas,
+   * transportes") nao tinha de onde tirar a parte da comida.
+   *
+   * MESMO NOME que o de `attraction`, de proposito: e a mesma coisa.
+   *
+   * E ESTIMATIVA POR LUGAR, escolha dele. So aparece na tela em
+   * `restaurante` e `cafe`: `prato` e lista de desejo, nao tem dia (regra
+   * 5.8) e nao entra em conta nenhuma.
+   *
+   * NAO SOMA NO `totalBrl` — decisao dele de 09/09. O custo total da
+   * viagem continua vindo da linha de Custos que ele escreve, senao a
+   * mesma comida entraria duas vezes.
+   */
+  price_eur: number;
+  /** O que saiu do bolso. `null` = ainda nao aconteceu. Ver Attraction. */
+  spent_eur: number | null;
   kind: FoodKind;
   day_iso: string | null;
   seed_id: string | null;
@@ -128,6 +181,25 @@ export interface Leg {
   amount: number | null;
   currency: Currency;
   bought: boolean;
+  /**
+   * "VOU COMPRAR ANTES DE VIAJAR" — intencao (09/09/2026).
+   *
+   * A LINHA DE CIMA E `bought`, E A CONFUSAO E DE UMA LETRA. `bought` e
+   * ESTADO ("ja comprei"); `buy_ahead` e INTENCAO ("preciso comprar antes
+   * de ir"). Ler uma no lugar da outra compila limpo e da um numero
+   * plausivel — e o erro mais provavel desta etapa inteira.
+   *
+   * A regua e dele: "transportes que preciso ver antes sao voos
+   * interpaises e trens intercidades, os trens e metros dentro das cidades
+   * nao precisa porque eu compro o ticket no dia".
+   *
+   * `kind` NAO responde isso: tres dos 12 trechos sao TER regional
+   * (kind 'trem', comprados no dia) e o Luxemburgo -> Metz e onibus
+   * intercidades.
+   */
+  buy_ahead: boolean;
+  /** O que saiu do bolso, na moeda da linha. `null` = ainda nao aconteceu. */
+  spent: number | null;
   day_iso: string | null;
   seed_id: string | null;
   /**
@@ -164,6 +236,8 @@ export interface DayItem {
   note: string;
   amount: number | null;
   currency: Currency;
+  /** O que saiu do bolso, na moeda da linha. `null` = ainda nao aconteceu. */
+  spent: number | null;
   /** A ordem DENTRO do dia. Ver o comentario em supabase/10-o-dia-em-ordem.sql. */
   day_pos: number;
   /** "eu fiz" — nao e "eu paguei". */

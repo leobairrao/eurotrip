@@ -1221,3 +1221,183 @@ test('a % conta a cidade que ELE criou no pais dela', () => {
   ];
   assert.equal(C.attrPctPais(s, 'es'), 25);
 });
+
+// ============================================================
+// "COMPRO ANTES" vs "PAGO LA", e o GASTO REAL  (09/09/2026)
+//
+// O item mais pesado da lista de 08/09, e ele decidiu os quatro de uma vez.
+// O desenho inteiro esta em
+// docs/superpowers/specs/2026-09-09-comprar-antes-design.md.
+//
+// TRES NUMEROS QUE NAO SAO O MESMO, e e disto que este arquivo cuida:
+//
+//   pagoBrl      — o que comprei ANTES e ja paguei. A frase dele:
+//                  "hospedagem, aviao, documentos, seguros, voos NA europa,
+//                  trens entre paises, atracoes que sao com antecedencia".
+//   estimadoBrl  — DINHEIRO NA MAO: "o quanto vou ter que levar em dinheiro
+//                  para viver la esse periodo". Comida entra aqui.
+//   gastoBrl     — TUDO que saiu do bolso, no valor real. E a resposta da
+//                  frase dele: "no final da viagem quero saber qual foi o
+//                  total de todas as coisas".
+//
+// Somar os tres para "conferir" da numero errado de proposito: sao tres
+// perguntas diferentes, nao tres parcelas de um bolo.
+// ============================================================
+
+/** Um trecho pronto para a conta. */
+function trecho(extra = {}) {
+  return {
+    id: `t-${Math.random().toString(36).slice(2)}`, position: 0,
+    name: 'trecho', note: '', kind: 'trem', amount: 100, currency: 'eur',
+    bought: false, buy_ahead: false, spent: null,
+    day_iso: null, seed_id: null, day_pos: 0, done: false,
+    ...extra,
+  };
+}
+/** Uma comida pronta para a conta. */
+function comida(extra = {}) {
+  return {
+    id: `f-${Math.random().toString(36).slice(2)}`, country: 'es',
+    name: 'lugar', note: '', kind: 'restaurante',
+    price_eur: 0, spent_eur: null,
+    day_iso: null, seed_id: null, day_pos: 0, done: false,
+    ...extra,
+  };
+}
+
+test('o valor de uma linha e o REAL quando existe, e o planejado quando nao', () => {
+  // A regra do app inteiro depois de 09/09, e a que faz nenhum numero de
+  // hoje mudar: `spent ?? planejado`. O exemplo e dele — o passeio de 22
+  // que custou 22 (um clique), e a alimentacao de 25 que custou 30.
+  assert.equal(C.atrValor(atr('madrid', { price_eur: 22 })), 22);
+  assert.equal(C.atrValor(atr('madrid', { price_eur: 22, spent_eur: 22 })), 22);
+  assert.equal(C.atrValor(atr('madrid', { price_eur: 25, spent_eur: 30 })), 30);
+
+  // ZERO REAL NAO E "SEM VALOR": o passeio que ele achou que custava 20 e
+  // no fim era gratis vale 0, e nao 20. `?? ` respeita o zero; `||` nao —
+  // e e por isso que a funcao usa `??`.
+  assert.equal(C.atrValor(atr('madrid', { price_eur: 20, spent_eur: 0 })), 0);
+
+  assert.equal(C.legValor(trecho({ amount: 100 })), 100);
+  assert.equal(C.legValor(trecho({ amount: 100, spent: 137.5 })), 137.5);
+  assert.equal(C.comidaValor(comida({ price_eur: 25, spent_eur: 30 })), 30);
+});
+
+test('estimado e DINHEIRO NA MAO: o que ele paga la, e nada mais', () => {
+  const s = structuredClone(S);
+  s.attractions = [
+    // no roteiro, pago la -> entra
+    atr('madrid', { day_iso: '2026-12-16', price_eur: 40 }),
+    // no roteiro, mas comprado antes -> NAO entra: nao vai no bolso la
+    atr('madrid', { day_iso: '2026-12-16', price_eur: 60, buy_ahead: true }),
+    // no roteiro e JA PAGO -> NAO entra: ja saiu
+    atr('madrid', { day_iso: '2026-12-17', price_eur: 15, paid: true }),
+    // no backlog -> NAO entra: ele nem decidiu fazer
+    atr('madrid', { price_eur: 900 }),
+  ];
+  s.foods = [
+    comida({ day_iso: '2026-12-16', price_eur: 25 }),   // entra
+    comida({ day_iso: '2026-12-17', price_eur: 30, done: true }), // ja comeu: saiu
+    comida({ price_eur: 50 }),                          // sem dia: nao entra
+  ];
+  s.legs = [
+    trecho({ amount: 8, buy_ahead: false }),            // metro: entra
+    trecho({ amount: 200, buy_ahead: true }),           // voo: NAO entra
+    trecho({ amount: 12, buy_ahead: false, bought: true }), // ja comprou: nao entra
+    trecho({ amount: 33, currency: 'brl' }),            // entra, do lado de R$
+  ];
+  s.dayItems = [];
+
+  const x = C.estimadoSides(s);
+  assert.equal(x.eur, 40 + 25 + 8, 'atracao paga la + comida do dia + metro');
+  assert.equal(x.brl, 33);
+  assert.equal(C.estimadoBrl(s), (40 + 25 + 8) * C.rate(s) + 33);
+});
+
+test('gasto real e SO o que ele conferiu, e comida entra', () => {
+  // "dou um check e ele entra para os gastos". O check e a caixinha que ja
+  // existe: `paid` em atracao, `bought` em trecho, `done` em comida.
+  const s = structuredClone(S);
+  s.attractions = [
+    atr('madrid', { day_iso: '2026-12-16', price_eur: 22, paid: true, spent_eur: 22 }),
+    atr('madrid', { day_iso: '2026-12-16', price_eur: 40 }),  // nao conferido
+  ];
+  s.foods = [
+    comida({ day_iso: '2026-12-16', price_eur: 25, done: true, spent_eur: 30 }),
+    comida({ day_iso: '2026-12-17', price_eur: 25 }),         // nao comeu ainda
+  ];
+  s.legs = [trecho({ amount: 100, bought: true, spent: 137.5 })];
+  s.dayItems = [];
+  s.stayOptions = [];
+  s.bookings = [];
+
+  const x = C.gastoSides(s);
+  assert.equal(x.eur, 22 + 30 + 137.5, 'o passeio, a alimentacao corrigida e o trem');
+  assert.equal(x.brl, 0);
+
+  // O exemplo dele por inteiro: planejado 22 + 25 = 47, gasto 22 + 30 = 52.
+  const doDia = C.gastoSidesDoDia(s, '2026-12-16');
+  assert.equal(doDia.eur, 52, 'o dia 16 gastou 52, e nao os 47 planejados');
+});
+
+test('gasto real: a linha conferida SEM valor real vale o planejado', () => {
+  // A tela preenche o real com o planejado no clique, mas se alguem marcar
+  // por outro caminho (o eco do tempo real, um F5 no meio) a linha nao pode
+  // valer zero: ela vale o que estava planejado.
+  const s = structuredClone(S);
+  s.attractions = [atr('madrid', { day_iso: '2026-12-16', price_eur: 22, paid: true })];
+  s.foods = [];
+  s.legs = [];
+  s.dayItems = [];
+  s.stayOptions = [];
+  s.bookings = [];
+  assert.equal(C.gastoSides(s).eur, 22);
+});
+
+test('trechos que compro antes: o x de y da Tabela 3', () => {
+  const s = structuredClone(S);
+  s.legs = [
+    trecho({ buy_ahead: true, bought: true }),
+    trecho({ buy_ahead: true }),
+    trecho({ buy_ahead: true }),
+    trecho({ buy_ahead: false }),           // metro: nao conta em nenhum lado
+    trecho({ buy_ahead: false, bought: true }),
+  ];
+  assert.deepEqual(C.legAhead(s), { pegos: 1, total: 3 });
+
+  // A CONFUSAO DE UMA LETRA: `bought` no lugar de `buy_ahead` daria
+  // { pegos: 2, total: 5 } — dois numeros plausiveis, e errados.
+  assert.notDeepEqual(C.legAhead(s), { pegos: 2, total: 5 });
+});
+
+test('comida NAO entra no custo total da viagem, e e decisao dele', () => {
+  // Ele ja lanca "comida em Madrid" como linha na aba Custos. Somar a
+  // comida com valor aqui contaria o mesmo dinheiro duas vezes, e ele
+  // escolheu a opcao 2: o custo total continua vindo da linha de Custos.
+  const s = structuredClone(S);
+  const antes = C.totalBrl(s, CIDADES_STAY);
+  s.foods = [
+    comida({ day_iso: '2026-12-16', price_eur: 25 }),
+    comida({ day_iso: '2026-12-17', price_eur: 30, done: true, spent_eur: 40 }),
+  ];
+  assert.equal(C.totalBrl(s, CIDADES_STAY), antes, 'comida nao mexe no total da viagem');
+
+  // Mas ela mexe nos dois numeros onde ELE quer que mexa.
+  assert.ok(C.estimadoBrl(s) > 0, 'comida entra no dinheiro que ele leva');
+  assert.equal(C.gastoSides(s).eur, 40, 'e a comida conferida entra no gasto real');
+});
+
+test('o total da viagem passa a ler o valor REAL de atracao e trecho', () => {
+  const s = structuredClone(S);
+  s.attractions = [atr('madrid', { day_iso: '2026-12-16', price_eur: 20 })];
+  s.legs = [trecho({ amount: 100 })];
+  s.dayItems = [];
+  const planejado = C.totalBrl(s, CIDADES_STAY);
+
+  // A atracao custou 30 em vez de 20: o total da viagem sobe 10, nao fica
+  // preso no chute. E o trem que saiu por 90 desce 10.
+  s.attractions[0].spent_eur = 30;
+  s.legs[0].spent = 90;
+  assert.equal(C.totalBrl(s, CIDADES_STAY), planejado + 10 * C.rate(s) - 10 * C.rate(s));
+  assert.equal(C.attrEurAll(s, 'roteiro'), 30);
+});

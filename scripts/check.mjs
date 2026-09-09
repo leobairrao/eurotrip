@@ -135,7 +135,10 @@ console.log('\n  ================ NUMEROS DE ACEITE (secao 12.3) ===============
 // com as mesmas palavras que usaria se algo tivesse quebrado de verdade.
 // Agora esses dois viram RETRATO, e o aceite ficou so com o que nao muda.
 linha(Math.round(jaPago) === 5337, 'total ja pago', 'R$ 5.337', brl(jaPago));
-linha(rate === 6.2, 'cambio', '6,2', String(rate));
+// 6,05 desde 09/09 — ELE mudou na aba Custos (era 6,2). Numero que ele
+// decide vive aqui e se atualiza aqui: um vermelho nesta linha costuma ser
+// ele decidindo algo, nao bug. Ver a secao 12.3 do COMO-MEXER.
+linha(rate === 6.05, 'cambio', '6,05', String(rate));
 console.log(`       retrato de hoje: ${noRoteiro.length} atracoes num dia do roteiro, ${foraDoRoteiro.length} na lista sem dia`);
 
 console.log('\n  ================ O RESTO DO CHECKLIST (secao 15) ================\n');
@@ -218,6 +221,35 @@ for (const a of noRoteiro) {
   porCidadeVis.set(a.city, c);
 }
 const visitadas = [...porCidadeVis.values()].filter((c) => c.feitas >= Math.ceil(c.n / 2)).length;
+// OS TRES NUMEROS DE DINHEIRO DE 09/09, refeitos A MAO de proposito: se
+// estes discordarem de `calc.ts`, uma das duas contas esta errada. As
+// formulas e o porque de cada filtro estao em `estimadoSides`/`gastoSides`.
+//
+// `spent ?? planejado` em toda leitura: a coluna nasce null, e null da o
+// planejado. Enquanto ele nao conferir nada, estes numeros nao mudam.
+const vAtr = (a) => num(a.spent_eur ?? a.price_eur);
+const vLeg = (l) => num(l.spent ?? l.amount);
+const vDi  = (i) => num(i.spent ?? i.amount);
+const vCom = (f) => num(f.spent_eur ?? f.price_eur);
+
+let estE = 0, estB = 0;
+for (const a of attraction) if (a.day_iso && !a.buy_ahead && !a.paid) estE += vAtr(a);
+for (const f of food) if (f.day_iso && !f.done) estE += vCom(f);
+for (const l of leg) if (!l.buy_ahead && !l.bought) { if (l.currency === 'brl') estB += vLeg(l); else estE += vLeg(l); }
+for (const i of dayItem) if (!i.done) { if (i.currency === 'brl') estB += vDi(i); else estE += vDi(i); }
+
+let gasE = 0, gasB = 0;
+for (const a of attraction) if (a.day_iso && a.paid) gasE += vAtr(a);
+for (const f of food) if (f.day_iso && f.done) gasE += vCom(f);
+for (const l of leg) if (l.bought) { if (l.currency === 'brl') gasB += vLeg(l); else gasE += vLeg(l); }
+for (const i of dayItem) if (i.done) { if (i.currency === 'brl') gasB += vDi(i); else gasE += vDi(i); }
+const gastoTotal = VOO + emBrl(bookS('pago')) + gasB + (gasE + stayPago) * rate;
+
+const trAntes = leg.filter((l) => l.buy_ahead);
+console.log(`      total estimado (levar) ......... ${brl(estE * rate + estB)}  ->  ${eur(estE)}${estB ? ' + ' + brl(estB) : ''}`);
+console.log(`      gasto de verdade ............... ${brl(gastoTotal)}`);
+console.log(`      trechos que compro antes ....... ${trAntes.filter((l) => l.bought).length} de ${trAntes.length}`);
+console.log(`      comida com valor ............... ${food.filter((f) => num(f.price_eur) > 0).length} de ${food.length}`);
 console.log(`      cidades visitadas .............. ${visitadas} de ${porCidadeVis.size}`);
 console.log(`      cidades que ele criou .......... ${cidades.length}${cidades.length ? ' (' + cidades.map((c) => c.n).join(', ') + ')' : ''}`);
 console.log(`      trechos comprados .............. ${leg.filter((l) => l.bought).length}/12`);

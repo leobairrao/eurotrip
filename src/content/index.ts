@@ -262,7 +262,15 @@ export const ATR_SUG = Object.fromEntries(
 ) as Record<string, AtracaoSugerida[]>;
 
 /** Um trecho que eu pesquisei. O indice no array e a identidade (`t:<i>`). */
-export interface TrechoSugerido { n: string; w: string; k: string }
+/**
+ * `ba` = "compro antes", a SUGESTAO de 09/09. A regua e dele: "voos
+ * interpaises e trens intercidades" sim; "trens e metros dentro das
+ * cidades" nao — os tres TER regionais ficam `false`.
+ *
+ * E sugestao, e nao dado dele: so vira linha pelo `+`, e um clique na
+ * etiqueta muda. (A regra de 06/09.)
+ */
+export interface TrechoSugerido { n: string; w: string; k: string; ba?: boolean }
 export const TRANSP_SUG = transportesJson as TrechoSugerido[];
 
 /** As seis sub-abas de Sugestoes, na ordem em que ele as usa. */

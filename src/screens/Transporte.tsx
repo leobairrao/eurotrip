@@ -207,6 +207,27 @@ function Linhas() {
             ) : (
               <span className="dtag off">a comprar</span>
             )}
+            {/* A INTENCAO, ao lado do ESTADO (09/09). O par lido junto e a
+                diferenca inteira: "compro antes / a comprar" e o voo que
+                ele precisa resolver; "compro no dia / a comprar" e o metro,
+                que nunca vai estar pendente.
+
+                E ETIQUETA, NAO CAIXINHA, de proposito: uma segunda caixinha
+                ao lado da de "comprado" seria indistinguivel dela, e a
+                regua dele de 08/09 e "nao precisa ter tantos campos".
+
+                A regua de QUANDO marcar e dele: "voos interpaises e trens
+                intercidades" sim; "trens e metros dentro das cidades" nao. */}
+            <button
+              type="button"
+              className={`dtag tgl${it.buy_ahead ? '' : ' off'}`}
+              onClick={() => now('leg', it.id, 'buy_ahead', !it.buy_ahead)}
+              title={it.buy_ahead
+                ? 'preciso comprar antes de viajar — clique para mudar'
+                : 'compro no dia, na cidade — clique para mudar'}
+            >
+              {it.buy_ahead ? 'compro antes' : 'compro no dia'}
+            </button>
             {it.day_iso ? <span className="dtag">{shortDt(it.day_iso)}</span> : null}
             <TextField
               fk={`leg|${it.id}|note`}

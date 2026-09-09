@@ -828,3 +828,87 @@ test('os TRES numeros de Atracoes seguem a bandeira, e nenhum e da viagem toda',
   assert.doesNotMatch(bs[0], /attrEurAll/,
     'attrEurAll aqui volta a mostrar a viagem toda no lugar do pais');
 });
+
+// ============================================================
+// "COMPRO ANTES" NA TELA  (09/09/2026)
+//
+// Tres decisoes de desenho que se desfazem sem dar erro, e cada uma tem uma
+// frase dele por tras. Ver o desenho em
+// docs/superpowers/specs/2026-09-09-comprar-antes-design.md.
+// ============================================================
+
+test('a intencao e ETIQUETA, e nao uma segunda caixinha', () => {
+  // As duas abas JA TEM uma caixinha na linha: "comprado" em Transporte,
+  // "ja paguei" em Atracoes. Uma segunda caixinha ao lado seria
+  // indistinguivel dela — e a regua dele de 08/09 e literal: "nao precisa
+  // ter tantos campos... nao entendi porque tem dois campos de dinheiro".
+  for (const rel of ['src/screens/Transporte.tsx', 'src/screens/Atracoes.tsx']) {
+    const src = readFileSync(join(RAIZ, rel), 'utf8');
+    const m = [...src.matchAll(/type="checkbox"/g)];
+    assert.equal(m.length, 1, `${rel}: tem ${m.length} caixinhas, e e uma so`);
+
+    // e a intencao tem que estar la, como botao de etiqueta
+    assert.match(src, /className=\{`dtag tgl\$\{[^}]*buy_ahead/,
+      `${rel}: a etiqueta de "compro antes" nao esta mais aqui`);
+  }
+});
+
+test('o prazo da atracao SO existe com a tag ligada', () => {
+  // Desligada, o campo nao ocupa lugar nenhum: e o que impede a linha de
+  // crescer para as atracoes que se paga na porta, que sao a maioria.
+  const src = readFileSync(join(RAIZ, 'src/screens/Atracoes.tsx'), 'utf8');
+  assert.ok(src.includes('ahead_days'), 'o campo de prazo desapareceu de Atracoes');
+
+  // A CONDICAO TEM QUE COLAR NO CAMPO. A primeira versao deste guard olhava
+  // "os 260 caracteres antes de `ahead_days`" e era VAZIA: ali dentro cabem
+  // o `className` e o `title` do botao, que tambem leem `it.buy_ahead`.
+  // Trocar a condicao do campo por `{true ? (` passava verde. Descoberto
+  // sabotando, 09/09.
+  assert.match(
+    src,
+    /\{it\.buy_ahead \? \(\s*<NumField\s+fk=\{`attraction\|\$\{it\.id\}\|ahead_days`\}/,
+    'o campo de dias passou a aparecer sempre, com a tag ligada ou nao',
+  );
+});
+
+test('a linha do transporte no Painel conta os que ele COMPRA ANTES', () => {
+  // A confusao de uma letra desta etapa: `legDone`/`s.legs.length` conta
+  // TODOS os trechos e da dois numeros plausiveis — mas o pedido dele e
+  // "so os que compro antes", e o metro do dia a dia nunca fica pendente.
+  const src = readFileSync(join(RAIZ, 'src/screens/Painel.tsx'), 'utf8');
+  assert.match(src, /C\.legAhead\(s\)/, 'o Painel parou de usar legAhead');
+  assert.doesNotMatch(src, /\{C\.legDone\(s\)\} de \{s\.legs\.length\}/,
+    'a linha voltou a contar todos os trechos');
+});
+
+test('prato tipico NAO ganha campo de dinheiro', () => {
+  // Regra 5.8: prato nao tem dia, entao nunca entra em conta nenhuma. Um
+  // campo de valor nele prometeria uma soma que nao existe.
+  const src = readFileSync(join(RAIZ, 'src/screens/Comidas.tsx'), 'utf8');
+  const i = src.indexOf('food|${it.id}|price_eur');
+  assert.ok(i > 0, 'o campo de valor desapareceu de Comidas');
+  const antes = src.slice(Math.max(0, i - 400), i);
+  assert.match(antes, /it\.kind === 'prato' \? null :/,
+    'o campo de valor passou a aparecer tambem no prato tipico');
+
+  // e a grade de quatro colunas tem que acompanhar, senao a linha desmonta
+  assert.match(src, /it\.kind === 'prato' \? '' : ' fk4'/);
+  const css = readFileSync(join(RAIZ, 'src/app/extras.css'), 'utf8');
+  const g = css.match(/\.mrow\.fk4 \{[\s\S]*?\}/);
+  assert.ok(g, 'a grade fk4 nao existe mais');
+  assert.match(g[0], /grid-template-areas:\s*"nm st pr x"/,
+    'a area `pr` saiu da grade: o campo de preco cai numa faixa implicita');
+});
+
+test('as tres tabelas de dinheiro do Painel nao voltam a ser cinco', () => {
+  // A Tabela 2 dele: "Total pago / Total estimado / Valor Acumulado". Eram
+  // cinco numeros por categoria, e o que os substituiu nao e uma
+  // reorganizacao: e outra pergunta ("quanto levo no bolso").
+  const src = readFileSync(join(RAIZ, 'src/screens/Painel.tsx'), 'utf8');
+  assert.doesNotMatch(src, /className="bigsum b5"/,
+    'a linha de cinco numeros por categoria voltou ao Painel');
+  for (const r of ['total pago', 'total estimado', 'valor acumulado'])
+    assert.ok(src.includes(`<span>${r}</span>`), `faltou "${r}" no Painel`);
+  assert.match(src, /C\.estimadoBrl\(s\)/);
+  assert.match(src, /C\.cxTotalBrl\(s\)/);
+});

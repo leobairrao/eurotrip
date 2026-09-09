@@ -129,6 +129,12 @@ export const normAttr = (r: Record<string, unknown>): Attraction => ({
   paid: !!r.paid,
   seed_id: r.seed_id ? String(r.seed_id) : null,
   day_pos: Number(r.day_pos ?? 0), done: !!r.done,
+  // 09/09. `buy_ahead` e INTENCAO e `paid` e ESTADO — ler um no lugar do
+  // outro compila limpo. `spent_eur` passa por `n()`, que preserva o null:
+  // `Number(null)` seria 0, e zero soma no total do fim da viagem.
+  buy_ahead: !!r.buy_ahead,
+  ahead_days: r.ahead_days === null || r.ahead_days === undefined ? null : Number(r.ahead_days),
+  spent_eur: n(r.spent_eur),
 });
 const normCity = (r: Record<string, unknown>): CityRow => ({
   id: String(r.id), k: String(r.k), n: String(r.n), co: String(r.co),
@@ -149,6 +155,9 @@ const normStayOption = (r: Record<string, unknown>): StayOption => ({
 export const normFood = (r: Record<string, unknown>): Food => ({
   id: String(r.id), country: String(r.country), name: String(r.name),
   note: String(r.note ?? ''), kind: r.kind as Food['kind'],
+  // O planejado e zero quando nao ha nada (como em attraction); o REAL e
+  // null, porque "ainda nao aconteceu" nao e "custou zero".
+  price_eur: Number(r.price_eur ?? 0), spent_eur: n(r.spent_eur),
   day_iso: r.day_iso ? String(r.day_iso) : null,
   seed_id: r.seed_id ? String(r.seed_id) : null,
   day_pos: Number(r.day_pos ?? 0), done: !!r.done,
@@ -159,6 +168,9 @@ export const normLeg = (r: Record<string, unknown>): Leg => ({
   note: String(r.note ?? ''), kind: r.kind as Leg['kind'],
   amount: n(r.amount), currency: r.currency as Leg['currency'],
   bought: !!r.bought,
+  // A linha de cima e `bought` (estado); esta e a intencao. Ver types.ts.
+  buy_ahead: !!r.buy_ahead,
+  spent: n(r.spent),
   day_iso: r.day_iso ? String(r.day_iso) : null,
   seed_id: r.seed_id ? String(r.seed_id) : null,
   day_pos: Number(r.day_pos ?? 0), done: !!r.done,
@@ -193,6 +205,7 @@ export const normDayItem = (r: Record<string, unknown>): DayItem => ({
   id: String(r.id), day_iso: String(r.day_iso), name: String(r.name),
   note: String(r.note ?? ''),
   amount: n(r.amount), currency: r.currency as DayItem['currency'],
+  spent: n(r.spent),
   day_pos: Number(r.day_pos ?? 0), done: !!r.done,
 });
 const normStay = (r: Record<string, unknown>): Stay => ({
@@ -246,6 +259,10 @@ export async function carregarDemo(): Promise<Snapshot> {
         paid: !!it.paid,
         seed_id: it.sid ? String(it.sid) : null,
         day_pos: 0, done: false,
+        // O retrato de 04/09 nao conhece nada disto: nasce tudo apagado.
+        // A fixture E o que os testes leem, entao esquecer esta metade
+        // deixa `npm test` verde e o app sem o campo. Ver COMO-MEXER.
+        buy_ahead: !!it.ba, ahead_days: null, spent_eur: null,
       });
 
   for (const [country, itens] of Object.entries<Record<string, unknown>[]>(bruto.foods ?? {}))
@@ -253,6 +270,7 @@ export async function carregarDemo(): Promise<Snapshot> {
       const kind = FKD[String(it.k)] ?? 'prato';
       s.foods.push({
         id: String(it.id), country, name: String(it.n), note: String(it.w ?? ''), kind,
+        price_eur: num(it.pr), spent_eur: null,
         day_iso: kind !== 'prato' && it.day && String(it.day).trim() ? String(it.day) : null,
         seed_id: `f:${country}:${i}`,
         day_pos: 0, done: false,
@@ -264,6 +282,10 @@ export async function carregarDemo(): Promise<Snapshot> {
     kind: (t.k ?? 'trem') as Leg['kind'],
     amount: val(t.v), currency: t.m === 'brl' ? 'brl' : 'eur',
     bought: !!t.ok,
+    // `ba` = "compro antes", e e SUGESTAO minha vindo da pesquisa: aviao e
+    // trem de longa distancia sim, TER regional e onibus urbano nao. Ele
+    // muda com um clique, e nada disto entra na tabela dele sem o `+`.
+    buy_ahead: !!t.ba, spent: null,
     day_iso: t.day && String(t.day).trim() ? String(t.day) : null,
     seed_id: t.sid ? String(t.sid) : null,
     day_pos: 0, done: false,
