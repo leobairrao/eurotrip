@@ -1073,3 +1073,21 @@ test('a pagina reserva a faixa da barra de rolagem', () => {
   assert.match(css, /html \{[^}]*scrollbar-gutter:\s*stable/,
     'a faixa da barra deixou de ser reservada, e a pagina volta a pular');
 });
+
+test('a chave da gaveta tem LUGAR, e nao sobra', () => {
+  // Ele viu o interruptor deslocar ao ser clicado, e nas duas fotos era
+  // sempre a linha recem-clicada. Com `justify-content: space-between` o
+  // interruptor encontra a borda direita e qualquer mudanca de largura do
+  // rotulo o move; com uma coluna de grade da largura dele, nao ha o que
+  // mover. `min-width: 0` no rotulo faz parte do conserto: sem ele um
+  // texto que nao caiba estoura o 1fr e empurra a coluna.
+  const css = readFileSync(join(RAIZ, 'src/app/extras.css'), 'utf8');
+  const r = css.match(/\.liga \{[\s\S]*?\}/);
+  assert.ok(r, 'nao achei a regra .liga');
+  assert.match(r[0], /grid-template-columns:\s*1fr 46px/,
+    'a chave voltou a depender de sobra em vez de ter coluna');
+  assert.doesNotMatch(r[0], /justify-content:\s*space-between/);
+
+  const lbl = css.match(/\.liga \.lbl \{[\s\S]*?\}/);
+  assert.match(lbl[0], /min-width:\s*0/, 'sem min-width:0 o rotulo empurra a coluna');
+});

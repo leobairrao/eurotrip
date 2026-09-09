@@ -487,8 +487,23 @@
    `role="switch"` + `aria-checked` e o par certo aqui: nao e um botao que
    faz algo, e um estado que ele vira.
    --------------------------------------------------------------- */
+/* GRADE COM COLUNA FIXA, e nao flex com `space-between` (09/09/2026).
+   Ele: "o botao desloca quando e clicado, coisa simples, mas esta ruim" —
+   e nas duas fotos era sempre a linha que ele tinha acabado de clicar que
+   saia de alinho, ~12px para a esquerda.
+
+   Nao consegui MEDIR (o navegador caiu no meio da sessao), entao consertei
+   por construcao em vez de por diagnostico: com `space-between` o
+   interruptor ENCONTRA a borda direita, e qualquer coisa que mude a
+   largura do rotulo — texto que quebra, o contador que muda, uma barra que
+   aparece — pode move-lo. Com `grid-template-columns: 1fr 46px` ele tem um
+   LUGAR: a coluna e da largura dele e nao depende do rotulo.
+
+   `min-width: 0` no rotulo importa: sem ele, um texto que nao caiba
+   estoura a faixa de 1fr e empurra a coluna do interruptor — que e
+   exatamente o defeito, por outro caminho. */
 .liga {
-  display: flex; align-items: center; justify-content: space-between;
+  display: grid; grid-template-columns: 1fr 46px; align-items: center;
   gap: var(--e3); width: 100%; min-height: 44px;
   margin: 4px 0 2px; padding: 0;
   background: none; border: 0; cursor: pointer; text-align: left;
@@ -496,6 +511,7 @@
 .liga .lbl {
   font-family: var(--mono); font-size: 10px; letter-spacing: .13em;
   text-transform: uppercase; color: var(--muted);
+  min-width: 0;
 }
 .liga[aria-checked="true"] .lbl { color: var(--ink-2); }
 .liga .sw {
