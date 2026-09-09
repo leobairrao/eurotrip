@@ -803,3 +803,28 @@ test('o apagar da cidade nao e destacado', () => {
   assert.doesNotMatch(regra[0], /--rust|--ochre|text-decoration:\s*underline/,
     'o destaque voltou ao apagar da cidade');
 });
+
+test('os TRES numeros de Atracoes seguem a bandeira, e nenhum e da viagem toda', () => {
+  // Eram quatro, e so o primeiro seguia o pais — os outros tres eram da
+  // viagem inteira, na mesma linha, sem nada dizendo qual era qual.
+  // Perguntado, ele escolheu "os tres seguem o pais". O erro que isto
+  // impede e silencioso: `attrEurAll` no lugar de `attrEurCountry` da um
+  // numero plausivel que simplesmente nao muda quando ele troca de
+  // bandeira, e ninguem repara olhando um pais so.
+  const src = readFileSync(join(RAIZ, 'src/screens/Atracoes.tsx'), 'utf8');
+  const bs = src.match(/<div className="bigsum">[\s\S]*?\n      <\/div>/);
+  assert.ok(bs, 'nao achei o .bigsum de Atracoes');
+
+  const quantos = (bs[0].match(/^        <div>$/gm) ?? []).length;
+  assert.equal(quantos, 3, `a linha tem ${quantos} numeros, e sao tres`);
+
+  // Os tres valores nascem no topo do componente, todos com selCO.
+  const cab = src.slice(0, src.indexOf('return ('));
+  for (const nome of ['real', 'fora', 'pct']) {
+    const m = cab.match(new RegExp(`const ${nome} = C\\.(\\w+)\\(s, selCO`));
+    assert.ok(m, `${nome} tem que sair de uma funcao de calc com selCO`);
+  }
+  assert.match(cab, /const pct = C\.attrPctPais\(s, selCO\)/);
+  assert.doesNotMatch(bs[0], /attrEurAll/,
+    'attrEurAll aqui volta a mostrar a viagem toda no lugar do pais');
+});

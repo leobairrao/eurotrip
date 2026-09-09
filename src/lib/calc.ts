@@ -256,6 +256,28 @@ export function attrCountCountry(s: Snapshot, k: string, f?: AttrFiltro): number
   return cidadesDe(s, k).reduce((a, c) => a + attrCountCity(s, c, f), 0);
 }
 
+/**
+ * A FATIA DO PAIS no custo de atracoes da viagem — o segundo numero do topo
+ * de Atracoes (09/09/2026), em %.
+ *
+ * O denominador e o custo das ATRACOES da viagem, e nao o custo da viagem
+ * inteira: perguntado, ele escolheu *"so o total das atracoes"*. Com o
+ * total da viagem no lugar, o numero responderia outra pergunta ("quanto da
+ * minha viagem e passeio") e seria sempre pequeno perto de voo e
+ * hospedagem. Como esta, as fatias dos sete paises somam 100 — ha teste.
+ *
+ * Numerador e denominador usam os DOIS o filtro 'roteiro': e custo real
+ * contra custo real. O backlog tem numero proprio, o terceiro da linha.
+ *
+ * Devolve 0 quando nada esta num dia, que e o estado de hoje: `0/0` em JS
+ * e `NaN`, e a aba dele mostraria "NaN%".
+ */
+export function attrPctPais(s: Snapshot, k: string): number {
+  const todo = attrEurAll(s, 'roteiro');
+  if (!todo) return 0;
+  return (attrEurCountry(s, k, 'roteiro') / todo) * 100;
+}
+
 /** As atracoes de um dia, ordenadas por situacao. */
 export function attrsOfDay(s: Snapshot, iso: string) {
   return s.attractions

@@ -35,6 +35,17 @@ const FILTROS: [string, string, string][] = [
 // filtraria uma lista que ja nao as tem — "Nada sugerido aqui" nas 11.
 // As classes f-esc / f-bac / f-all sao as do CSS original, de proposito.
 
+/**
+ * A % no rotulo. Arredonda para inteiro, mas nunca deixa uma fatia que
+ * EXISTE virar "0%": com uma atracao de EUR 2 num total de EUR 900, o
+ * arredondamento diria que a Alemanha nao custa nada.
+ */
+function pctLabel(p: number): string {
+  if (!p) return '0%';
+  if (p < 1) return '<1%';
+  return `${Math.round(p)}%`;
+}
+
 export default function Atracoes() {
   const { s } = useApp();
   const { selCO, setSelCO, filt, setFilt } = useUi();
@@ -50,8 +61,12 @@ export default function Atracoes() {
   // `conta['']` conta so a lista DELE: a pesquisa nao esta mais nesta lista.
   const conta: Record<string, number> = { '': nR + nF, roteiro: nR, fora: nF };
 
-  const E = C.attrEurAll(s, 'roteiro');
-  const B = C.attrEurAll(s, 'fora');
+  // Os TRES numeros do topo seguem a bandeira clicada (09/09). Antes so o
+  // primeiro seguia, e os outros tres eram da viagem toda: a linha falava de
+  // duas coisas ao mesmo tempo sem dizer qual era qual.
+  const real = C.attrEurCountry(s, selCO, 'roteiro');
+  const fora = C.attrEurCountry(s, selCO, 'fora');
+  const pct = C.attrPctPais(s, selCO);
 
   return (
     <>
@@ -84,20 +99,23 @@ export default function Atracoes() {
           outros tres sao da viagem toda e nao mudam com o pais. */}
       <div className="bigsum">
         <div>
-          <b>{eur(C.attrEurCountry(s, selCO, 'roteiro'))}</b>
-          <span>{co.n}, no roteiro</span>
+          {/* "em euro grande e em R$ embaixo" — a frase dele. O R$ deixou de
+              ser uma celula propria: era o unico numero da linha que nao
+              respondia a pergunta "quanto custa este pais", e ocupava o
+              mesmo tamanho dos outros. */}
+          <b>{eur(real)}</b>
+          <span>{co.n}, custo real</span>
+          <i>{brl(real * C.rate(s))}</i>
         </div>
         <div>
-          <b>{eur(E)}</b>
-          <span>no roteiro, na viagem</span>
+          {/* A fatia deste pais no custo de ATRACOES da viagem, e nao no
+              custo da viagem inteira — escolha dele. As sete somam 100. */}
+          <b>{pctLabel(pct)}</b>
+          <span>das atrações da viagem</span>
         </div>
         <div>
-          <b>{brl(E * C.rate(s))}</b>
-          <span>em reais</span>
-        </div>
-        <div>
-          <b>{eur(B)}</b>
-          <span>fora do roteiro somaria</span>
+          <b>{eur(fora)}</b>
+          <span>{co.n}, fora do roteiro</span>
         </div>
       </div>
 

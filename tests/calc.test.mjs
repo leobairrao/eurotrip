@@ -1165,3 +1165,59 @@ test('cidades visitadas: FEITO nao e PAGO — comprar o ingresso nao visita a ci
   s.attractions[0].done = true;
   assert.deepEqual(C.cidadesVisitadas(s), { feitas: 1, total: 1 });
 });
+
+// ============================================================
+// Os TRES numeros do topo de Atracoes (09/09/2026), da lista de 08/09.
+//
+// Eram quatro: "Espanha, no roteiro", "no roteiro, na viagem", "em reais",
+// "fora do roteiro somaria". Ele pediu tres: o custo real do pais (EUR
+// grande, R$ embaixo), a % desse custo, e o custo do que ficou de fora.
+//
+// Duas decisoes dele na conversa de 09/09, e as duas mudam a formula:
+//   - a % e sobre o TOTAL DAS ATRACOES da viagem, nao sobre o custo da
+//     viagem inteira ("so o total das atracoes");
+//   - os TRES seguem a bandeira clicada ("os tres seguem o pais"), e nao
+//     so o primeiro como era antes.
+// ============================================================
+
+test('a % de Atracoes e a fatia do pais no custo de atracoes da viagem', () => {
+  const s = structuredClone(S);
+  s.attractions = [
+    atr('madrid', { day_iso: '2026-12-16', price_eur: 30 }),   // es: 30
+    atr('caceres', { day_iso: '2026-12-11', price_eur: 10 }),  // es: 10
+    atr('lisboa', { day_iso: '2026-12-12', price_eur: 60 }),   // pt: 60
+    atr('madrid', { price_eur: 500 }),                          // backlog: nao conta
+  ];
+  // 40 de 100 -> Espanha e 40% das atracoes da viagem.
+  assert.equal(C.attrPctPais(s, 'es'), 40);
+  assert.equal(C.attrPctPais(s, 'pt'), 60);
+  assert.equal(C.attrPctPais(s, 'fr'), 0, 'pais sem atracao no roteiro nao tem fatia');
+
+  // As fatias de todos os paises somam 100 — se nao somarem, o denominador
+  // esta errado (e o erro que passa desapercebido: usar o custo da viagem
+  // toda no lugar do custo das atracoes).
+  const soma = ['es', 'pt', 'fr', 'lu', 'de', 'nl', 'it']
+    .reduce((a, k) => a + C.attrPctPais(s, k), 0);
+  assert.equal(Math.round(soma), 100);
+});
+
+test('a % nao explode quando nada esta no roteiro ainda', () => {
+  // O caso de hoje: 35 atracoes dele, nenhuma num dia. 0/0 em JS e NaN, e
+  // "NaN%" no topo da aba dele. E o que a tela mostraria neste minuto.
+  const s = structuredClone(S);
+  s.attractions = s.attractions.map((a) => ({ ...a, day_iso: null }));
+  assert.equal(C.attrPctPais(s, 'es'), 0);
+  assert.ok(Number.isFinite(C.attrPctPais(s, 'es')), 'a % tem que ser numero, nunca NaN');
+});
+
+test('a % conta a cidade que ELE criou no pais dela', () => {
+  // `cidadesDe` ja resolve isso, e este teste existe para a % nao passar a
+  // usar `CT` cru um dia — Sevilha (criada por ele em 09/09) e espanhola.
+  const s = structuredClone(S);
+  s.cities = [{ id: 'c1', k: 'sevilha', n: 'Sevilha', co: 'es', position: 0 }];
+  s.attractions = [
+    atr('sevilha', { day_iso: '2026-12-16', price_eur: 25 }),
+    atr('lisboa', { day_iso: '2026-12-12', price_eur: 75 }),
+  ];
+  assert.equal(C.attrPctPais(s, 'es'), 25);
+});

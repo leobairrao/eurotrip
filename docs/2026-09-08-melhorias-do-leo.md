@@ -32,6 +32,7 @@ que eu sugeri e ele aprovou (*"comece por onde achar melhor"*):
 | o bloco *"10 blocos · 34 dias com base de 34"* | Aba Roteiro |
 | o **destaque** do "apagar esta cidade" | Aba Atrações |
 | **e uma que ele acrescentou na conversa:** as frases GRANDES de abertura das 11 abas | — |
+| os **três** números do topo de Atrações: custo real do país (€ grande, R$ embaixo), a **%**, e o que ficou de fora | Atrações, Tabela 1 |
 
 **Cidades visitadas, a regra que ele deu na conversa de 09/09** — e ela é a coisa
 mais importante desta seção, porque ele reformulou o pedido:
@@ -206,6 +207,12 @@ Deixar os itens:
   (**em euro grande e em R$ embaixo**);
 - **A % do custo da Espanha** em relação à viagem toda;
 - **Custo das atrações que ele não incluiu** na viagem final.
+
+**FEITO em 09/09**, com duas decisões dele na conversa: a **%** é sobre o **total das
+atrações da viagem** (*"só o total das atrações"*), não sobre o custo da viagem inteira —
+então as fatias dos sete países somam 100; e **os três seguem a bandeira clicada** (*"os
+três seguem o país"*), onde antes só o primeiro seguia. Provado na tela com uma atração
+posta num dia pelo app e depois retirada: €19 / R$ 118 · 100% · €85 fora.
 
 ### Cidade com nome repetido em país diferente
 
