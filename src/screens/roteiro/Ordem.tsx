@@ -55,7 +55,7 @@ export default function Ordem({ iso }: { iso: string }) {
       <div className="b">
         {!lista.length ? (
           <div className="empty">
-            Nada neste dia ainda. Escreva um item ou puxe da sua lista no cartão
+            Nada neste dia ainda. Escreva uma atração ou puxe da sua lista no cartão
             abaixo — a ordem aparece aqui.
           </div>
         ) : (
@@ -179,12 +179,12 @@ export default function Ordem({ iso }: { iso: string }) {
           </div>
         )}
 
-        <p className="mono foot" style={{ margin: '12px 0 0' }}>
-          O <b>×</b> de uma atração, de um trecho ou de um lugar de comer só{' '}
-          <b>tira deste dia</b> — a linha volta para a aba dela, com tudo que você
-          escreveu. O <b>×</b> de um item escrito por você <b>apaga de vez</b>: ele não
-          existe em lugar nenhum além deste dia.
-        </p>
+        {lista.length ? (
+          <p className="mono foot" style={{ margin: '12px 0 0' }}>
+            O <b>×</b> só <b>tira deste dia</b> — a linha volta para a aba dela, com tudo
+            que você escreveu. Para apagar de vez, é na aba da linha.
+          </p>
+        ) : null}
       </div>
     </div>
   );

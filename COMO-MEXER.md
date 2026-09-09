@@ -36,11 +36,16 @@ as decisões dele estão na **seção 12** da
   duas têm o mesmo id, então apagar "uma" apaga a de verdade e deixa um fantasma até o F5 —
   ele acharia que perdeu o trabalho. Valia para **todos os formulários do app**.
 
-**E o dia agora registra atração** (08/09, pedido dele): o cartão *acrescentar* tem duas
-linhas de escrever — uma cria **atração**, com cidade, tema, nota e €, e ela aparece na aba
-Atrações no mesmo instante porque **é a mesma linha do banco**, não uma cópia; a outra
-continua sendo o 📌. O seletor de cidade também **cria cidade**, e a cidade nasce antes da
-atração — senão ela apontaria para o vazio.
+**E o dia agora registra atração** (08/09, pedido dele): o cartão *acrescentar* tem **uma**
+linha de escrever, no molde da aba Atrações — nome, nota, cidade, tema, € — e a atração
+aparece na aba Atrações no mesmo instante porque **é a mesma linha do banco**, não uma
+cópia. O seletor de cidade também **cria cidade**, e ela nasce antes da atração, senão a
+atração apontaria para o vazio.
+
+**O 📌 item livre não tem mais como ser criado** (decisão dele, no fim de 08/09: *"não
+precisa ter tantos campos… não vai ter airbnb aí"*). A tabela `day_item`, a linha da aba
+Custos e o tratamento em `dia.ts` e `Ordem.tsx` continuam de pé e corretos — só não há
+formulário. Se um dia ele quiser de volta, é um `.addrow` novo em `Acrescentar.tsx`.
 
 **A lista de oito coisas que ele pediu em 06/09 está toda no ar.** A lista, com o que ele
 disse em cada item e o que foi decidido, está em
