@@ -944,3 +944,21 @@
   .mrow.pl3 { grid-template-columns: 1fr 74px 32px; }
   .mrow.pl3 .pv { max-width: none; }
 }
+
+/* ------------------------------------------------------------
+   A PAGINA PARA DE PULAR QUANDO O CONTEUDO CRESCE  (09/09/2026)
+
+   Ele: "a aba roteiro, ao editar um dia, esta dando esse bug do botao
+   deslocar quando e clicado, coisa simples, mas esta ruim".
+
+   E o classico da barra de rolagem: abrir uma gaveta faz a pagina crescer,
+   a barra aparece, a largura util diminui ~15px e TUDO desloca para a
+   esquerda — inclusive o botao que esta debaixo do dedo dele, no instante
+   do clique. Nao e do botao: e da janela.
+
+   `scrollbar-gutter: stable` reserva a faixa da barra sempre, entao a
+   largura util nunca muda. Vale para o app inteiro — as tres gavetas do
+   dia foram onde ele viu, mas todo bloco que abre e fecha fazia o mesmo:
+   o rascunho do Painel, os avisos, o formulario de acrescentar cidade.
+   ------------------------------------------------------------ */
+html { scrollbar-gutter: stable; }

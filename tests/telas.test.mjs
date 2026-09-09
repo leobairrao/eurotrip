@@ -1063,3 +1063,13 @@ test('o plano do roteiro NAO alimenta conta nenhuma', () => {
     if (m) assert.doesNotMatch(m[1], /planRows/, `${f} passou a ler o plano dele`);
   }
 });
+
+test('a pagina reserva a faixa da barra de rolagem', () => {
+  // Sem isto, todo bloco que abre e fecha desloca a pagina ~15px: a barra
+  // aparece, a largura util diminui, e o botao pula debaixo do dedo. Ele viu
+  // nas tres gavetas do dia ("o botao desloca quando e clicado"), mas o
+  // rascunho do Painel, os avisos e o acrescentar cidade fazem o mesmo.
+  const css = readFileSync(join(RAIZ, 'src/app/extras.css'), 'utf8');
+  assert.match(css, /html \{[^}]*scrollbar-gutter:\s*stable/,
+    'a faixa da barra deixou de ser reservada, e a pagina volta a pular');
+});
