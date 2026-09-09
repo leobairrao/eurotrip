@@ -1029,23 +1029,37 @@ test('a cama sai da RESERVA, e o plano nunca vira "durmo em"', () => {
   assert.equal(copias, 1, `o regex de transito tem ${copias} copias em calc.ts, e e uma so`);
 });
 
-test('o rascunho do roteiro no Painel e DELE, e nao inventa tabela nova', () => {
-  // Pedido dele de 09/09: "um campo personalizavel a mao para eu deixar por
-  // enquanto para eu me guiar criando o roteiro (ele pode ter ate um botao
-  // de mostrar e esconder)".
-  //
-  // Usa o `Avisos` que ja serve dez lugares do app, com um spot proprio —
-  // sem tabela nova, sem SQL, e ele ja conhece o mecanismo. Uma tabela nova
-  // aqui custaria SQL e um segundo lugar guardando texto livre dele.
+test('o plano do roteiro e TABELA de tres campos, e nao um aviso', () => {
+  // A primeira versao usou o `aviso` (titulo + texto + cor) para nao
+  // precisar de SQL, e ele apontou na hora: "aqui sao 3 campos: cidade,
+  // dias e um campo escrito, da mesma forma que tinhamos antes". Com tres
+  // colunas os dias sao um NUMERO que soma; com um campo de texto so,
+  // "Lisboa 4 dias" e uma frase.
   const src = readFileSync(join(RAIZ, 'src/screens/Painel.tsx'), 'utf8');
-  assert.match(src, /<Avisos spot="painel:roteiro"/, 'o rascunho saiu do Painel');
-  assert.match(src, /setAberto\(!aberto\)/, 'o botao de mostrar e esconder saiu');
+  assert.doesNotMatch(src, /<Avisos spot="painel:roteiro"/,
+    'o plano voltou a ser um aviso, e os campos eram os errados');
+  for (const campo of ['place', 'days', 'note'])
+    assert.ok(src.includes(`plan_row|\${r.id}|${campo}`), `faltou o campo ${campo}`);
+  assert.match(src, /C\.planRows\(s\)/);
 
-  // E ele NAO pode se misturar com a tabela de cima, que e fato: a tabela
-  // mostra o que ele RESERVOU, e o rascunho e o que ele esta pensando.
-  const tab = src.match(/function TabelaRoteiro\(\)[\s\S]*?\n}/);
-  assert.ok(tab, 'nao achei a TabelaRoteiro');
-  assert.doesNotMatch(tab[0], /Avisos|rascunho/,
-    'o rascunho entrou na tabela dos fatos');
-  assert.match(tab[0], /C\.baseList\(s\)/, 'a tabela parou de ler as estadias reservadas');
+  // e a grade tem que ter a area `pr`, senao o campo de dias cai numa
+  // faixa implicita e a linha desmonta calada (a mordida da area `cu`).
+  const css = readFileSync(join(RAIZ, 'src/app/extras.css'), 'utf8');
+  const g = css.match(/\.mrow\.pl3 \{[\s\S]*?\}/);
+  assert.ok(g, 'a grade pl3 nao existe');
+  assert.match(g[0], /grid-template-areas:\s*"nm pr x"/);
+});
+
+test('o plano do roteiro NAO alimenta conta nenhuma', () => {
+  // O ponto inteiro da tarde de 09/09: o app parou de afirmar cama e noite
+  // a partir de plano. Se `planRows` aparecer numa formula de dinheiro ou
+  // de noite, a afirmacao falsa volta por outro caminho.
+  const calc = readFileSync(join(RAIZ, 'src/lib/calc.ts'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const usos = [...calc.matchAll(/\bplanRows\b/g)].length;
+  assert.equal(usos, 2, `planRows aparece ${usos}x em calc.ts (a definicao e o s.planRows), e nao pode entrar em formula`);
+  for (const f of ['nightsAll', 'baseList', 'estadias', 'totalBrl', 'estimadoSides']) {
+    const m = calc.match(new RegExp(`(export (?:function|const) ${f}[\\\\s\\\\S]*?\\n)(?=export |$)`));
+    if (m) assert.doesNotMatch(m[1], /planRows/, `${f} passou a ler o plano dele`);
+  }
 });

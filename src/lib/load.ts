@@ -8,8 +8,7 @@ import { EMPTY_STAY } from './types';
 import { AK_MAX } from './types';
 import type {
   AppUser, Attraction, Aviso, Booking, Contribution, DayItem, Extra, Food, Leg,
-  CityRow, Savings, Settings, Snapshot, Stay, StayOption, Tone, Who,
-} from './types';
+  CityRow, Savings, Settings, Snapshot, Stay, StayOption, Tone, Who, PlanRow,} from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const SEM_SUPABASE =
@@ -37,6 +36,7 @@ const vazio = (): Snapshot => ({
   cities: [],
   extras: [],
   dayItems: [],
+  planRows: [],
   settings: { id: 1, eur_rate: 6, flight_paid_brl: VOO },
   killed: [],
   adopted: [],
@@ -63,7 +63,7 @@ function hojeIso(): string {
 export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<Snapshot> {
   const [
     day, attraction, food, leg, booking, stay, stayOption, city, extra, settings,
-    killed, adopted, savings, contribution, aviso, dayItem,
+    killed, adopted, savings, contribution, aviso, dayItem, planRow,
   ] = await Promise.all([
     db.from('day').select('*').order('iso'),
     // `.order('name')`: sem isto a ordem e a que o Postgres devolveu, e ele
@@ -84,6 +84,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
     db.from('contribution').select('*').order('on_date'),
     db.from('aviso').select('*').order('position'),
     db.from('day_item').select('*').order('day_pos'),
+    db.from('plan_row').select('*').order('position'),
   ]);
 
   const s = vazio();
@@ -113,6 +114,7 @@ export async function carregar(db: SupabaseClient, me: AppUser | null): Promise<
   // erro nao derruba a pagina, a tela so fica sem aviso nenhum.
   s.avisos = (aviso.data ?? []).map(normAviso);
   s.dayItems = (dayItem.data ?? []).map(normDayItem);
+  s.planRows = (planRow.data ?? []).map(normPlanRow);
   return s;
 }
 
@@ -201,6 +203,12 @@ const normAporte = (r: Record<string, unknown>): Contribution => ({
   created_at: r.created_at ? String(r.created_at) : undefined,
 });
 // Exportado pelo mesmo motivo de normAttr: ver tests/load.test.mjs.
+/** O plano de roteiro dele (SQL 12). `days` passa por `n()`: null e "nao sei". */
+export const normPlanRow = (r: Record<string, unknown>): PlanRow => ({
+  id: String(r.id), place: String(r.place ?? ''),
+  days: n(r.days), note: String(r.note ?? ''),
+  position: Number(r.position ?? 0),
+});
 export const normDayItem = (r: Record<string, unknown>): DayItem => ({
   id: String(r.id), day_iso: String(r.day_iso), name: String(r.name),
   note: String(r.note ?? ''),

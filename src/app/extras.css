@@ -933,3 +933,14 @@
   background: var(--pine);
   color: var(--ground);
 }
+
+/* a linha do plano de roteiro dele (SQL 12): cidade | dias | × , e a nota
+   na segunda faixa. Aqui e não no estilo-atual.css, como a `at6`. */
+.mrow.pl3 {
+  grid-template-columns: 1fr 90px 34px;
+  grid-template-areas: "nm pr x" "wh wh wh";
+}
+@media (max-width: 700px) {
+  .mrow.pl3 { grid-template-columns: 1fr 74px 32px; }
+  .mrow.pl3 .pv { max-width: none; }
+}

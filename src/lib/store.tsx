@@ -167,7 +167,7 @@ export function Provider({
       setPendentes(pend.current.size);
 
       // Toda tabela tem updated_at; so as compartilhadas tem updated_by.
-      const COM_AUTOR = ['day','attraction','food','leg','booking','stay','stay_option','city','extra','day_item'];
+      const COM_AUTOR = ['day','attraction','food','leg','booking','stay','stay_option','city','extra','day_item','plan_row'];
       const payload: Record<string, unknown> = {
         ...cols,
         updated_at: new Date().toISOString(),
@@ -340,7 +340,7 @@ export function Provider({
     // todo correto do outro lado. Foi a revisao que pegou.
     const tabelas = ['day','attraction','food','leg','booking','stay','stay_option',
                      'city','extra','settings','killed_seed','adopted','savings',
-                     'contribution','aviso','day_item'];
+                     'contribution','aviso','day_item','plan_row'];
     for (const t of tabelas) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table: t }, (p) => {
         setS((v) => aplicarRemoto(v, t as Tabela, p, pend.current));

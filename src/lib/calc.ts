@@ -148,6 +148,17 @@ export function roteiroEmOrdem(s: Snapshot): TrechoRoteiro[] {
 /** Os ISOS de `de` a `ate`, inclusive nos dois lados. */
 const diasEntre = (de: string, ate: string) => ISOS.filter((i) => i >= de && i <= ate);
 
+/**
+ * O PLANO DE ROTEIRO QUE ELE ESCREVE (SQL 12), na ordem que ele arrumou.
+ *
+ * NAO ENTRA EM CONTA NENHUMA, e nao e por esquecimento: quem manda em
+ * noite, bloco e custo e a hospedagem marcada. Isto e a nota que ele le
+ * enquanto monta a viagem, e foi o pedido dele — "so para eu ter uma
+ * nocao". Se um dia isto alimentar numero, o app volta a afirmar coisa que
+ * ele nao reservou.
+ */
+export const planRows = (s: Snapshot) => s.planRows.slice().sort(porPosicao);
+
 export interface Base { base: string; d: number; nt: number }
 
 /**

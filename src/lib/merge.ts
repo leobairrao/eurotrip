@@ -21,15 +21,16 @@ export const PK: Record<string, string> = {
   contribution: 'id',
   aviso: 'id',
   day_item: 'id',
+  plan_row: 'id',
 };
 
 export type Tabela =
   | 'day' | 'attraction' | 'food' | 'leg' | 'booking' | 'stay' | 'stay_option'
   | 'city' | 'extra' | 'settings' | 'savings' | 'contribution' | 'killed_seed'
-  | 'adopted' | 'aviso' | 'day_item';
+  | 'adopted' | 'aviso' | 'day_item' | 'plan_row';
 
 type Lista = 'attractions' | 'foods' | 'legs' | 'bookings' | 'stayOptions'
-  | 'cities' | 'extras' | 'contributions' | 'avisos' | 'dayItems';
+  | 'cities' | 'extras' | 'contributions' | 'avisos' | 'dayItems' | 'planRows';
 export const LISTA: Record<string, Lista> = {
   attraction: 'attractions',
   food: 'foods',
@@ -46,6 +47,7 @@ export const LISTA: Record<string, Lista> = {
   contribution: 'contributions',
   aviso: 'avisos',
   day_item: 'dayItems',
+  plan_row: 'planRows',
 };
 
 export const chave = (t: string, pk: string, col: string) => `${t}|${pk}|${col}`;

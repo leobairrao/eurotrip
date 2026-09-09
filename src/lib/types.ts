@@ -348,6 +348,35 @@ export interface AppUser {
 }
 
 /** Tudo o que o app tem em memoria. */
+/**
+ * UMA LINHA DO PLANO DE ROTEIRO DELE (09/09/2026, SQL 12).
+ *
+ * Pedido: "aqui sao 3 campos: cidade, dias e um campo escrito, da mesma
+ * forma que tinhamos antes". E a tabela do Painel que ele escreve a mao,
+ * para se guiar enquanto monta a viagem.
+ *
+ * NAO MANDA EM NADA: nao vira noite, nao vira bloco no Roteiro, nao entra
+ * em custo. Quem manda no roteiro e a hospedagem marcada. Se um dia isto
+ * comecar a alimentar conta, o app volta a afirmar coisa que ele nao
+ * reservou — que foi a queixa de 09/09.
+ */
+export interface PlanRow {
+  id: string;
+  /**
+   * TEXTO LIVRE, e nao chave de cidade. As outras tabelas guardam
+   * 'amsterda' em colunas `city`; aqui ele escreve "Metz", "Alsácia" ou
+   * "decidir depois". Por isso `place`: uma coluna `city` convidaria
+   * alguem a cruzar com `CT[...]` e derrubar a tela numa palavra que nao e
+   * cidade — foi assim que uma cidade nova derrubou o app em 05/09.
+   */
+  place: string;
+  /** Quantos dias ele pensa em ficar. `null` = ainda nao sabe (regra 10.0). */
+  days: number | null;
+  /** O campo escrito: era "o que sai daqui de bate-volta". */
+  note: string;
+  position: number;
+}
+
 export interface Snapshot {
   days: Record<string, Day>;
   attractions: Attraction[];
@@ -371,6 +400,8 @@ export interface Snapshot {
    * a tela inteira.
    */
   dayItems: DayItem[];
+  /** O plano de roteiro que ELE escreve, na tabela do Painel (SQL 12). */
+  planRows: PlanRow[];
   settings: Settings;
   killed: string[];
   adopted: string[];

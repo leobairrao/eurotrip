@@ -6,11 +6,13 @@
 // ============================================================
 import { ISOS, STAYS } from '@/content';
 import { useState } from 'react';
-import Avisos from '@/components/Avisos';
-import { Inline } from '@/components/Field';
+import { Inline, IntField, TextField, useLocal } from '@/components/Field';
+import { useApagarLinha } from '@/lib/apagar';
+import { mover } from '@/lib/ordem';
+import type { PlanRow } from '@/lib/types';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
-import { brl, daysTo, eur, marcado, num, plMesAte } from '@/lib/fmt';
+import { brl, daysTo, eur, marcado, num, parseInt10, plMesAte } from '@/lib/fmt';
 
 const CIDADES = STAYS.map((s) => s.c);
 
@@ -156,7 +158,7 @@ export default function Painel() {
         </div>
         <div className="b">
           <TabelaRoteiro />
-          <MeuRascunho />
+          <MeuPlano />
         </div>
       </div>
 
@@ -171,45 +173,137 @@ export default function Painel() {
 }
 
 /**
- * O MEU RASCUNHO DO ROTEIRO — o campo a mao que ele pediu (09/09, tarde).
+ * O MEU PLANO DO ROTEIRO — a tabela que ELE escreve (09/09, tarde).
  *
- * "eu quero que tenha um campo personalizavel a mao para eu deixar por
- * enquanto para eu me guiar criando o roteiro (ele pode ter ate um botao de
- * mostrar e esconder)".
+ * "aqui em painel coloque o roteiro que tinhamos antes (cáceres 1 dia,
+ * lisboa 3 dias...) so para eu ter uma nocao, mas coloque nos meus dados"
+ * e "aqui sao 3 campos: cidade, dias e um campo escrito, da mesma forma que
+ * tinhamos antes".
  *
- * A tabela de cima e FATO (as estadias reservadas) e hoje esta vazia. Isto
- * e o lugar dele escrever o que quiser enquanto monta a viagem — e some com
- * um clique quando incomodar.
+ * A PRIMEIRA VERSAO DISTO USOU O `aviso` (titulo + texto + cor) para nao
+ * precisar de SQL, e ele apontou na hora que os campos eram os errados. Com
+ * tres colunas os dias sao um NUMERO que soma; com um campo de texto so,
+ * "Lisboa 4 dias" e uma frase. Virou tabela propria (SQL 12).
  *
- * SEM SQL: usa o mesmo `Avisos` das outras dez chamadas do app, com um
- * `spot` proprio (`painel:roteiro`). Ele ja conhece esse mecanismo do "+
- * aviso" de Atracoes e Hospedagem: escreve, edita, apaga, e aparece no
- * outro navegador na hora.
+ * NAO MANDA EM NADA: nao vira noite, nao vira bloco no Roteiro, nao entra
+ * em custo nenhum. A tabela de cima e o que ele RESERVOU.
  */
-function MeuRascunho() {
+function MeuPlano() {
   const { s } = useApp();
-  const quantos = C.avisosDe(s, 'painel:roteiro').length;
-  // Nasce ABERTO se ele ja escreveu algo, e fechado se nao: assim o Painel
-  // nao ganha um bloco vazio para quem nunca usar, e nunca esconde o que
-  // ele escreveu.
-  const [aberto, setAberto] = useState(quantos > 0);
+  const linhas = C.planRows(s);
+  const [aberto, setAberto] = useState(true);
+  const dias = linhas.reduce((a, r) => a + num(r.days), 0);
 
   return (
     <div className="rasc">
       <button type="button" className="rascbt" onClick={() => setAberto(!aberto)}>
-        {aberto ? '−' : '+'} o meu rascunho do roteiro
-        {!aberto && quantos ? <span className="rascn">{quantos}</span> : null}
+        {aberto ? '−' : '+'} o meu plano do roteiro
+        {!aberto && linhas.length ? <span className="rascn">{linhas.length}</span> : null}
       </button>
       {aberto ? (
         <>
           <p className="mono foot">
-            Escreva aqui o roteiro do jeito que você está pensando. Isto é só seu, não entra
-            em conta nenhuma, e a tabela acima continua mostrando o que você <b>reservou</b>.
+            Isto é seu, escrito à mão, e não entra em conta nenhuma — a tabela acima mostra o
+            que você <b>reservou</b>. {dias ? <>Somam <b>{dias} dias</b>.</> : null}
           </p>
-          <Avisos spot="painel:roteiro" rotulo="linha do rascunho" />
+          <div className="mt">
+            {linhas.map((r, ix) => <LinhaPlano key={r.id} r={r} ix={ix} lista={linhas} />)}
+          </div>
+          <AcrescentarPlano proxima={linhas.length ? linhas[linhas.length - 1].position + 1 : 0} />
         </>
       ) : null}
     </div>
+  );
+}
+
+function LinhaPlano({ r, ix, lista }: { r: PlanRow; ix: number; lista: PlanRow[] }) {
+  const { patch, now } = useApp();
+  const apagar = useApagarLinha();
+  const irPara = (dir: -1 | 1) => {
+    for (const m of mover(lista, r.id, dir)) now('plan_row', m.id, 'position', m.position);
+  };
+
+  return (
+    <div className="mrow pl3">
+      <TextField
+        fk={`plan_row|${r.id}|place`}
+        value={r.place}
+        onCommit={(v) => patch('plan_row', r.id, 'place', v)}
+        className="nv"
+        placeholder="a cidade"
+        aria-label="cidade"
+      />
+      {/* vazio e vazio, nao zero (regra 10.0): dia que ele ainda nao sabe
+          nao e "0 dias". */}
+      <IntField
+        fk={`plan_row|${r.id}|days`}
+        value={r.days}
+        onCommit={(v) => patch('plan_row', r.id, 'days', v)}
+        className="pv"
+        placeholder="dias"
+        aria-label="quantos dias"
+      />
+      <button
+        className="xb"
+        title="tirar esta linha"
+        aria-label="tirar"
+        onClick={() => void apagar('plan_row', r.id, null)}
+      >
+        ×
+      </button>
+      <div className="wh nt">
+        <span className="ordb">
+          <button type="button" onClick={() => irPara(-1)} disabled={ix === 0}
+            title="subir um lugar" aria-label="subir um lugar">↑</button>
+          <button type="button" onClick={() => irPara(1)} disabled={ix === lista.length - 1}
+            title="descer um lugar" aria-label="descer um lugar">↓</button>
+        </span>
+        <TextField
+          fk={`plan_row|${r.id}|note`}
+          value={r.note}
+          onCommit={(v) => patch('plan_row', r.id, 'note', v)}
+          className="wv"
+          placeholder="o que sai daqui de bate-volta"
+          aria-label="anotação"
+        />
+      </div>
+    </div>
+  );
+}
+
+function AcrescentarPlano({ proxima }: { proxima: number }) {
+  const { insert } = useApp();
+  const lugar = useLocal();
+  const dias = useLocal();
+  const nota = useLocal();
+  const [erro, setErro] = useState('');
+
+  const guardar = async () => {
+    const p = lugar.get();
+    if (!p) { setErro('escreva a cidade'); lugar.ref.current?.focus(); return; }
+    setErro('');
+    // As colunas vao TODAS explicitas: campo esquecido aqui nasce com o
+    // default do banco sem ninguem avisar.
+    const r = await insert('plan_row', {
+      place: p, days: parseInt10(dias.get()), note: nota.get(), position: proxima,
+    });
+    if (!r.ok) { setErro('não consegui salvar. Nada do que você escreveu se perdeu.'); return; }
+    for (const c of [lugar, dias, nota]) c.limpar();
+  };
+
+  return (
+    <>
+      <div className="addrow three">
+        <input ref={(el) => { lugar.ref.current = el; }} type="text"
+          placeholder="a cidade" aria-label="cidade" />
+        <input ref={(el) => { dias.ref.current = el; }} type="text" inputMode="numeric"
+          className="pv" placeholder="dias" aria-label="quantos dias" />
+        <input ref={(el) => { nota.ref.current = el; }} type="text"
+          placeholder="o que sai daqui de bate-volta" aria-label="anotação" />
+        <button onClick={() => void guardar()}>acrescentar</button>
+      </div>
+      {erro ? <div className="horec">{erro}</div> : null}
+    </>
   );
 }
 
