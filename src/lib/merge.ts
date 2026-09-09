@@ -75,10 +75,36 @@ export function mesclar(
   return { ...v, [l]: arr } as Snapshot;
 }
 
+/**
+ * Poe a linha na lista — e NAO a poe duas vezes.
+ *
+ * A checagem de repetida nao e zelo: e o conserto de um defeito real, achado
+ * na tela em 08/09 ao registrar uma atracao dentro do dia. Ela apareceu DUAS
+ * vezes e sumiu uma no F5.
+ *
+ * A CORRIDA. Quem escreve chama `insert`, que manda para o banco e, quando a
+ * promessa volta, poe a linha aqui. Mas o ECO do tempo real da MESMA escrita
+ * chega por outro caminho — e se ele chegar primeiro, `aplicarRemoto` ja poe
+ * a linha (ele sempre desempatou direito) e depois o `insert` punha de novo.
+ *
+ * Por que era pior do que parecia: ele ve duas linhas e apaga uma. Como as
+ * duas tem O MESMO ID, apagar "uma" apaga a linha de verdade — e a que fica
+ * na tela e um fantasma ate o proximo F5. Ele acha que perdeu o trabalho.
+ *
+ * Repetida MESCLA em vez de ser ignorada: o eco traz a linha como o BANCO a
+ * gravou, com os defaults preenchidos. Ignorar deixaria a tela com a versao
+ * otimista, sem esses campos.
+ *
+ * Vale para TODO formulario do app — atracao, comida, trecho, aviso, cidade,
+ * opcao de hospedagem, aporte e item livre. Nao era do Roteiro.
+ */
 export function inserirLocal(v: Snapshot, t: Tabela, row: Record<string, unknown>): Snapshot {
   const l = LISTA[t];
   if (!l) return v;
-  return { ...v, [l]: [...(v[l] as unknown[]), row] } as Snapshot;
+  const pk = String(row[PK[t] ?? 'id'] ?? '');
+  const arr = v[l] as { id: string }[];
+  if (pk && arr.some((x) => x.id === pk)) return mesclar(v, t, pk, row);
+  return { ...v, [l]: [...(arr as unknown[]), row] } as Snapshot;
 }
 
 export function removerLocal(v: Snapshot, t: Tabela, pk: string): Snapshot {

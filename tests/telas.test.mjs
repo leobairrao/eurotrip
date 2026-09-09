@@ -680,3 +680,50 @@ test('toda etiqueta .dtg de TIPO tem cor da paleta dele', () => {
     assert.match(css, re, `.dtg.${cls} sem border-left-color — a etiqueta cai no cinza padrao`);
   }
 });
+
+test('o menu de tema tem UMA implementacao, e as duas telas consomem ela', () => {
+  // A licao do DiaTags (07/09): duas copias da mesma peca divergem na
+  // primeira vez que alguem mexe numa. O tema virou compartilhado em 08/09,
+  // quando o Roteiro passou a registrar atracao tambem.
+  const tema = readFileSync(join(RAIZ, 'src/components/Tema.tsx'), 'utf8');
+  assert.match(tema, /export default function Tema/, 'Tema.tsx tem que exportar o menu');
+
+  for (const rel of ['src/screens/Atracoes.tsx', 'src/screens/roteiro/Acrescentar.tsx']) {
+    const src = readFileSync(join(RAIZ, rel), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    assert.match(src, /from '@\/components\/Tema'/, `${rel} tem que importar o Tema`);
+    assert.doesNotMatch(src, /function Tema\s*\(/,
+      `${rel} declarou o proprio menu de tema — ele mora em components/Tema.tsx`);
+    assert.doesNotMatch(src, /__novo/,
+      `${rel} reimplementou o "outro tema…" — isso e do Tema.tsx`);
+  }
+});
+
+test('atracao registrada no dia nasce com cidade, dia e posicao', () => {
+  // Os tres campos que, faltando, quebram em silencio:
+  //   sem `city`   -> atracao orfa, e `CT[cidade]` cru derruba a tela
+  //   sem `day_iso`-> ele registra dentro do dia e ela nao aparece no dia
+  //   sem `day_pos`-> nasce em zero e vai para o TOPO de um dia arrumado
+  const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Acrescentar.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+  const i = src.indexOf("insert('attraction'");
+  assert.ok(i > 0, 'o formulario tem que inserir na tabela attraction');
+  let j = i + "insert('attraction'".length;
+  let n = 1;
+  while (j < src.length && n > 0) {
+    if (src[j] === '(') n++;
+    else if (src[j] === ')') n--;
+    j++;
+  }
+  const chamada = src.slice(i, j);
+  for (const campo of ['city:', 'day_iso: iso', 'day_pos:', 'kind:', 'price_eur:', 'note:']) {
+    assert.ok(chamada.includes(campo), `o insert da atracao no dia esta sem \`${campo}\``);
+  }
+  assert.doesNotMatch(chamada, /currency/,
+    'atracao nao tem moeda: a tabela so tem price_eur, e ele pediu euro sempre');
+
+  // e a cidade nova entra ANTES da atracao, senao ela aponta para o vazio
+  assert.ok(src.indexOf("insert('city'") < i,
+    'a cidade nova tem que ser criada antes da atracao que aponta para ela');
+});

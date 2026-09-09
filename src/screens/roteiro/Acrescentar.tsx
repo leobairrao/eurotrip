@@ -29,14 +29,16 @@
 // ============================================================
 import { useState } from 'react';
 import {
-  CO, FK, FKCLS, TK, TKPL, akEmoji, coOf, fkEmoji, tkEmoji,
+  CO, CT, FK, FKCLS, TK, TKPL, akEmoji, coOf, fkEmoji, tkEmoji,
 } from '@/content';
 import { Inline, useLocal } from '@/components/Field';
+import Tema from '@/components/Tema';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
 import * as D from '@/lib/dia';
-import { brl, eur, marcado, num, parseNum } from '@/lib/fmt';
+import { brl, eur, marcado, norm, num, parseNum } from '@/lib/fmt';
+import { AK_MAX } from '@/lib/types';
 import type { Attraction, Food, Leg } from '@/lib/types';
 
 const TKROT: Record<string, string> = TK;
@@ -98,6 +100,7 @@ export default function Acrescentar({ iso }: { iso: string }) {
         </div>
       </div>
       <div className="b">
+        <AtracaoNoDia iso={iso} />
         <ItemLivre iso={iso} />
 
         <Gaveta
@@ -486,6 +489,181 @@ function ItemLivre({ iso }: { iso: string }) {
       </div>
       {aviso ? (
         <div className="n warn" style={{ maxWidth: 'none', marginBottom: 12 }}>{aviso}</div>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * REGISTRAR UMA ATRACAO DENTRO DO DIA (08/09/2026).
+ *
+ * O pedido dele, olhando a tela: *"para eu acrescentar uma atracao aqui, ela
+ * deve ser adicionada na aba atracoes tambem, assim podendo adicionar
+ * atracoes por qualquer um dos dois lugares e eles aparecem certinho neles"*.
+ *
+ * E UMA LINHA SO NO BANCO, e e por isso que funciona. A atracao nasce na
+ * tabela `attraction` como qualquer outra — com cidade, tema, preco e nota.
+ * O que muda e que ela ja nasce COM DIA (`day_iso`), entao aparece na ordem
+ * daqui e na aba Atracoes ao mesmo tempo. Nao ha copia, nao ha sincronizar:
+ * sao duas telas lendo a mesma linha.
+ *
+ * NAO HA SELETOR DE MOEDA, e isso e o pedido dele: *"a moeda sempre deve ser
+ * euro, nao de opcao de escolha, atracoes sempre serao pagas la e por euro"*.
+ * Sai de graca: `attraction` so tem `price_eur`, nunca teve coluna de moeda.
+ *
+ * A CIDADE E O CAMPO DELICADO. Atracao sem cidade fica orfa, e `CT[cidade]`
+ * cru numa tela derruba o app inteiro — ja aconteceu. Aqui a cidade vem
+ * pre-escolhida pela base do dia; sem base, ele escolhe na mao; e se a
+ * cidade nao existir, ela e CRIADA antes, como ele pediu: *"se eu quiser
+ * adicionar uma que nao exista ela vira uma cidade nova em atracoes tambem"*.
+ *
+ * A cidade nova precisa de PAIS, e ele escolheu nao poder criar pais novo —
+ * entao o pais vem do menu dos sete, ja apontando para o pais da base quando
+ * ela existe.
+ */
+function AtracaoNoDia({ iso }: { iso: string }) {
+  const { s, insert } = useApp();
+  const nome = useLocal();
+  const nota = useLocal();
+  const preco = useLocal();
+  const cidadeNova = useLocal();
+
+  const base = C.cityOfBase(s, s.days[iso]?.base ?? '');
+  const cidades = C.todasCidades(s);
+
+  const [cidade, setCidade] = useState(base || cidades[0] || '');
+  const [pais, setPais] = useState(C.paisDaCidade(s, base) || CO[0].k);
+  const [tema, setTema] = useState('passeio');
+  const [erro, setErro] = useState('');
+  const [indo, setIndo] = useState(false);
+
+  const criandoCidade = cidade === '__nova';
+
+  const por = async () => {
+    const nm = nome.get().trim();
+    if (!nm) { setErro('escreva o que é, primeiro'); return; }
+
+    let alvo = cidade;
+
+    // 1. a cidade nova, quando for o caso — ANTES da atracao, senao ela
+    //    nasceria apontando para uma cidade que nao existe
+    if (criandoCidade) {
+      const n = cidadeNova.get().trim();
+      if (!n) { setErro('escreva o nome da cidade nova'); return; }
+      const k = norm(n);
+      if (!k) { setErro('esse nome não vira uma chave válida — tente outro'); return; }
+      if (CT[k] ?? s.cities.find((c) => c.k === k)) {
+        const onde = CO.find((x) => x.k === C.paisDaCidade(s, k))?.n ?? '';
+        setErro(`${C.nomeCidade(s, k)} já existe${onde ? ` (em ${onde})` : ''} — escolha ela no menu.`);
+        return;
+      }
+      setErro('');
+      setIndo(true);
+      const rc = await insert('city', {
+        k, n, co: pais,
+        position: s.cities.filter((c) => c.co === pais).length,
+      });
+      if (!rc.ok) {
+        setIndo(false);
+        setErro('não consegui criar a cidade. O que você escreveu está aí — tente de novo.');
+        return;
+      }
+      alvo = k;
+    }
+
+    if (!alvo) { setErro('escolha a cidade'); return; }
+
+    setErro('');
+    setIndo(true);
+    const r = await insert('attraction', {
+      city: alvo,
+      name: nm,
+      note: nota.get(),
+      price_eur: parseNum(preco.get()) ?? 0,
+      // nasce DENTRO do dia: por isso 'escolhida' e o dia, e nao 'backlog'
+      status: 'escolhida',
+      kind: tema.trim().slice(0, AK_MAX) || 'passeio',
+      day_iso: iso,
+      day_pos: D.proximaPos(s, iso),
+      seed_id: null,
+    });
+    setIndo(false);
+    if (!r.ok) {
+      setErro(`Não consegui guardar "${nm}". O que você escreveu continua aqui — tente de novo.`);
+      return;
+    }
+    nome.limpar();
+    nota.limpar();
+    preco.limpar();
+    cidadeNova.limpar();
+    if (criandoCidade) setCidade(alvo);
+    // o TEMA nao volta para 'passeio': quem registra tres museus seguidos
+    // escolhe uma vez, nao tres (a mesma regra da aba Atracoes)
+  };
+
+  return (
+    <>
+      <div className="addrow ad6">
+        <input
+          ref={(el) => { nome.ref.current = el; }}
+          type="text"
+          placeholder="uma atração… ex. Palacio Real"
+          aria-label="nome da atração"
+        />
+        <input
+          ref={(el) => { nota.ref.current = el; }}
+          type="text"
+          placeholder="uma nota (opcional)"
+          aria-label="nota da atração"
+        />
+        <select
+          className="cv"
+          aria-label="cidade"
+          value={cidade}
+          onChange={(e) => setCidade(e.currentTarget.value)}
+        >
+          {cidades.map((c) => (
+            <option key={c} value={c}>{C.nomeCidade(s, c)}</option>
+          ))}
+          <option value="__nova">＋ outra cidade…</option>
+        </select>
+        <Tema value={tema} onChange={setTema} />
+        {/* sem seletor de moeda: `attraction` so tem price_eur */}
+        <input
+          ref={(el) => { preco.ref.current = el; }}
+          type="text"
+          inputMode="decimal"
+          className="pv"
+          placeholder="€"
+          aria-label="preço em euros"
+        />
+        <button onClick={() => void por()} disabled={indo}>
+          {indo ? 'guardando…' : '+'}
+        </button>
+      </div>
+
+      {criandoCidade ? (
+        <div className="addrow cn2">
+          <input
+            ref={(el) => { cidadeNova.ref.current = el; }}
+            type="text"
+            placeholder="o nome da cidade nova — ex. Sevilha"
+            aria-label="nome da cidade nova"
+          />
+          <select
+            aria-label="país da cidade nova"
+            value={pais}
+            onChange={(e) => setPais(e.currentTarget.value)}
+          >
+            {CO.map((c) => <option key={c.k} value={c.k}>{c.n}</option>)}
+          </select>
+        </div>
+      ) : null}
+
+      {erro ? (
+        <div className="n warn" style={{ maxWidth: 'none', marginBottom: 12 }} role="alert">
+          {erro}
+        </div>
       ) : null}
     </>
   );

@@ -30,6 +30,17 @@ as decisões dele estão na **seção 12** da
 - **Toda grade `.mrow` com `<select>` precisa da área `cu`.** `estilo-atual.css:311` manda
   *todo* `.mrow select` para lá; sem a área, o seletor cai numa faixa implícita e a linha
   desmonta calada.
+- **`inserirLocal` tem que recusar linha repetida** (consertado em 08/09). O `insert` põe a
+  linha quando a promessa volta; o **eco do tempo real** da mesma escrita chega por outro
+  caminho, e se ele chegar primeiro a linha entrava **duas vezes**. Pior do que parece: as
+  duas têm o mesmo id, então apagar "uma" apaga a de verdade e deixa um fantasma até o F5 —
+  ele acharia que perdeu o trabalho. Valia para **todos os formulários do app**.
+
+**E o dia agora registra atração** (08/09, pedido dele): o cartão *acrescentar* tem duas
+linhas de escrever — uma cria **atração**, com cidade, tema, nota e €, e ela aparece na aba
+Atrações no mesmo instante porque **é a mesma linha do banco**, não uma cópia; a outra
+continua sendo o 📌. O seletor de cidade também **cria cidade**, e a cidade nasce antes da
+atração — senão ela apontaria para o vazio.
 
 **A lista de oito coisas que ele pediu em 06/09 está toda no ar.** A lista, com o que ele
 disse em cada item e o que foi decidido, está em
@@ -45,7 +56,7 @@ decisões tomadas durante a execução, com o que custa se cada uma estiver erra
 precisava acontecer antes da etapa 2 — o `DiaTags` sendo uma segunda implementação do dia —
 **foi resolvida em 07/09**.
 
-`npm test` **171/171** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+`npm test` **176/176** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro

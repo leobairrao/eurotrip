@@ -186,10 +186,27 @@
 /* O item livre do dia: nome, quanto custa, a moeda, e o botao (08/09/2026).
    `il4` e nao `di4`: aquela ja e das Dicas (`Dicas.tsx:170`), e duas telas
    dividindo a mesma grade brigam na primeira vez que uma delas mudar. */
+/* A ATRACAO REGISTRADA DENTRO DO DIA (08/09/2026), a pedido dele: "para eu
+   acrescentar uma atracao aqui, ela deve ser adicionada na aba atracoes
+   tambem". Sao os mesmos campos da `.at4` da aba Atracoes, mais a CIDADE —
+   la a cidade vem do cartao, aqui ela e escolhida na linha.
+
+   Seis colunas para seis filhos. Grade conta COLUNAS e o JSX conta FILHOS,
+   e foi assim que o botao da Hospedagem vazou do cartao em 06/09.
+
+   A cidade em 132px e o tema em 164px, os dois MEDIDOS na `.at4`: em `1fr`
+   o select encolhe no celular e "mercado de natal" vira "mercado de na". */
+.addrow.ad6 { grid-template-columns: 1fr 1fr 132px 164px 96px auto; }
+.addrow.ad6 input[aria-label="escreva o tema"] { font-size: 14px; }
+.addrow.ad6 .cv { font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
+
+/* a segunda linha, que so aparece quando ele escolhe "+ outra cidade" */
+.addrow.cn2 { grid-template-columns: 1fr 200px; margin-top: -4px; }
+
 .addrow.il4 { grid-template-columns: 1fr 116px 74px auto; }
 @media (max-width: 700px) {
   .addrow.at3, .addrow.at4, .addrow.fo3, .addrow.di4, .addrow.il4,
-  .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  .addrow.ad6, .addrow.cn2, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
   .mrow .wh.nt .wv, .bkr.rr .rb.nt .wv { flex: 1 1 100%; }
 }
 

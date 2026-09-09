@@ -359,3 +359,65 @@ test('day_pos e done atravessam o tempo real nas tres tabelas', () => {
   assert.equal(s.foods[0].day_pos, 2);
   assert.equal(s.foods[0].done, true);
 });
+
+// ---------------- a corrida entre o insert e o eco do tempo real ----------------
+
+test('inserirLocal NAO duplica a linha que ja esta na lista', () => {
+  // O DEFEITO, achado na tela em 08/09 ao registrar uma atracao dentro do dia:
+  // a mesma atracao apareceu DUAS vezes na lista e sumiu uma no F5.
+  //
+  // A causa e uma corrida. Quem escreve chama `insert`, que faz duas coisas:
+  // manda para o banco e, quando a promessa volta, poe a linha na lista. Mas o
+  // ECO do tempo real da MESMA escrita chega por outro caminho — e se ele
+  // chegar primeiro, `aplicarRemoto` ja poe a linha (ele desempata direito), e
+  // depois `insert` poe de novo. Duas linhas iguais, com o mesmo id.
+  //
+  // Por que isso e pior do que parece: ele ve duas e apaga uma. Como as duas
+  // TEM O MESMO ID, apagar "uma" apaga a linha de verdade — e a que fica na
+  // tela e um fantasma que some no proximo F5. Ele acha que perdeu o trabalho.
+  //
+  // Vale para TODO formulario do app: atracao, comida, trecho, aviso, cidade,
+  // opcao de hospedagem, aporte e item livre. Nao e do Roteiro.
+  const linha = {
+    id: 'a2', city: 'lisboa', name: 'Mosteiro dos Jerónimos', price_eur: 12,
+    note: '', status: 'backlog', kind: 'passeio', day_iso: null, seed_id: null,
+  };
+
+  let s = base();
+  s = inserirLocal(s, 'attraction', linha);
+  assert.equal(s.attractions.length, 2, 'a primeira vez entra');
+
+  s = inserirLocal(s, 'attraction', linha);
+  assert.equal(s.attractions.length, 2, 'a segunda vez NAO pode duplicar');
+  assert.deepEqual(s.attractions.map((a) => a.id), ['a1', 'a2']);
+});
+
+test('inserirLocal de novo ATUALIZA a linha, e nao ignora', () => {
+  // O eco do tempo real traz a linha como o BANCO a gravou — com os defaults
+  // preenchidos e os gatilhos aplicados. Se `inserirLocal` so ignorasse a
+  // repetida, a tela ficaria com a versao otimista, sem esses campos.
+  let s = base();
+  s = inserirLocal(s, 'attraction', { id: 'a2', city: 'lisboa', name: 'rascunho', price_eur: 0 });
+  s = inserirLocal(s, 'attraction', { id: 'a2', city: 'lisboa', name: 'rascunho', price_eur: 12, day_pos: 3 });
+  assert.equal(s.attractions.length, 2);
+  const a2 = s.attractions.find((a) => a.id === 'a2');
+  assert.equal(a2.price_eur, 12, 'o valor do banco manda');
+  assert.equal(a2.day_pos, 3, 'e os campos que so o banco sabe entram');
+});
+
+test('a corrida completa: o eco chega ANTES da promessa do insert', () => {
+  // O caminho exato do defeito de 08/09, ponta a ponta.
+  const doBanco = {
+    id: 'd9', day_iso: '2026-12-12', name: 'lavanderia', note: '',
+    amount: 12, currency: 'eur', day_pos: 0, done: false,
+  };
+  let s = base();
+
+  // 1. o eco do tempo real chega primeiro
+  s = aplicarRemoto(s, 'day_item', { eventType: 'INSERT', new: doBanco, old: {} }, new Map());
+  assert.equal(s.dayItems.length, 1);
+
+  // 2. e SO ENTAO a promessa do insert volta, com a mesma linha
+  s = inserirLocal(s, 'day_item', doBanco);
+  assert.equal(s.dayItems.length, 1, 'continua uma so — era isto que duplicava');
+});
