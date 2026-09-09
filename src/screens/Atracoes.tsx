@@ -430,7 +430,14 @@ function Linha({ it }: { it: Attraction }) {
 
             O campo de dias SO EXISTE COM A TAG LIGADA. Desligado ele nao
             ocupa lugar nenhum — e o que impede a linha de crescer para as
-            atracoes que se paga na porta, que sao a maioria. */}
+            atracoes que se paga na porta, que sao a maioria.
+
+            DESLIGAR NAO APAGA O PRAZO, e e escolha: o numero fica guardado
+            e volta se ele remarcar. Nao vaza para conta nenhuma — tudo que
+            le prazo (a lista do "o que ainda esta aberto") filtra por
+            `buy_ahead`, entao um `ahead_days` de uma tag desligada nunca
+            aparece em lugar nenhum. Se um dia incomodar, apagar no clique
+            e uma linha aqui. */}
         <button
           type="button"
           className={`dtag tgl${it.buy_ahead ? '' : ' off'}`}

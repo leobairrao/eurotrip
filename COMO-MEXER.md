@@ -10,18 +10,21 @@ manda. Ela é a fonte; isto é o mapa.
 ---
 ## 0. Onde eu parei — 09/09/2026
 
-### ⚠️ O SQL 11 ESTÁ ESPERANDO ELE, E NADA DE "COMPRO ANTES" FUNCIONA ANTES DISSO
+### O SQL 11 ESTÁ RODADO (ele rodou em 09/09), e as oito colunas existem
 
-`supabase/11-comprar-antes.sql` — **oito colunas, quatro tabelas**, e ele é quem roda.
-**Não publique antes dele rodar:** o código já está no `main` e clicar na etiqueta
-*compro antes* dá recusa permanente de escrita (a coluna não existe), que é o modo de
-falha que a seção sobre `escrita.ts` descreve. O `+` de transporte em Sugestões também
-para, porque o insert passa `buy_ahead`.
+`supabase/11-comprar-antes.sql` — **oito colunas, quatro tabelas**: `leg.buy_ahead`,
+`attraction.buy_ahead`, `attraction.ahead_days`, `food.price_eur`,
+`attraction.spent_eur`, `food.spent_eur`, `leg.spent`, `day_item.spent`.
 
-Confira se já rodou com um script de duas linhas no diretório do projeto (`select`
-numa coluna nova; erro = falta). As oito: `leg.buy_ahead`, `attraction.buy_ahead`,
-`attraction.ahead_days`, `food.price_eur`, `attraction.spent_eur`, `food.spent_eur`,
-`leg.spent`, `day_item.spent`.
+**Conferido pelo lado de fora depois de rodar**, e a ESCRITA também: marquei a etiqueta
+*comprar antes* na Ávila pelo app, escrevi prazo de 30 dias e pus € 25,50 num
+restaurante — os três chegaram no banco (`buy_ahead: true`, `ahead_days: 30`,
+`price_eur: 25.5`, com os centavos). Desfeito tudo depois; o `npm run check` voltou a
+bater.
+
+**Se um dia precisar conferir de novo:** um script de duas linhas no diretório do
+projeto (`select` numa coluna nova; erro = falta). O `@supabase/supabase-js` só resolve
+de dentro do projeto — de `/tmp` ele não acha o pacote.
 
 **O desenho inteiro, com as palavras dele, está em
 [`docs/superpowers/specs/2026-09-09-comprar-antes-design.md`](docs/superpowers/specs/2026-09-09-comprar-antes-design.md).**
@@ -154,7 +157,7 @@ decisões tomadas durante a execução, com o que custa se cada uma estiver erra
 precisava acontecer antes da etapa 2 — o `DiaTags` sendo uma segunda implementação do dia —
 **foi resolvida em 07/09**.
 
-`npm test` **202/202** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+`npm test` **217/217** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro
