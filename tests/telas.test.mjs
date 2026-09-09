@@ -1091,3 +1091,20 @@ test('a chave da gaveta tem LUGAR, e nao sobra', () => {
   const lbl = css.match(/\.liga \.lbl \{[\s\S]*?\}/);
   assert.match(lbl[0], /min-width:\s*0/, 'sem min-width:0 o rotulo empurra a coluna');
 });
+
+test('o afundadinho do clique nao vale para botao de largura inteira', () => {
+  // O defeito que ele viu tres vezes: `button:active { transform:
+  // scale(.97) }` e global, e a linha da gaveta e um <button> de 1229px.
+  // 3% disso sao 37px — apertar jogava o rotulo e a chave para o centro.
+  // A frase dele que resolveu: "ela SO desloca na hora do clique", que e
+  // exatamente o que `:active` significa.
+  const css = readFileSync(join(RAIZ, 'src/app/identidade.css'), 'utf8');
+  assert.match(css, /\.liga:active \{ transform: none; \}/,
+    'a linha da gaveta voltou a encolher no clique');
+  assert.match(css, /\.liga:active \.sw \{ transform: scale/,
+    'o afundadinho tem que ir para a CHAVE, que e onde o dedo esta');
+
+  // e a regra global continua existindo para os botoes pequenos, que e
+  // onde ela serve
+  assert.match(css, /button:active[^{]*\{ transform: scale\(\.97\); \}/);
+});

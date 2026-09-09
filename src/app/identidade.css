@@ -547,6 +547,28 @@ input, select, textarea, .card, .mrow {
               box-shadow .14s ease, filter .14s ease;
 }
 button:active, .chip:active, .fchip:active, .fita-item:active { transform: scale(.97); }
+
+/* ------------------------------------------------------------
+   O AFUNDADINHO NAO SERVE PARA BOTAO DE LARGURA INTEIRA (09/09/2026)
+
+   Ele: "o botao desloca quando e clicado" — e depois a frase que resolveu:
+   "ela SO desloca na hora do clique". `:active` vale so enquanto o dedo
+   esta em cima, e e por isso que ele nao conseguia nem printar.
+
+   A linha da gaveta (`.liga`) e um <button> de largura INTEIRA: 1229px no
+   desktop. 3% disso sao 37px, entao apertar encolhia a linha e jogava o
+   rotulo para a direita e a chave para a esquerda, os dois para o centro —
+   proporcional a distancia de cada um, que e a assinatura de um `scale`.
+   Foi assim que eu achei, comparando as duas fotos dele.
+
+   O afundadinho e bom em botao pequeno, onde o dedo cobre a peca inteira.
+   Aqui ele vai para a CHAVE, que e onde o dedo esta.
+
+   Se um dia nascer outro botao de largura inteira, ele precisa da mesma
+   linha — ou o `scale` global vai fazer o mesmo estrago nele.
+   ------------------------------------------------------------ */
+.liga:active { transform: none; }
+.liga:active .sw { transform: scale(.94); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; transform: none !important; }
 }
