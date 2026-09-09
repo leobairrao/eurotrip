@@ -10,6 +10,14 @@ manda. Ela é a fonte; isto é o mapa.
 ---
 ## 0. Onde eu parei — 08/09/2026
 
+**O PRÓXIMO TRABALHO É A LISTA DELE**, em
+[`docs/2026-09-08-melhorias-do-leo.md`](docs/2026-09-08-melhorias-do-leo.md) — um PDF de
+cinco páginas que ele mandou no fim de 08/09, transcrito. **Nada dela começou.** Ele foi
+explícito sobre como usar: *"escrevi de uma forma que eu entendi, mas vamos debater muito
+para construir tudo que está aí"* — é intenção, não especificação, e é para ir aos poucos.
+Quatro itens de lá provavelmente pedem **SQL**, e ele é quem roda.
+
+
 **A ETAPA 2 DO ROTEIRO ESTÁ NO AR.** Clicar num dia e apertar `editar` abre três cartões,
 não mais quatro: *o dia*, **a ordem do dia** (uma lista só com atração, trecho, comida e
 item livre juntos, com setas ↑↓ e numeração) e *acrescentar* (o formulário do item livre
