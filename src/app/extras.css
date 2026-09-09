@@ -193,16 +193,30 @@
 
    A cidade em 132px e o tema em 164px, os dois MEDIDOS na `.at4`: em `1fr`
    o select encolhe no celular e "mercado de natal" vira "mercado de na". */
-.addrow.ad6 { grid-template-columns: 1fr 1fr 132px 164px 96px auto; }
+.addrow.ad6 { grid-template-columns: 1fr 1fr 152px 164px 96px auto; }
 .addrow.ad6 input[aria-label="escreva o tema"] { font-size: 14px; }
 .addrow.ad6 .cv { font-family: var(--mono); font-size: 12px; letter-spacing: .03em; }
 
-/* a segunda linha, que so aparece quando ele escolhe "+ outra cidade" */
-.addrow.cn2 { grid-template-columns: 1fr 200px; margin-top: -4px; }
+/* A CIDADE NOVA, na SEGUNDA FILA DA MESMA GRADE (08/09/2026).
+
+   A primeira versao era uma `.addrow` propria com `1fr 200px`. Parecia
+   certo e nao era: as colunas de uma grade se dimensionam pelo conteudo
+   DELA, e como aquela linha nao tinha o botao, a coluna do botao colapsava
+   e as duas caixas saiam deslocadas de tudo que estava em cima. Ele viu e
+   chamou de tela bugada, com razao.
+
+   Sendo filhas da MESMA grade, o alinhamento nao depende de eu acertar
+   numero nenhum — o menu de pais cai debaixo do menu de cidade porque esta
+   na mesma coluna, e continua caindo se as larguras mudarem. */
+.addrow.ad6 > .cnnome { grid-column: 1 / 3; grid-row: 2; }
+.addrow.ad6 > .cnpais { grid-column: 3 / 5; grid-row: 2; }
 
 @media (max-width: 700px) {
   .addrow.at3, .addrow.at4, .addrow.fo3, .addrow.di4,
-  .addrow.ad6, .addrow.cn2, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  .addrow.ad6, .addrow.tr5, .addrow.re4 { grid-template-columns: 1fr; }
+  /* no celular a grade vira UMA coluna: as duas da cidade nova voltam a
+     ser linhas comuns, senao pedem colunas que nao existem mais */
+  .addrow.ad6 > .cnnome, .addrow.ad6 > .cnpais { grid-column: 1; grid-row: auto; }
   .mrow .wh.nt .wv, .bkr.rr .rb.nt .wv { flex: 1 1 100%; }
 }
 

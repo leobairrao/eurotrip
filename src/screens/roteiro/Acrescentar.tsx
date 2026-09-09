@@ -531,7 +531,7 @@ function AtracaoNoDia({ iso }: { iso: string }) {
           {cidades.map((c) => (
             <option key={c} value={c}>{C.nomeCidade(s, c)}</option>
           ))}
-          <option value="__nova">＋ outra cidade…</option>
+          <option value="__nova">＋ cidade nova</option>
         </select>
         <Tema value={tema} onChange={setTema} />
         {/* sem seletor de moeda: `attraction` so tem price_eur */}
@@ -546,25 +546,34 @@ function AtracaoNoDia({ iso }: { iso: string }) {
         <button onClick={() => void por()} disabled={indo}>
           {indo ? 'guardando…' : 'pôr neste dia'}
         </button>
-      </div>
 
-      {criandoCidade ? (
-        <div className="addrow cn2">
-          <input
-            ref={(el) => { cidadeNova.ref.current = el; }}
-            type="text"
-            placeholder="o nome da cidade nova — ex. Sevilha"
-            aria-label="nome da cidade nova"
-          />
-          <select
-            aria-label="país da cidade nova"
-            value={pais}
-            onChange={(e) => setPais(e.currentTarget.value)}
-          >
-            {CO.map((c) => <option key={c.k} value={c.k}>{c.n}</option>)}
-          </select>
-        </div>
-      ) : null}
+        {/* A CIDADE NOVA MORA NA MESMA GRADE, e nao numa linha propria ao
+            lado. Numa grade propria as colunas se dimensionam pelo conteudo
+            DELA — e como ela nao tem o botao, a coluna do botao colapsava e
+            tudo saia deslocado. Ele viu isso e chamou de tela bugada, com
+            razao. Sendo filhas da mesma grade, o alinhamento nao depende de
+            eu acertar numero nenhum: o menu de pais cai debaixo do menu de
+            cidade porque esta na mesma coluna. */}
+        {criandoCidade ? (
+          <>
+            <input
+              ref={(el) => { cidadeNova.ref.current = el; }}
+              className="cnnome"
+              type="text"
+              placeholder="o nome da cidade nova — ex. Toledo"
+              aria-label="nome da cidade nova"
+            />
+            <select
+              className="cnpais"
+              aria-label="país da cidade nova"
+              value={pais}
+              onChange={(e) => setPais(e.currentTarget.value)}
+            >
+              {CO.map((c) => <option key={c.k} value={c.k}>{c.n}</option>)}
+            </select>
+          </>
+        ) : null}
+      </div>
 
       {erro ? (
         <div className="n warn" style={{ maxWidth: 'none', marginBottom: 12 }} role="alert">
