@@ -130,14 +130,10 @@ export const BASEOUT: Record<string, string> = {
   'roma': 'Ostia Antica, Tivoli, Nápoles e Pompeia, Florença',
 };
 
-/** Os 5 itens do cartao ocre do Painel. Texto fixo — manter. */
-export const DECISOES: string[] = [
-  '<b>O carro de Cáceres.</b> Se o irmão do CK não precisar dele de volta no dia 16, Lisboa → Madrid vira voo de 1h20 e você ganha quase um dia inteiro em Madrid — que hoje só tem 2 dias cheios.',
-  '<b>Toledo, Segovia e Ávila</b> não cabem nos 2 dias de Madrid. Ou você resolve o dia 16, ou corta as três.',
-  '<b>O dia 21 em Metz.</b> Deixei como segundo dia na Alsácia. Colmar ou Nancy provavelmente rendem mais que repetir Estrasburgo.',
-  '<b>O dia 28 em Reims.</b> Segundo bate-volta a Paris, ou o dia de Reims com a cave de champanhe. Não cabem os dois.',
-  '<b>Roma tem 8 noites</b> e a cidade são 4 dias. Os outros são bate-volta: Ostia Antica, Tivoli, Nápoles e Pompeia, Florença. Escolha dois.',
-];
+// A constante DECISOES vivia aqui: os cinco conselhos meus do cartao ocre
+// do Painel. Ele a apagou na lista de 08/09 — "Deixa de existir, isso eu que
+// mando" — e o cartao saiu do Painel em 09/09. O texto esta no git, se um dia
+// alguem quiser ler o que eu tinha sugerido.
 
 // ---------- rotulos e emojis (secao 13.5) ----------
 export const ST = { escolhida: 'escolhida', backlog: 'backlog', sugerida: 'sugerida' } as const;

@@ -39,10 +39,6 @@ export default function Custos() {
     <>
       <div className="panelhead">
         <h2>Custos</h2>
-        <p>
-          Só o que você lançou. Nada aqui é chute meu: hospedagem vem da aba Hospedagem,
-          atrações vêm da sua lista de Atrações, e o resto são linhas suas.
-        </p>
       </div>
 
       <div className="bigsum">

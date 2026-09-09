@@ -22,7 +22,7 @@ import { DateField, NumField, TextField, useLocal } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, daysTo, dtLabel, hojeLocal, isData, num, parseNum, plMesAte } from '@/lib/fmt';
+import { brl, dtLabel, hojeLocal, isData, num, parseNum, plMesAte } from '@/lib/fmt';
 import type { Who } from '@/lib/types';
 
 const CIDADES = STAYS.map((x) => x.c);
@@ -36,19 +36,12 @@ const SUB: ReadonlyArray<readonly ['geral' | Who, string]> = [
 export default function Caixa() {
   const { s } = useApp();
   const { selWho } = useUi();
-  const meses = C.mesesAte(s.hoje);   // do mes corrente a dez/26, nunca fixo
-  const dep = daysTo('2026-12-10', s.hoje);
   const w: Who | null = selWho === 'leo' ? 'leo' : selWho === 'lu' ? 'lu' : null;
 
   return (
     <>
       <div className="panelhead">
         <h2>Caixa</h2>
-        <p>
-          Quanto vocês dois já guardaram, e quanto falta por mês para chegar em dezembro com
-          tudo. São <b>{dep} dias</b> até embarcar e <b>{meses} {meses > 1 ? 'meses' : 'mês'}</b>{' '}
-          para guardar. Cada entrada de dinheiro é um aporte, com o dia e de onde veio.
-        </p>
       </div>
 
       <Subabas />

@@ -38,11 +38,6 @@ export default function Reservas() {
     <>
       <div className="panelhead">
         <h2>Reservas e burocracia</h2>
-        <p>
-          Marque a caixinha quando resolver — e ponha o valor que você pagou.{' '}
-          <b>O que está marcado entra no &quot;total já pago&quot;</b> do painel e da aba Custos;
-          o que ainda não está entra como previsto.
-        </p>
       </div>
 
       {/* ---- os quatro numeros ---- */}

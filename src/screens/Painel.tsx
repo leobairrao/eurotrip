@@ -4,7 +4,7 @@
 // Tudo e derivado: o cartao vermelho de pendencias nunca e escrito
 // a mao, sai do que ele marcou nas outras abas.
 // ============================================================
-import { DECISOES, ISOS, STAYS } from '@/content';
+import { ISOS, STAYS } from '@/content';
 import { Inline } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
@@ -18,7 +18,7 @@ export default function Painel() {
   const dep = daysTo('2026-12-10', s.hoje);
   const bases = C.baseList(s);
   const noites = C.nightsAll(s);
-  const voo = C.flyDays(s);
+  const visit = C.cidadesVisitadas(s);
   const legEur = C.legSum(s, '').eur;
   const legBrlLado = C.legSum(s, '').brl;
   const hosp = C.stayTotalAll(s, CIDADES);
@@ -29,39 +29,32 @@ export default function Painel() {
     <>
       <div className="panelhead">
         <h2>Detalhes gerais</h2>
-        <p>
-          <b>Roteiro fechado em 04/09.</b> Oito bases, e os bate-voltas saem de dentro delas.
-          Tudo continua editável dia por dia na aba Roteiro. O custo é só o que você lançar.
-        </p>
       </div>
 
-      {/* ---- os quatro indicadores ---- */}
+      {/* ---- os TRES indicadores (09/09) ----
+          Eram quatro, com uma frase miuda embaixo de cada um. Ele pediu na
+          lista de 08/09: tirar as frases, e ficar com "Dias ate embarcar,
+          Dias de viagem, e Cidades visitadas". Perguntado sobre o quarto
+          lugar vago, escolheu "so os tres, mais largos" — e a grade e
+          `auto-fit`, entao cada um se alarga sozinho.
+
+          As atracoes no roteiro e o 0/7 de hospedagem nao se perderam: os
+          dois voltam como numero grande nas tabelas que ele desenhou na
+          mesma lista ("quantos peguei e quanto gastei"). ---- */}
       <div className="kpi">
         <div>
           <b>{dep}</b>
           <span>dias até embarcar</span>
-          <small>10 dez, 20h15 de Florianópolis — voo pago</small>
         </div>
         <div>
           <b>{ISOS.length}</b>
           <span>dias de viagem</span>
-          <small>
-            {bases.length
-              ? `${noites} noites na Europa · ${bases.length} bases · ${voo} ${voo === 1 ? 'dia' : 'dias'} só de voo`
-              : `${ISOS.length} dias no calendário, ainda em branco`}
-          </small>
         </div>
         <div>
-          <b>{C.attrCount(s, 'roteiro')}</b>
-          <span>atrações no roteiro</span>
-          <small>
-            {C.attrCount(s, 'fora')} no backlog · {C.attrCount(s, 'pesquisa')} sugeridas por mim
-          </small>
-        </div>
-        <div>
-          <b>{comEndereco}/{STAYS.length}</b>
-          <span>hospedagens fechadas</span>
-          <small>diária cheia, sem divisão</small>
+          {/* Sai da ATRACAO, nao da base do dia: ele dorme em 7 cidades e
+              passa por umas 15. Ver `cidadesVisitadas` em calc.ts. */}
+          <b>{visit.feitas} de {visit.total}</b>
+          <span>cidades visitadas</span>
         </div>
       </div>
 
@@ -111,29 +104,15 @@ export default function Painel() {
         </div>
         <div className="b">
           <TabelaRoteiro />
-          <p className="mono foot" style={{ marginBottom: 0 }}>
-            A tabela sai do calendário: se você mudar a base de um dia na aba <b>Roteiro</b>,
-            ela se refaz aqui.
-          </p>
         </div>
       </div>
 
+      {/* O cartao "Decisoes de roteiro" ficava aqui, com cinco conselhos
+          meus (o carro de Caceres, Toledo/Segovia/Avila, o dia 21 em Metz,
+          o dia 28 em Reims, as 8 noites de Roma). Ele o apagou da lista de
+          08/09 com uma frase: "Deixa de existir, isso eu que mando".
+          A constante DECISOES saiu de src/content junto. */}
       <Pendencias />
-
-      {/* ---- as decisoes de roteiro, que sao outra coisa ---- */}
-      <div className="card" style={{ ['--cc' as string]: 'var(--ochre)' }}>
-        <div className="h">
-          <h3>Decisões de roteiro</h3>
-          <div className="m">isto não trava nada — dá para decidir em cima da hora</div>
-        </div>
-        <div className="b">
-          <ul className="pl">
-            {DECISOES.map((d, i) => (
-              <li key={i}><Inline html={d} /></li>
-            ))}
-          </ul>
-        </div>
-      </div>
     </>
   );
 }

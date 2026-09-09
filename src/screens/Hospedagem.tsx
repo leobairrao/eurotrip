@@ -63,13 +63,6 @@ export default function Hospedagem() {
     <>
       <div className="panelhead">
         <h2>Hospedagem</h2>
-        <p>
-          Cada base é uma lista de <b>opções</b>, e você marca <b>a que fechou</b>. Só a
-          marcada entra no custo da viagem — as outras ficam como plano B. Cada opção tem o
-          anúncio inteiro: <b>endereço, link, diária, noites, check-in, check-out, total e
-          observação</b>. A diária é a <b>diária cheia do anúncio</b>, sem dividir. Os
-          bairros que eu pesquisei estão na aba <b>Sugestões</b>: o + de lá traz para cá.
-        </p>
       </div>
 
       {/* a mesma fita de Atracoes, Comidas e Dicas — e desde 08/09 as quatro

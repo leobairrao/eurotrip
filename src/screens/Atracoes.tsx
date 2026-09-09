@@ -57,12 +57,6 @@ export default function Atracoes() {
     <>
       <div className="panelhead">
         <h2>Atrações</h2>
-        <p>
-          Tudo que você tem vontade de fazer, num lugar só — e aqui é <b>só o seu</b>. O
-          que eu pesquisei mora na aba <b>Sugestões</b>, e só entra nesta lista quando você
-          clica no <b>+</b> de lá. <b>O que entra no custo é o que está num dia do
-          Roteiro</b> — a etiqueta é automática, e tirar do dia diminui o total na hora.
-        </p>
       </div>
 
       {/* ---- a fita de paises, com QUANTAS ele registrou em cada (08/09) ----

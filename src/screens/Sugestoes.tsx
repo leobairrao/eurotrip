@@ -412,11 +412,6 @@ export default function Sugestoes() {
     <>
       <div className="panelhead">
         <h2>Sugestões</h2>
-        <p>
-          Tudo que eu pesquisei, num lugar só e separado por segmento. <b>Nada daqui entra na
-          sua lista sozinho: o + é o que decide.</b> E nada aqui se perde — se você puxar e
-          se arrepender, o × devolve para cá.
-        </p>
       </div>
 
       <div className="subtabs">

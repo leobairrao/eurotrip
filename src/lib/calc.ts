@@ -266,6 +266,43 @@ export const dayAttrTotal = (s: Snapshot, iso: string) =>
   attrsOfDay(s, iso).reduce((a, x) => a + num(x.price_eur), 0);
 export const attrPlaced = (s: Snapshot) => s.attractions.filter((a) => a.day_iso).length;
 
+/**
+ * "Cidades visitadas" — o terceiro numero do topo do Painel (09/09/2026).
+ *
+ * A regra e dele: *"eu assinalar que visitei 50% dos itens da lista da
+ * cidade"*, e o `50%` e lido como METADE OU MAIS.
+ *
+ * A CONTA NAO SAI DA BASE DO DIA, e essa e a coisa a nao esquecer. Ele
+ * apontou o furo: *"em roteiro so tem as cidades que vou dormir, por
+ * exemplo, metz vou dormir mas de la vou pra estrasburgo, luxemburgo e
+ * colonia"* — *"vou dormir em 7 mas passar por umas 15"*. Sai da ATRACAO,
+ * que e a unica linha do banco com cidade e dia ao mesmo tempo: comida
+ * guarda pais, transporte nao guarda lugar nenhum. Uma atracao de Trier
+ * num dia com base em Metz e o que diz "neste dia eu estive em Trier".
+ *
+ * So o que esta num DIA entra — decisao dele: *"so as que estao num dia de
+ * roteiro, afinal sao as que vou me propor a visitar"*. Com o backlog
+ * dentro, registrar 10 atracoes em Madrid e por 4 no roteiro deixaria
+ * Madrid presa em 40% para sempre. De graca, isso tambem exclui a minha
+ * pesquisa: `ehPesquisa` exige nao ter dia.
+ *
+ * O `total` sao as cidades que TEM atracao num dia, nao as 11 fixas nem as
+ * 7 bases: cidade onde ele nao planejou nada nao aparece de nenhum lado.
+ */
+export function cidadesVisitadas(s: Snapshot): { feitas: number; total: number } {
+  const porCidade = new Map<string, { n: number; feitas: number }>();
+  for (const a of s.attractions) {
+    if (!noRoteiro(a)) continue;
+    const c = porCidade.get(a.city) ?? { n: 0, feitas: 0 };
+    c.n += 1;
+    if (a.done) c.feitas += 1;
+    porCidade.set(a.city, c);
+  }
+  let feitas = 0;
+  for (const c of porCidade.values()) if (c.feitas >= Math.ceil(c.n / 2)) feitas += 1;
+  return { feitas, total: porCidade.size };
+}
+
 // ---------------- comidas ----------------
 export const foodsOf = (s: Snapshot, co: string) => s.foods.filter((f) => f.country === co);
 export const foodsKind = (s: Snapshot, co: string, k: string) =>

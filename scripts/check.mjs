@@ -206,6 +206,19 @@ console.log(`      transportes .................... ${eur(legS('').eur)}`);
 console.log(`      burocracia inteira ............. ${brl(emBrl(bookS('')))}`);
 console.log(`      hospedagens com endereco ....... ${marcadas.filter((o) => (o.address ?? '').trim()).length}/7`);
 console.log(`      opcoes marcadas ................ ${marcadas.length}/7 bases`);
+// "Cidades visitadas" — o numero do topo do Painel desde 09/09. A conta esta
+// em calc.ts (`cidadesVisitadas`) e sai da ATRACAO, nao da base do dia: ele
+// dorme em 7 cidades e passa por umas 15. Aqui ela e refeita a mao, de
+// proposito — se as duas discordarem, uma das duas esta errada.
+const porCidadeVis = new Map();
+for (const a of noRoteiro) {
+  const c = porCidadeVis.get(a.city) ?? { n: 0, feitas: 0 };
+  c.n += 1;
+  if (a.done) c.feitas += 1;
+  porCidadeVis.set(a.city, c);
+}
+const visitadas = [...porCidadeVis.values()].filter((c) => c.feitas >= Math.ceil(c.n / 2)).length;
+console.log(`      cidades visitadas .............. ${visitadas} de ${porCidadeVis.size}`);
 console.log(`      cidades que ele criou .......... ${cidades.length}${cidades.length ? ' (' + cidades.map((c) => c.n).join(', ') + ')' : ''}`);
 console.log(`      trechos comprados .............. ${leg.filter((l) => l.bought).length}/12`);
 console.log(`      bases: ${bases.map((b) => `${b.base} (${b.d}d/${b.nt}n)`).join(' · ')}`);

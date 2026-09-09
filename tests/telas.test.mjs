@@ -727,3 +727,79 @@ test('atracao registrada no dia nasce com cidade, dia e posicao', () => {
   assert.ok(src.indexOf("insert('city'") < i,
     'a cidade nova tem que ser criada antes da atracao que aponta para ela');
 });
+
+// ============================================================
+// A LIMPEZA DE TELA DE 09/09 — os guards das decisoes dele.
+//
+// Sao decisoes, nao bugs: nenhuma delas quebra nada se voltar, e e
+// exatamente por isso que precisam de guard. Um texto meu que renasce numa
+// tela dele passa despercebido por semanas.
+// ============================================================
+
+test('nenhuma tela abre com paragrafo meu embaixo do titulo', () => {
+  // Pedido dele em 09/09, olhando a lista: as frases grandes de abertura
+  // ("Os dias estao em branco de proposito...", "Roteiro fechado em
+  // 04/09...") saem de TODAS as abas. Serviram na primeira semana; hoje sao
+  // um paragrafo que ele rola por cima todo dia. A aba abre no conteudo.
+  const culpadas = [];
+  for (const rel of arquivosDeTela()) {
+    const src = readFileSync(join(RAIZ, rel), 'utf8');
+    const m = src.match(/<div className="panelhead">[\s\S]*?<\/div>/);
+    if (m && /<p[\s>]/.test(m[0])) culpadas.push(rel);
+  }
+  assert.deepEqual(culpadas, [],
+    `paragrafo de volta no cabecalho de: ${culpadas.join(', ')}`);
+});
+
+test('a tabela 1 do Painel tem TRES numeros, e nenhuma frase miuda', () => {
+  // Ele listou tres itens onde havia quatro, e escolheu "so os tres, mais
+  // largos" quando perguntei do lugar vago. O <small> embaixo de cada
+  // numero foi o primeiro item da lista de 08/09: "Remover as frases abaixo
+  // dos dados".
+  const src = readFileSync(join(RAIZ, 'src/screens/Painel.tsx'), 'utf8');
+  const kpi = src.match(/<div className="kpi">[\s\S]*?\n      <\/div>/);
+  assert.ok(kpi, 'nao achei o bloco .kpi no Painel');
+
+  const quantos = (kpi[0].match(/^        <div>$/gm) ?? []).length;
+  assert.equal(quantos, 3, `a .kpi do Painel tem ${quantos} numeros, e sao tres`);
+  assert.doesNotMatch(kpi[0], /<small>/, 'a frase miuda embaixo do numero nao volta');
+
+  // O terceiro e o que ele pediu, e sai da atracao — nao da base do dia.
+  assert.match(kpi[0], /cidades visitadas/);
+  assert.match(kpi[0], /cidadesVisitadas/);
+});
+
+test('"Decisoes de roteiro" nao existe mais em lugar nenhum', () => {
+  // "Deixa de existir, isso eu que mando" (08/09). Eram cinco conselhos
+  // meus num cartao ocre do Painel, e a constante DECISOES em src/content.
+  for (const rel of [...arquivosDeTela(), 'src/content/index.ts']) {
+    const src = readFileSync(join(RAIZ, rel), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    assert.doesNotMatch(src, /DECISOES/, `DECISOES voltou em ${rel}`);
+    assert.doesNotMatch(src, /Decisões de roteiro/, `o cartao voltou em ${rel}`);
+  }
+});
+
+test('a legenda do Roteiro nao tem contador escrito', () => {
+  // "So os icones; as escritas pode tirar" (08/09), e depois: "emoji e uma
+  // palavra bem como esta hoje". Ficam os dois simbolos e a fita de emojis.
+  const src = readFileSync(join(RAIZ, 'src/screens/Roteiro.tsx'), 'utf8');
+  const leg = src.match(/<div className="calleg">[\s\S]*?<\/div>/);
+  assert.ok(leg, 'nao achei a .calleg');
+  assert.doesNotMatch(leg[0], /\{/,
+    'a legenda voltou a calcular algo: ela e texto fixo com dois simbolos');
+  assert.doesNotMatch(src, /className="atsum"/,
+    'o rodape "10 blocos · 34 dias com base de 34" nao volta ao Roteiro');
+});
+
+test('o apagar da cidade nao e destacado', () => {
+  // "ela nao pode aparecer 'apagar esta cidade' assim destacado, nao importa
+  // se ela e criada depois ou se ja veio com o sistema, elas tem que ser
+  // padrao" (08/09). Era --rust e sublinhado. A lixeira em TODA cidade, com
+  // CONFIRMAR digitado, e o resto do pedido e ainda nao existe.
+  const css = readFileSync(join(RAIZ, 'src/app/identidade.css'), 'utf8');
+  const regra = css.match(/\.apagarcidade \{[\s\S]*?\}/);
+  assert.ok(regra, 'nao achei a regra .apagarcidade');
+  assert.doesNotMatch(regra[0], /--rust|--ochre|text-decoration:\s*underline/,
+    'o destaque voltou ao apagar da cidade');
+});

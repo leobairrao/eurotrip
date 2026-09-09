@@ -8,14 +8,38 @@ Se este arquivo e a [`ESPECIFICACAO.md`](ESPECIFICACAO.md) discordarem, a especi
 manda. Ela é a fonte; isto é o mapa.
 
 ---
-## 0. Onde eu parei — 08/09/2026
+## 0. Onde eu parei — 09/09/2026
 
-**O PRÓXIMO TRABALHO É A LISTA DELE**, em
+**O TRABALHO EM CURSO É A LISTA DELE**, em
 [`docs/2026-09-08-melhorias-do-leo.md`](docs/2026-09-08-melhorias-do-leo.md) — um PDF de
-cinco páginas que ele mandou no fim de 08/09, transcrito. **Nada dela começou.** Ele foi
-explícito sobre como usar: *"escrevi de uma forma que eu entendi, mas vamos debater muito
-para construir tudo que está aí"* — é intenção, não especificação, e é para ir aos poucos.
-Quatro itens de lá provavelmente pedem **SQL**, e ele é quem roda.
+cinco páginas que ele mandou no fim de 08/09, transcrito. Ele foi explícito sobre como
+usar: *"escrevi de uma forma que eu entendi, mas vamos debater muito para construir tudo
+que está aí"* — é intenção, não especificação, e é para ir aos poucos. Quatro itens de lá
+provavelmente pedem **SQL**, e ele é quem roda.
+
+**O BLOCO DE LIMPEZA DE TELA SAIU EM 09/09.** O que mudou está na tabela no alto da
+transcrição; em uma linha: as frases miúdas do Painel, o cartão *Decisões de roteiro*, o
+rodapé da tabela do roteiro, os cinco contadores da legenda, o bloco *"10 blocos · 34
+dias"*, o destaque do "apagar esta cidade" — e as **frases grandes de abertura das 11
+abas**, que ele mandou tirar na conversa. Nenhuma delas mexeu em dado, e há **seis guards**
+em `telas.test.mjs` para nenhuma voltar sozinha (todos sabotados).
+
+**O número novo é "Cidades visitadas", e a regra dele não é óbvia:** visitada = metade ou
+mais das atrações daquela cidade **que estão num dia** marcadas como feitas; o total são as
+cidades que têm atração num dia. Está em `cidadesVisitadas`, em `calc.ts`, e o `check.mjs`
+refaz a conta à mão de propósito — se as duas discordarem, uma está errada.
+**A conta NÃO sai da base do dia**, e é isso que se erra: ele *"dorme em 7 cidades mas
+passa por umas 15"*, e a base do dia só conhece as 7. A atração é a única linha do banco
+com cidade e dia ao mesmo tempo.
+
+**A coisa que ele nomeou e que ainda não existe:** *o app confunde "onde durmo" com "onde
+passo"*. Trier é *"um dos dias que estaremos hospedados em Metz"*, e hoje o dia só tem
+`base`. É a próxima conversa, e ela atravessa os itens do Roteiro da lista dele.
+
+**Meio-passo consciente em Atrações:** o "apagar esta cidade" perdeu o vermelho, mas o
+pedido inteiro dele é **lixeira em TODA cidade com `CONFIRMAR` digitado**, e isso ainda não
+existe. Falta porque apagar uma cidade **fixa** é decisão de dado: ela vem do arquivo de
+conteúdo e voltaria no F5.
 
 
 **A ETAPA 2 DO ROTEIRO ESTÁ NO AR.** Clicar num dia e apertar `editar` abre três cartões,
@@ -76,7 +100,7 @@ decisões tomadas durante a execução, com o que custa se cada uma estiver erra
 precisava acontecer antes da etapa 2 — o `DiaTags` sendo uma segunda implementação do dia —
 **foi resolvida em 07/09**.
 
-`npm test` **176/176** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+`npm test` **186/186** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro

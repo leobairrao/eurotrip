@@ -61,12 +61,6 @@ export default function Comidas() {
     <>
       <div className="panelhead">
         <h2>Comidas</h2>
-        <p>
-          <b>Um campo só para acrescentar</b>, logo abaixo: escreva o nome e escolha a
-          etiqueta. <b>Pratos</b> é lista de desejo — coisa típica que você quer provar em
-          algum momento, sem dia marcado. <b>Restaurantes</b> e <b>cafés</b> são lugares, e
-          esses aparecem no Roteiro para você encaixar num dia.
-        </p>
       </div>
 
       {/* ---- sub-abas por pais: a contagem e o total do pais ---- */}

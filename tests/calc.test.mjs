@@ -1062,3 +1062,106 @@ test('"dele" NAO e "fora do roteiro" — por num dia nao tira da lista dele', ()
   assert.equal(C.attrCountCountry(s, 'pt', 'dele'), antes + 1, 'adotada num dia vira dele');
   assert.equal(C.attrCountCountry(s, 'pt', 'pesquisa'), pAntes - 1, 'e sai da pesquisa');
 });
+
+// ============================================================
+// "Cidades visitadas" — o terceiro numero do topo do Painel (09/09/2026).
+//
+// Ele pediu: "vai dando check conforme vou dando check no roteiro", e
+// depois apontou o furo da primeira ideia: "em roteiro so tem as cidades
+// que vou dormir, por exemplo, metz vou dormir mas de la vou pra
+// estrasburgo, luxemburgo e colonia" — "vou dormir em 7 mas passar por
+// umas 15".
+//
+// Por isso a conta NAO sai da base do dia. Sai da ATRACAO, que e a unica
+// coisa no banco que carrega cidade e dia ao mesmo tempo: comida guarda
+// pais, transporte nao guarda lugar nenhum. Uma atracao de Trier num dia
+// com base em Metz e o que diz "neste dia eu estive em Trier".
+//
+// A regra dele, em duas linhas:
+//   visitada  = metade ou mais das atracoes DAQUELA CIDADE que estao num
+//               dia do roteiro marcadas como feitas;
+//   o total   = as cidades que tem atracao num dia, ou seja as que ele se
+//               propos a visitar. Nao as 11 fixas, nao as 7 bases.
+// ============================================================
+
+/** Uma atracao pronta para a conta, sem repetir os dez campos toda vez. */
+function atr(city, extra = {}) {
+  return {
+    id: `x-${city}-${Math.random().toString(36).slice(2)}`,
+    city, name: 'algo', price_eur: 0, note: '',
+    status: 'escolhida', kind: 'passeio', day_iso: null,
+    paid: false, seed_id: null, day_pos: 0, done: false,
+    ...extra,
+  };
+}
+
+test('cidades visitadas: metade das atracoes DO DIA feitas, e a cidade conta', () => {
+  const s = structuredClone(S);
+  s.attractions = [
+    // Metz: 2 no roteiro, 1 feita -> metade, visitada.
+    atr('metz', { day_iso: '2026-12-19', done: true }),
+    atr('metz', { day_iso: '2026-12-20' }),
+    // Estrasburgo: 3 no roteiro, 1 feita -> falta uma, ainda nao visitada.
+    atr('estrasburgo', { day_iso: '2026-12-20', done: true }),
+    atr('estrasburgo', { day_iso: '2026-12-20' }),
+    atr('estrasburgo', { day_iso: '2026-12-20' }),
+    // Trier: 1 no roteiro, nenhuma feita -> entra no total, nao no feito.
+    atr('trier', { day_iso: '2026-12-21' }),
+  ];
+
+  assert.deepEqual(C.cidadesVisitadas(s), { feitas: 1, total: 3 });
+
+  // A segunda de Estrasburgo fecha a metade de 3.
+  s.attractions[3].done = true;
+  assert.deepEqual(C.cidadesVisitadas(s), { feitas: 2, total: 3 });
+});
+
+test('cidades visitadas: TRIER conta igual a METZ, e e o ponto do numero', () => {
+  // Trier e Estrasburgo nunca sao base de dia nenhum — sao bate-volta de
+  // Metz. Se a conta saisse de `s.days[iso].base`, as duas seriam invisiveis
+  // e o numero prometeria 7 cidades numa viagem de umas 15. Este teste falha
+  // no minuto em que alguem trocar a atracao pela base.
+  const s = structuredClone(S);
+  s.attractions = [atr('trier', { day_iso: '2026-12-21', done: true })];
+
+  const bases = new Set(Object.values(s.days).map((d) => (d.base ?? '').toLowerCase()));
+  assert.ok(!bases.has('trier'), 'Trier nao e base de nenhum dia, e e de proposito');
+  assert.deepEqual(C.cidadesVisitadas(s), { feitas: 1, total: 1 });
+});
+
+test('cidades visitadas: o backlog nao entra, nem no total', () => {
+  // A decisao dele: "so as que estao num dia de roteiro, afinal sao as que
+  // vou me propor a visitar". Sem isto, registrar 10 atracoes em Madrid e
+  // por 4 no roteiro deixaria Madrid presa em 40% para sempre.
+  const s = structuredClone(S);
+  s.attractions = [
+    atr('madrid', { day_iso: '2026-12-16', done: true }),
+    atr('madrid', { day_iso: '2026-12-17', done: true }),
+    atr('madrid'),
+    atr('madrid'),
+    atr('madrid'),
+    // Lisboa so tem backlog: nao e cidade que ele se propos a visitar ainda.
+    atr('lisboa'),
+    // ... nem quando a linha do backlog esta marcada como feita.
+    atr('lisboa', { done: true }),
+  ];
+
+  assert.deepEqual(C.cidadesVisitadas(s), { feitas: 1, total: 1 });
+});
+
+test('cidades visitadas: a fixture inteira da zero, porque nada tem dia', () => {
+  assert.deepEqual(C.cidadesVisitadas(S), { feitas: 0, total: 0 });
+});
+
+test('cidades visitadas: FEITO nao e PAGO — comprar o ingresso nao visita a cidade', () => {
+  // Os tres campos moram na mesma linha e querem dizer coisas diferentes:
+  // `done` = "eu fiz", `paid`/`bought` = "eu paguei". Trocar um pelo outro
+  // aqui faria Roma contar como visitada em outubro, quando ele comprar o
+  // ingresso do Coliseu de casa. Descoberto sabotando, 09/09.
+  const s = structuredClone(S);
+  s.attractions = [atr('roma', { day_iso: '2027-01-02', paid: true })];
+  assert.deepEqual(C.cidadesVisitadas(s), { feitas: 0, total: 1 });
+
+  s.attractions[0].done = true;
+  assert.deepEqual(C.cidadesVisitadas(s), { feitas: 1, total: 1 });
+});

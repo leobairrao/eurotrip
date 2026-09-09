@@ -29,12 +29,6 @@ export default function Transporte() {
     <>
       <div className="panelhead">
         <h2>Transporte</h2>
-        <p>
-          Os trens e os voos internos, cada um com o seu tipo.{' '}
-          <b>Marque comprado quando pagar</b> — o valor sai de &quot;previsto&quot; e entra no
-          total já pago. E todo trecho pode ir para um dia do Roteiro, do mesmo jeito que as
-          atrações e os restaurantes.
-        </p>
       </div>
 
       {/* ---- os quatro numeros ---- */}

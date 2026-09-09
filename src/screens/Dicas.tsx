@@ -38,12 +38,6 @@ export default function Dicas() {
     <>
       <div className="panelhead">
         <h2>Dicas</h2>
-        <p>
-          <b>As suas dicas</b>, escritas no campo aqui embaixo: escolha se ela vale para um
-          país ou para <b>a viagem inteira</b>. As que eu pesquisei estão na aba
-          <b> Sugestões</b>, e o + de lá traz a que interessar. <b>Nada disto entra em conta
-          nenhuma</b> — é recado, não dinheiro.
-        </p>
       </div>
 
       <Acrescentar />

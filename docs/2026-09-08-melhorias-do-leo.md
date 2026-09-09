@@ -19,7 +19,43 @@ Três coisas saem daí, e valem para quem ler:
 2. **A lista não está fechada** — "ainda tem muitas outras".
 3. **Aos poucos.** Não é para atacar tudo de uma vez.
 
-**Nada disto começou.** As perguntas em aberto que eu já enxergo estão marcadas
+**O QUE JÁ SAIU, em 09/09/2026** — o bloco de limpeza de tela, que era a ordem
+que eu sugeri e ele aprovou (*"comece por onde achar melhor"*):
+
+| Item | Onde ele pediu |
+|---|---|
+| as frases miúdas embaixo dos quatro números do Painel | Tabela 1 |
+| a Tabela 1 com **três** números, e o terceiro é **Cidades visitadas** | Tabela 1 |
+| o texto *"A tabela sai do calendário…"* | Tabela "roteiro" |
+| o cartão **Decisões de roteiro**, e a constante `DECISOES` | Tabela 5 |
+| os cinco contadores escritos da legenda do Roteiro | Aba Roteiro |
+| o bloco *"10 blocos · 34 dias com base de 34"* | Aba Roteiro |
+| o **destaque** do "apagar esta cidade" | Aba Atrações |
+| **e uma que ele acrescentou na conversa:** as frases GRANDES de abertura das 11 abas | — |
+
+**Cidades visitadas, a regra que ele deu na conversa de 09/09** — e ela é a coisa
+mais importante desta seção, porque ele reformulou o pedido:
+
+> *"quando o roteiro tiver pronto e eu visitar a cidade, eu assinalar que visitei
+> 50% dos itens da lista da cidade, mas tem um problema, em roteiro só tem as
+> cidades que vou dormir, por exemplo, metz vou dormir mas de lá vou pra
+> estrasburgo, luxemburgo e colônia, assim não vai funcionar, vamos ter que
+> repensar na lógica"* · *"vou dormir em 7 mas passar por umas 15"*
+
+A conta **não sai da base do dia**: sai da **atração**, a única linha do banco com
+cidade e dia ao mesmo tempo (comida guarda país; transporte não guarda lugar).
+Visitada = **metade ou mais** das atrações daquela cidade **que estão num dia**
+marcadas como feitas. O total são as cidades **que têm atração num dia** — decisão
+dele: *"só as que estão num dia de roteiro, afinal são as que vou me propor a
+visitar"*. Está em `cidadesVisitadas`, em `src/lib/calc.ts`, com cinco testes e o
+número espelhado no `npm run check`.
+
+**O que ele nomeou e ainda não existe: o app confunde "onde durmo" com "onde
+passo".** Trier entra como *"um dos dias que estaremos hospedados em Metz"*. Hoje o
+dia só tem `base`. É a próxima conversa, e ela atravessa os itens do Roteiro desta
+mesma lista.
+
+**O resto não começou.** As perguntas em aberto que eu já enxergo estão marcadas
 como **[a debater]** — são minhas, não dele.
 
 ---

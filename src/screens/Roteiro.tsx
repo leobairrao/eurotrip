@@ -30,11 +30,7 @@ export default function Roteiro() {
   const { selDay, irParaDia, editando, setEditando } = useUi();
 
   const bl = C.blocks(s);
-  const fd = C.filledDays(s);
   const idx = selDay ? ISOS.indexOf(selDay) : -1;
-
-  const comeu = C.foodPlaced(s);
-  const trPl = C.legPlaced(s);
 
   // Os dias que nao cairam em nenhum bloco: base em branco.
   const inBlock = new Set<string>();
@@ -42,19 +38,11 @@ export default function Roteiro() {
     for (let j = ISOS.indexOf(b.from); j <= ISOS.indexOf(b.to); j++) inBlock.add(ISOS[j]);
   }
   const loose = ISOS.filter((i) => !inBlock.has(i));
-  const tn = bl.reduce((a, b) => a + b.n, 0);
 
   return (
     <>
       <div className="panelhead">
         <h2>Roteiro</h2>
-        <p>
-          <b>Os dias estão em branco de propósito</b> — as bases estão postas, o que fazer é
-          você que escreve. Clique numa data para ver o dia: a nota, as atrações, o trem ou voo
-          e onde comer aparecem ali; o botão <b>editar</b> é onde você escreve ou marca isso.
-          Onde tem um fato duro (o corte das 20h do dia 24, as janelas grátis do Palacio Real)
-          eu deixei um aviso.
-        </p>
       </div>
 
       <div className="cal">
@@ -62,21 +50,19 @@ export default function Roteiro() {
         <Mes y={2027} m={0} label="janeiro 2027" />
       </div>
 
+      {/* ---- a legenda: SIMBOLO + UMA PALAVRA, e nada mais (09/09) ----
+          Ela tinha mais cinco vaos escritos — "0 de 34 planejados", "31
+          noites em 8 bases", "2 dias so de voo", "x de y atracoes com dia" e
+          dois condicionais. Ele pediu na lista de 08/09: "Organizar a
+          legenda. So os icones; as escritas pode tirar". Perguntado do que
+          sobrava, respondeu "emoji e uma palavra bem como esta hoje" — ou
+          seja, estes dois e a fita de emojis logo abaixo ficam como estao.
+
+          Nada se perde de vista: "31 noites em 8 bases" continua na tabela
+          do roteiro, no Painel. ---- */}
       <div className="calleg">
         <span><i /> dia com plano</span>
         <span><i className="nt" /> tem aviso meu</span>
-        <span>{fd} de {ISOS.length} planejados</span>
-        <span>{C.nightsAll(s)} noites em {C.baseList(s).length} bases</span>
-        <span>{C.flyDays(s)} dias só de voo</span>
-        <span>{C.attrPlaced(s)} de {C.attrCount(s)} atrações com dia</span>
-        {comeu ? (
-          <span>
-            {comeu} lugar{comeu > 1 ? 'es' : ''} de comer marcado{comeu > 1 ? 's' : ''}
-          </span>
-        ) : null}
-        {trPl ? (
-          <span>{trPl} trecho{trPl > 1 ? 's' : ''} de transporte com dia</span>
-        ) : null}
       </div>
 
       <div className="emoleg">
@@ -168,11 +154,6 @@ export default function Roteiro() {
               </div>
             </div>
           ) : null}
-
-          <div className="atsum">
-            {bl.length}{bl.length === 1 ? ' bloco' : ' blocos'} · <b>{tn} dias</b> com base de{' '}
-            {ISOS.length}{loose.length ? ` · ${loose.length} ainda sem base` : ''}
-          </div>
         </>
       )}
     </>
