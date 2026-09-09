@@ -263,7 +263,14 @@ function DiaLinha({ iso }: { iso: string }) {
             Dois lugares editando a mesma coisa foi o problema do DiaTags
             em 07/09. */}
         {base ? (
-          <div className="dcama">🛏️ durmo em <b>{base}</b></div>
+          <div className="dcama">
+            {/* "durmo em em trânsito" era o que saia nos dois dias de voo
+                (achado na producao, 09/09): o `base` DELES ja e "em
+                trânsito", e nesses dias ele dorme no aviao — "durmo em" nao
+                era so feio, era falso. `ehTransito` e a MESMA regra que
+                `baseList` usa para nao contar noite ali. */}
+            {C.ehTransito(base) ? <>🛏️ <b>{base}</b></> : <>🛏️ durmo em <b>{base}</b></>}
+          </div>
         ) : null}
         {(() => {
           const { feitas, total } = D.feitasDoDia(s, iso);

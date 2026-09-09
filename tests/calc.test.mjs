@@ -1638,3 +1638,26 @@ test('as cidades que o BLOCO passa: as dos dias dele, sem a base', () => {
   assert.ok(metz, 'o bloco de Metz existe na fixture');
   assert.deepEqual(C.cidadesDoBloco(s, metz), ['Estrasburgo', 'Luxemburgo', 'Trier']);
 });
+
+test('a base de VOO nao le "durmo em em transito"', () => {
+  // Achado na PRODUCAO, 09/09: a linha da cama saiu "durmo em em trânsito".
+  // A base dos dois dias de voo e o texto "em trânsito", e o prefixo "durmo
+  // em" duplica o "em". Pior que a repeticao: nesses dias ele dorme no
+  // aviao, entao "durmo em" e falso, nao so feio.
+  assert.equal(C.ehTransito('em trânsito'), true);
+  assert.equal(C.ehTransito('em transito'), true, 'sem acento tambem');
+  assert.equal(C.ehTransito('no ar'), true);
+  assert.equal(C.ehTransito('voando'), true);
+  assert.equal(C.ehTransito('Metz'), false);
+  assert.equal(C.ehTransito(''), false);
+
+  // A MESMA REGRA que `baseList` usa para nao contar noite nesses dias. Se
+  // as duas divergirem, um dia vai aparecer como cama numa tela e como voo
+  // na conta das noites — e a fixture tem exatamente estes dois dias.
+  const s = structuredClone(S);
+  const transito = Object.values(s.days).filter((d) => C.ehTransito(d.base));
+  assert.equal(transito.length, 2, 'a viagem tem dois dias de voo');
+  for (const d of transito)
+    assert.ok(!C.baseList(s).some((b) => b.base === d.base),
+      `${d.base} nao pode virar base na conta das noites`);
+});

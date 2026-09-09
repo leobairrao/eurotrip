@@ -106,7 +106,9 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
             que nenhuma hospedagem cobre. */}
         {base ? (
           <div className="dvcama">
-            🛏️ durmo em <b>{base}</b>
+            {/* ver a nota em Roteiro.tsx: nos dias de voo nao se escreve
+                "durmo em", e a regra e a mesma de `baseList`. */}
+            {C.ehTransito(base) ? <>🛏️ <b>{base}</b></> : <>🛏️ durmo em <b>{base}</b></>}
             {hosp ? <span className="dvcs">{hosp.name}</span> : null}
           </div>
         ) : null}

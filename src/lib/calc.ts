@@ -34,10 +34,25 @@ export interface Base { base: string; d: number; nt: number }
  * dorme no aviao na ultima noite, porque o voo de volta sai 23h35.
  * Regra 5.1 — nunca escreva "31 + 2 = 34".
  */
+/**
+ * A base que NAO e uma cama: os dois dias de voo, cujo `day.base` e o texto
+ * "em trânsito".
+ *
+ * UMA REGRA, DOIS USOS, e e de proposito: `baseList` nao conta noite nesses
+ * dias, e a linha da cama no Roteiro nao escreve "durmo em" neles. Com duas
+ * copias do regex, um dia poderia aparecer como cama numa tela e como voo
+ * na conta das noites.
+ *
+ * Nasceu de um achado na PRODUCAO em 09/09: a linha saiu "durmo em em
+ * trânsito" — o prefixo duplicava o "em", e pior, ele dorme no aviao nesses
+ * dias, entao "durmo em" era falso.
+ */
+export const ehTransito = (base: string) => /tr[âa]nsito|no ar|voando/i.test(base ?? '');
+
 export function baseList(s: Snapshot): Base[] {
   const out: Base[] = [];
   for (const b of blocks(s)) {
-    if (/tr[âa]nsito|no ar|voando/i.test(b.base)) continue;
+    if (ehTransito(b.base)) continue;
     out.push({ base: b.base, d: b.n, nt: b.n });
   }
   if (out.length > 1) out[out.length - 1].nt = Math.max(0, out[out.length - 1].d - 1);

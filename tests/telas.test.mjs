@@ -985,3 +985,21 @@ test('o cartao do dia avisa quando a base vem da hospedagem', () => {
   assert.match(src, /C\.hospedagemDoDia\(s, iso\)/);
   assert.match(src, /vem da hospedagem/);
 });
+
+test('a linha da cama nao escreve "durmo em" nos dias de voo', () => {
+  // Achado na producao, 09/09: saia "durmo em em trânsito". As duas telas
+  // tem que passar por `C.ehTransito`, que e a MESMA regra que `baseList`
+  // usa para nao contar noite nesses dias.
+  for (const rel of ['src/screens/Roteiro.tsx', 'src/screens/roteiro/Vista.tsx']) {
+    const src = readFileSync(join(RAIZ, rel), 'utf8');
+    const i = src.search(/className="dv?cama"/);
+    assert.ok(i > 0, `${rel}: a linha da cama desapareceu`);
+    const bloco = src.slice(i, i + 700);
+    assert.match(bloco, /C\.ehTransito\(base\)/,
+      `${rel}: a linha voltou a escrever "durmo em" em todo dia`);
+  }
+  // e a regra vive em UM lugar so
+  const calc = readFileSync(join(RAIZ, 'src/lib/calc.ts'), 'utf8');
+  const copias = (calc.match(/tr\[âa\]nsito/g) ?? []).length;
+  assert.equal(copias, 1, `o regex de transito tem ${copias} copias em calc.ts, e e uma so`);
+});
