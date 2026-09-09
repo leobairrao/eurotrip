@@ -42,8 +42,9 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
   const { eur: te, brl: tb } = D.totalDoDia(s, iso);
   const { feitas, total } = D.feitasDoDia(s, iso);
   const d = s.days[iso];
-  const base = (d?.base ?? '').trim();
-  const plano = (d?.plan ?? '').trim();
+  /** O PLANO dele (`day.base`) — nao e cama e nao manda em nada. */
+  const plano = (d?.base ?? '').trim();
+  const texto = (d?.plan ?? '').trim();
   const passa = C.cidadesDoDia(s, iso);
   const hosp = C.hospedagemDoDia(s, iso);
 
@@ -67,7 +68,7 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
             a regra 1 do cabecalho desta tela vale tambem para o Avisos */}
         <Avisos spot={`roteiro:${iso}`} rotulo="aviso do dia" somenteLeitura />
 
-        {plano ? <Inline html={marcado(plano)} className="dvplano" /> : null}
+        {texto ? <Inline html={marcado(texto)} className="dvplano" /> : null}
 
         {!itens.length ? (
           <div className="empty">
@@ -104,14 +105,21 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
             hospedagem marcada (a opcao com check-in e check-out que cobre
             este dia), e o campo do cartao do dia e o que sobra para os dias
             que nenhuma hospedagem cobre. */}
-        {base ? (
+        {/* A CAMA VEM DA RESERVA (09/09, tarde). Sem airbnb marcado, o dia
+            diz que a hospedagem nao esta definida — aqui o aviso vale por
+            dia porque esta tela mostra UM dia, e nao 34. */}
+        {hosp ? (
           <div className="dvcama">
-            {/* ver a nota em Roteiro.tsx: nos dias de voo nao se escreve
-                "durmo em", e a regra e a mesma de `baseList`. */}
-            {C.ehTransito(base) ? <>🛏️ <b>{base}</b></> : <>🛏️ durmo em <b>{base}</b></>}
-            {hosp ? <span className="dvcs">{hosp.name}</span> : null}
+            🛏️ durmo em <b>{C.nomeCidade(s, hosp.city)}</b>
+            <span className="dvcs">{hosp.name}</span>
           </div>
-        ) : null}
+        ) : (
+          <div className="dvsemcama">
+            🛏️ hospedagem não definida
+            {plano && !C.ehTransito(plano) ? <span className="dvcs">plano: {plano}</span> : null}
+            {plano && C.ehTransito(plano) ? <span className="dvcs">{plano}</span> : null}
+          </div>
+        )}
 
         <div className="atsum">
           {te || tb ? (

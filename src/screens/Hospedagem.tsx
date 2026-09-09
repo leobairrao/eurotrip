@@ -120,7 +120,9 @@ export default function Hospedagem() {
 function Base({ city, cc }: { city: string; cc: string }) {
   const { s } = useApp();
   const opcoes = C.staysOf(s, city);
-  const marcada = C.stayChosen(s, city);
+  // TODAS as marcadas: ele dorme em Madrid duas vezes, e "fechou: X" com
+  // uma so escondia a outra.
+  const marcadas = C.stayChosenAll(s, city);
 
   return (
     <div className="card" style={{ ['--cc' as string]: `var(${cc})` }}>
@@ -128,7 +130,9 @@ function Base({ city, cc }: { city: string; cc: string }) {
         <h3>{C.nomeCidade(s, city)}</h3>
         <div className="m">
           {opcoes.length} {opcoes.length === 1 ? 'opção' : 'opções'}
-          {marcada ? ` · fechou: ${marcada.name}` : ' · nenhuma marcada ainda'}
+          {marcadas.length
+            ? ` · fechou: ${marcadas.map((x) => x.name).join(' e ')}`
+            : ' · nenhuma marcada ainda'}
         </div>
       </div>
       <div className="b">
@@ -146,11 +150,12 @@ function Base({ city, cc }: { city: string; cc: string }) {
                 €0 e "0/7 bases" e a proxima pergunta dele — e a tela nao teria
                 resposta nenhuma. O cabecalho diz "nenhuma marcada ainda", mas
                 em cinza, longe do dinheiro, e sem dizer o que isso CUSTA. */}
-            {marcada ? null : (
+            {marcadas.length ? null : (
               <div className="empty">
                 Nenhuma destas está marcada — por isso {C.nomeCidade(s, city)} ainda soma
-                <b> €0</b> no total da viagem, e não entra na conta de bases lá em cima.
-                Clique em <b>é esta</b> na opção que você fechou.
+                <b> €0</b> no total da viagem, <b>não tem bloco no Roteiro</b> e os dias dela
+                aparecem lá como <b>hospedagem não definida</b>. Clique em <b>é esta</b> na
+                opção que você fechou, com check-in e check-out.
               </div>
             )}
             <div className="mt">
@@ -194,54 +199,45 @@ function Opcao({ o }: { o: StayOption }) {
   const [recusa, setRecusa] = useState('');
 
   /**
-   * MARCAR ESCREVE A BASE DOS DIAS (09/09/2026). Ideia dele: "quando eu
-   * selecionar um (com uma checkbox de escolhido na aba hospedagens) ele
-   * vai pegar a data e automaticamente vai incluir no roteiro".
+   * MARCAR "E ESTA" E O QUE PoE O DIA NO ROTEIRO (09/09/2026).
    *
-   * Tres decisoes dele, e as tres estao aqui:
+   * Ideia dele: "quando eu selecionar um (com uma checkbox de escolhido na
+   * aba hospedagens) ele vai pegar a data e automaticamente vai incluir no
+   * roteiro... e ele que vai definir, a partir da data de checkin e
+   * checkout, a juncao dos blocos".
    *
-   *  - DESMARCAR LIMPA os dias daquela opcao: "se eu desmarcar um airbnb o
-   *    roteiro fica sem base, ate que eu marque outro". Limpa SO a faixa
-   *    dela — dia que nenhuma hospedagem cobriu continua com o que tem,
-   *    senao o Roteiro inteiro esvaziaria hoje, que e o estado com zero
-   *    marcadas.
-   *  - DATAS QUE BATEM: "o app recusa e avisa". Um erro de digitacao na
-   *    data mudaria a base de dias de outra cidade sem ele notar.
-   *  - Marcar uma DESMARCA a anterior da mesma cidade, como antes — e agora
-   *    limpa os dias dela antes de escrever os novos.
+   * NAO ESCREVE NADA EM `day.base`, e isso e de proposito. A primeira
+   * versao desta funcao escrevia a base dos dias; ele olhou a tela e viu o
+   * app afirmando onde ele dorme numa cidade que ele nao havia escolhido.
+   * Agora o bloco do Roteiro SAI DAQUI (`C.estadias`), e nao ha copia para
+   * ficar velha: desmarcar faz os dias voltarem a "hospedagem nao
+   * definida" no mesmo instante, sem apagar nada.
+   *
+   * DUAS MARCADAS NA MESMA CIDADE PODEM, desde 09/09: ele dorme em Madrid
+   * duas vezes. O que nao pode e SOBREPOR datas — e essa e a recusa que
+   * ele pediu ("o app recusa e avisa").
    */
   const marcar = () => {
     setRecusa('');
 
-    if (o.chosen) {
-      for (const iso of C.diasDaOpcao(o)) now('day', iso, 'base', '');
-      now('stay_option', o.id, 'chosen', false);
-      return;
-    }
+    if (o.chosen) { now('stay_option', o.id, 'chosen', false); return; }
 
     const dias = C.diasDaOpcao(o);
     if (!dias.length) {
-      setRecusa('ponha o check-in e o check-out primeiro — é deles que sai a base dos dias no Roteiro');
+      setRecusa('ponha o check-in e o check-out primeiro — é deles que sai o bloco no Roteiro');
       return;
     }
 
-    // A anterior DESTA cidade nao bloqueia: ela esta sendo substituida. Duas
-    // marcadas na mesma cidade nao existem no app, entao filtrar por cidade
-    // acerta o caso e nao esconde nenhum outro.
-    const batem = C.opcoesQueBatem(s, o).filter((x) => x.city !== o.city);
+    const batem = C.opcoesQueBatem(s, o);
     if (batem.length) {
-      const onde = [...new Set(batem.map((x) => C.nomeCidade(s, x.city)))].join(' e ');
-      setRecusa(`estes dias já são de ${onde} — desmarque lá primeiro, ou corrija as datas aqui`);
+      const onde = batem
+        .map((x) => `${x.name} (${C.nomeCidade(s, x.city)})`)
+        .join(' e ');
+      setRecusa(`estes dias já são de ${onde} — desmarque essa primeiro, ou corrija as datas aqui`);
       return;
     }
 
-    const antiga = C.stayChosen(s, o.city);
-    if (antiga && antiga.id !== o.id) {
-      for (const iso of C.diasDaOpcao(antiga)) now('day', iso, 'base', '');
-      now('stay_option', antiga.id, 'chosen', false);
-    }
     now('stay_option', o.id, 'chosen', true);
-    for (const iso of dias) now('day', iso, 'base', C.nomeCidade(s, o.city));
   };
 
   return (

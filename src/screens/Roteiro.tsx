@@ -29,15 +29,9 @@ export default function Roteiro() {
   const { s } = useApp();
   const { selDay, irParaDia, editando, setEditando } = useUi();
 
-  const bl = C.blocks(s);
   const idx = selDay ? ISOS.indexOf(selDay) : -1;
 
-  // Os dias que nao cairam em nenhum bloco: base em branco.
-  const inBlock = new Set<string>();
-  for (const b of bl) {
-    for (let j = ISOS.indexOf(b.from); j <= ISOS.indexOf(b.to); j++) inBlock.add(ISOS[j]);
-  }
-  const loose = ISOS.filter((i) => !inBlock.has(i));
+  // Os dias soltos agora saem de `C.roteiroEmOrdem`, junto das estadias.
 
   return (
     <>
@@ -119,50 +113,78 @@ export default function Roteiro() {
         ) : (
           <Vista iso={selDay} onEditar={() => setEditando(selDay)} />
         )
-      ) : !bl.length && !loose.length ? (
-        <div className="empty">Nada no calendário.</div>
       ) : (
-        <>
-          {bl.map((bk) => (
-            <div key={`${bk.base}-${bk.from}`} className="card">
-              <div className="h">
-                <h3>{bk.base}</h3>
-                <div className="m">
-                  {shortDt(bk.from)} → {shortDt(bk.to)} · {bk.n}{bk.n > 1 ? ' dias' : ' dia'} ·
-                  {' '}clique num dia para ver o itinerário
-                </div>
-                {/* POR ONDE ELE PASSA saindo desta base (09/09). Pedido
-                    dele: a aba deixa de falar so das cidades de dormir.
-                    Sai das ATRACOES que ele pos nos dias — nao da minha
-                    sugestao de bate-volta, que e outro texto e vive na
-                    tabela do Painel. */}
-                <Passa cidades={C.cidadesDoBloco(s, bk)} />
-              </div>
-              <div className="b">
-                {ISOS.slice(ISOS.indexOf(bk.from), ISOS.indexOf(bk.to) + 1).map((iso) => (
-                  <DiaLinha key={iso} iso={iso} />
-                ))}
-              </div>
-            </div>
-          ))}
+        /* ---- O ROTEIRO DE CIMA PARA BAIXO (09/09, tarde) ----
+           Estadias reservadas e dias sem hospedagem, INTERCALADOS em ordem
+           de data. Antes daqui o agrupamento vinha de `day.base`, que era
+           SEMENTE MINHA: o app afirmava "durmo em Cáceres" numa cidade que
+           ele nao escolheu, e ele apontou isso na tela.
 
-          {loose.length ? (
-            <div className="card" style={{ ['--cc' as string]: 'var(--ochre)' }}>
-              <div className="h">
-                <h3>Dias sem base</h3>
-                <div className="m">
-                  {loose.length} de {ISOS.length} · escreva onde você dorme e eles entram num
-                  bloco
-                </div>
-              </div>
-              <div className="b">
-                {loose.map((iso) => <DiaLinha key={iso} iso={iso} />)}
-              </div>
-            </div>
-          ) : null}
-        </>
+           Agora o bloco e a RESERVA. Sem airbnb marcado sao dias soltos, e
+           e assim que ele quer: "cada dia por vez, isso me da liberdade
+           para mudancas de planos". */
+        C.roteiroEmOrdem(s).map((t) =>
+          t.tipo === 'estadia' ? (
+            <CartaoEstadia key={`e-${t.estadia.id}-${t.dias[0]}`} estadia={t.estadia} dias={t.dias} />
+          ) : (
+            <CartaoSemCama key={`s-${t.dias[0]}`} dias={t.dias} />
+          ),
+        )
       )}
     </>
+  );
+}
+
+/**
+ * UM BLOCO DE ESTADIA: o airbnb marcado, na cidade dele.
+ *
+ * O titulo e "Chamberí · Madrid" porque foi o que ele pediu — "o bloco pode
+ * ser sobre o airbnb em x cidade". As datas sao as da RESERVA, e as noites
+ * saem delas: nada aqui e plano.
+ */
+function CartaoEstadia({ estadia, dias }: { estadia: C.Estadia; dias: string[] }) {
+  const { s } = useApp();
+  return (
+    <div className="card">
+      <div className="h">
+        <h3>{estadia.nome} · {C.nomeCidade(s, estadia.city)}</h3>
+        <div className="m">
+          {shortDt(estadia.from)} → {shortDt(estadia.to)} ·{' '}
+          {estadia.n}{estadia.n > 1 ? ' noites' : ' noite'} ·{' '}
+          clique num dia para ver o itinerário
+        </div>
+        <Passa cidades={C.cidadesDoBloco(s, { from: estadia.from, to: estadia.to })} />
+      </div>
+      <div className="b">
+        {dias.map((iso) => <DiaLinha key={iso} iso={iso} />)}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * OS DIAS SEM HOSPEDAGEM DEFINIDA — e o aviso vermelho dele.
+ *
+ * O AVISO FICA UMA VEZ POR CARTAO, E NAO POR DIA, e isso e escolha: hoje
+ * nenhum dos 34 dias tem airbnb marcado, entao um aviso por linha seriam
+ * 34 blocos vermelhos e a tela viraria ruido. O cartao E o grupo de dias
+ * sem cama, e por isso o vermelho pertence a ele.
+ */
+function CartaoSemCama({ dias }: { dias: string[] }) {
+  return (
+    <div className="card semcama" style={{ ['--cc' as string]: 'var(--rust)' }}>
+      <div className="h">
+        <h3>Hospedagem não definida</h3>
+        <div className="m">
+          {dias.length} de {ISOS.length} dias · {shortDt(dias[0])}
+          {dias.length > 1 ? ` → ${shortDt(dias[dias.length - 1])}` : ''} ·{' '}
+          marque um airbnb na aba <b>Hospedagem</b> e estes dias ganham uma cama
+        </div>
+      </div>
+      <div className="b">
+        {dias.map((iso) => <DiaLinha key={iso} iso={iso} />)}
+      </div>
+    </div>
   );
 }
 
@@ -229,10 +251,13 @@ function DiaLinha({ iso }: { iso: string }) {
   const { s } = useApp();
   const { irParaDia } = useUi();
   const d = s.days[iso];
-  const base = (d?.base ?? '').trim();
-  const plano = (d?.plan ?? '').trim();
+  /** O PLANO dele (`day.base`), que nao manda em nada. Ver calc 11.2. */
+  const plano = (d?.base ?? '').trim();
+  const texto = (d?.plan ?? '').trim();
   const av = C.alertaDoDia(s, iso);
   const passa = C.cidadesDoDia(s, iso);
+  /** A CAMA, e ela so existe se houver airbnb marcado cobrindo o dia. */
+  const hosp = C.hospedagemDoDia(s, iso);
 
   return (
     <div
@@ -251,8 +276,7 @@ function DiaLinha({ iso }: { iso: string }) {
             sendo a base, e cada dia diz por onde passa. Sem atracao no dia
             nao ha o que liderar, e a linha volta a ser a de antes. */}
         {passa.length ? <h4 className="dcid">{passa.join(' · ')}</h4> : null}
-        {base ? null : <h4>— sem base</h4>}
-        {plano
+        {texto
           ? <p>{d?.plan}</p>
           : <p style={{ color: 'var(--muted)' }}>clique para ver o dia</p>}
         <DiaTags iso={iso} />
@@ -262,14 +286,24 @@ function DiaLinha({ iso }: { iso: string }) {
             a hospedagem marcada, e o campo do cartao do dia e o que sobra.
             Dois lugares editando a mesma coisa foi o problema do DiaTags
             em 07/09. */}
-        {base ? (
+        {/* A CAMA VEM DA RESERVA, e so dela (09/09, tarde). O `day.base`
+            NAO entra aqui: ele e o PLANO dele, e o app dizendo "durmo em
+            Cáceres" por causa da minha semente foi exatamente a queixa.
+
+            Nos dias sem reserva nao ha aviso NESTA linha: o cartao que os
+            agrupa ja e vermelho e ja diz "hospedagem não definida". Um
+            aviso por dia seriam 34 hoje. */}
+        {hosp ? (
           <div className="dcama">
-            {/* "durmo em em trânsito" era o que saia nos dois dias de voo
-                (achado na producao, 09/09): o `base` DELES ja e "em
-                trânsito", e nesses dias ele dorme no aviao — "durmo em" nao
-                era so feio, era falso. `ehTransito` e a MESMA regra que
-                `baseList` usa para nao contar noite ali. */}
-            {C.ehTransito(base) ? <>🛏️ <b>{base}</b></> : <>🛏️ durmo em <b>{base}</b></>}
+            🛏️ durmo em <b>{C.nomeCidade(s, hosp.city)}</b>
+            <span className="dcs">{hosp.name}</span>
+          </div>
+        ) : plano ? (
+          /* O PLANO dele, discreto e nomeado: "so para eu escrever e me
+             localizar como um plano base". So aparece onde ajuda — nos dias
+             que ainda nao tem cama. */
+          <div className="dplano">
+            {C.ehTransito(plano) ? <>▸ {plano}</> : <>▸ plano: <b>{plano}</b></>}
           </div>
         ) : null}
         {(() => {

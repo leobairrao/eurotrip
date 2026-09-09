@@ -53,13 +53,17 @@ function CartaoDia({ iso }: { iso: string }) {
 
         <div className="form">
           <div className="fld">
-            <label>Onde eu durmo / qual é a base</label>
+            {/* ESTE CAMPO E O PLANO DELE, e nao a cama (09/09, tarde).
+                Pedido: "deve ter um campo livre so para eu escrever e me
+                localizar como um plano base". Ele nao decide bloco, noite,
+                custo nem nada — quem decide e o airbnb marcado. */}
+            <label>Meu plano para este dia — só para eu me localizar</label>
             <TextField
               fk={`day|${iso}|base`}
               value={d?.base ?? ''}
               onCommit={(v) => patch('day', iso, 'base', v)}
               placeholder="ex. Madrid"
-              aria-label="onde eu durmo neste dia"
+              aria-label="meu plano para este dia"
             />
             {/* DE ONDE VEM A BASE (09/09). Ideia dele: a hospedagem marcada
                 escreve a base dos dias entre o check-in e o check-out. O
@@ -71,10 +75,15 @@ function CartaoDia({ iso }: { iso: string }) {
                 muda só este dia, e remarcar a opção escreve por cima. */}
             {hosp ? (
               <span className="fdica">
-                vem da hospedagem <b>{hosp.name}</b>, marcada em{' '}
-                {C.nomeCidade(s, hosp.city)} — mudar aqui muda só este dia
+                você dorme em <b>{C.nomeCidade(s, hosp.city)}</b> neste dia — pela
+                hospedagem <b>{hosp.name}</b>, que você marcou. Este campo é só o seu plano
               </span>
-            ) : null}
+            ) : (
+              <span className="fdica">
+                sem hospedagem definida para este dia — marque <b>é esta</b> numa opção da
+                aba <b>Hospedagem</b>, com check-in e check-out
+              </span>
+            )}
           </div>
           <div className="fld">
             <label>O que fazer neste dia — suas palavras</label>

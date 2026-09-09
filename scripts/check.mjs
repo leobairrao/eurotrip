@@ -122,10 +122,33 @@ for (const iso of isos) {
   if (!b) { cur = null; continue; }
   if (cur && cur.base.toLowerCase() === b.toLowerCase()) { cur.n++; } else { cur = { base: b, n: 1 }; blocos.push(cur); }
 }
-const bases = blocos.filter((b) => !/tr[âa]nsito|no ar|voando/i.test(b.base)).map((b) => ({ ...b, d: b.n, nt: b.n }));
-if (bases.length > 1) bases[bases.length - 1].nt = Math.max(0, bases[bases.length - 1].d - 1);
-const noites = bases.reduce((a, b) => a + b.nt, 0);
-const emTerra = bases.reduce((a, b) => a + b.d, 0);
+// O PLANO dele (`day.base`), que desde 09/09 nao manda em nada: nem bloco,
+// nem noite, nem custo. Fica aqui como aceite do meu ARQUIVO de
+// planejamento — se as 8 bases ou os 32 dias mudarem, alguem mexeu no
+// conteudo e e para saber.
+const plano = blocos.filter((b) => !/tr[âa]nsito|no ar|voando/i.test(b.base));
+const diasDoPlano = plano.reduce((a, b) => a + b.n, 0);
+
+// AS ESTADIAS RESERVADAS — o que o Roteiro e a tabela do Painel mostram
+// agora. Refeitas a mao de proposito, como todo numero deste arquivo.
+const dataOk = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v ?? ''));
+const estadias = stayOpt
+  .filter((o) => o.chosen && dataOk(o.check_in) && dataOk(o.check_out))
+  .map((o) => ({
+    city: o.city,
+    nome: o.name,
+    dias: isos.filter((i) => i >= o.check_in && i < o.check_out),
+  }))
+  .filter((e) => e.dias.length > 0)
+  .sort((a, b) => (a.dias[0] < b.dias[0] ? -1 : 1));
+const noites = estadias.reduce((a, e) => a + e.dias.length, 0);
+
+// DIAS EM TERRA E DE VOO viraram fato de CALENDARIO em 09/09: eram
+// deduzidos da palavra "em trânsito" da minha semente, e com as bases
+// vindo da reserva zero reservas daria "os 34 dias sao de voo".
+const DIAS_DE_VOO = ['2026-12-10', '2027-01-12'];
+const deVoo = DIAS_DE_VOO.filter((d) => isos.includes(d)).length;
+const emTerra = isos.length - deVoo;
 
 console.log('\n  ================ NUMEROS DE ACEITE (secao 12.3) ================\n');
 // O QUE ELE MEXE NAO E ACEITE. Ate 06/09 este bloco cravava "0 no roteiro"
@@ -143,10 +166,18 @@ console.log(`       retrato de hoje: ${noRoteiro.length} atracoes num dia do rot
 
 console.log('\n  ================ O RESTO DO CHECKLIST (secao 15) ================\n');
 linha(days.length === 34, 'dias no banco', 34, days.length);
-linha(noites === 31, 'noites', 31, noites);
 linha(emTerra === 32, 'dias em terra', 32, emTerra);
-linha(isos.length - emTerra === 2, 'dias so de voo', 2, isos.length - emTerra);
-linha(bases.length === 8, 'bases (linhas da tabela do roteiro)', 8, bases.length);
+linha(deVoo === 2, 'dias so de voo', 2, deVoo);
+// O PLANO e o meu arquivo, e nao muda quando ele usa o app.
+linha(plano.length === 8, 'bases no MEU plano', 8, plano.length);
+linha(diasDoPlano === 32, 'dias em terra no MEU plano', 32, diasDoPlano);
+// AS RESERVAS sao dele, entao viram RETRATO e nao aceite: no dia em que
+// ele marcar o primeiro airbnb estes numeros mudam, e isso e o app
+// funcionando — nao bug. Foi a licao das atracoes em 06/09.
+console.log(`       retrato de hoje: ${estadias.length} estadia(s) reservada(s), ${noites} noite(s)`);
+if (estadias.length) {
+  console.log(`       ${estadias.map((e) => `${e.nome} (${e.city}, ${e.dias.length}n)`).join(' · ')}`);
+}
 linha(attraction.length >= 35, 'atracoes na lista DELE', '>= 35', attraction.length);
 // A PROVA DE QUE A MUDANCA DE 06/09 CONTINUA VALENDO: sugestao minha nao
 // mora mais na tabela dele. Se isto ficar vermelho, alguem religou um
@@ -253,7 +284,7 @@ console.log(`      comida com valor ............... ${food.filter((f) => num(f.p
 console.log(`      cidades visitadas .............. ${visitadas} de ${porCidadeVis.size}`);
 console.log(`      cidades que ele criou .......... ${cidades.length}${cidades.length ? ' (' + cidades.map((c) => c.n).join(', ') + ')' : ''}`);
 console.log(`      trechos comprados .............. ${leg.filter((l) => l.bought).length}/12`);
-console.log(`      bases: ${bases.map((b) => `${b.base} (${b.d}d/${b.nt}n)`).join(' · ')}`);
+console.log(`      o MEU plano: ${plano.map((b) => `${b.base} (${b.n}d)`).join(' · ')}`);
 console.log(`      rodape: ${emTerra} dias em terra + ${isos.length - emTerra} de voo = ${isos.length} dias de viagem`);
 
 console.log(

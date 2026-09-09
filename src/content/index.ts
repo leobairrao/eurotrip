@@ -179,6 +179,28 @@ export const TKORD: Record<string, number> = { trem: 0, aviao: 1, onibus: 2, car
 // ---------- as constantes de referencia (secao 11.9) ----------
 /** R$ 5.079,77 — o voo internacional, ja pago. */
 export const VOO = 5079.77;
+
+/**
+ * OS DOIS DIAS DE VOO — 09/09/2026, e eles sao FATO DO CALENDARIO.
+ *
+ * Antes disto o app DEDUZIA os dias de voo: `flyDays` era
+ * `34 - groundDays`, e `groundDays` vinha das bases do dia, pulando as que
+ * casavam com /transito|no ar|voando/. Ou seja: os dois dias de voo
+ * existiam porque a MINHA SEMENTE tinha escrito a palavra "em trânsito"
+ * em `day.base`.
+ *
+ * Quando a base do dia deixou de mandar nas contas (o roteiro passou a vir
+ * da hospedagem reservada), essa deducao ficaria assim: zero reservas ->
+ * zero dias em terra -> os 34 dias sao de voo. O rodape "32 + 2 = 34"
+ * pararia de fechar sem ninguem mexer em conta nenhuma.
+ *
+ * O voo esta COMPRADO E PAGO (R$ 5.079,77 + burocracia), com data de ida e
+ * de volta. Isso nao e plano nem sugestao: e a moldura da viagem, e por
+ * isso mora aqui e nao no banco.
+ */
+export const VOO_IDA = '2026-12-10';    // sai de Florianopolis 20h15
+export const VOO_VOLTA = '2027-01-12';  // o voo de volta e 23h35
+export const DIAS_DE_VOO: string[] = [VOO_IDA, VOO_VOLTA];
 /** € 2.795 — a minha estimativa da parte DELE. Nao entra em soma nenhuma. */
 export const ESTIM_EUR = 2795;
 /** R$ 19.920 — o que sobra depois do voo. */

@@ -937,21 +937,30 @@ test('as datas da hospedagem sao DATAS, e as noites nao se digitam mais', () => 
   assert.match(src, /C\.noitesDaOpcao\(o\)/, 'as noites tem que sair das datas');
 });
 
-test('marcar "e esta" escreve a base dos dias, e recusa quando bate', () => {
-  // As tres decisoes dele de 09/09, e nenhuma delas quebra com erro: se
-  // alguem tirar a escrita, marcar volta a ser so uma etiqueta bonita.
+test('marcar "e esta" NAO escreve em day.base, e recusa quando bate', () => {
+  // ESTE GUARD ERA O CONTRARIO ate a tarde de 09/09, e a inversao e o
+  // ponto: a primeira versao ESCREVIA a base dos dias, e ele olhou a tela e
+  // viu o app afirmando onde dorme numa cidade que nao havia escolhido. O
+  // bloco do Roteiro passou a sair da propria reserva (`C.estadias`), e
+  // escrever uma copia em `day.base` traria de volta os dois problemas:
+  // a afirmacao falsa, e uma copia que fica velha quando ele desmarca.
   const src = readFileSync(join(RAIZ, 'src/screens/Hospedagem.tsx'), 'utf8');
   const m = src.match(/const marcar = \(\) => \{[\s\S]*?\n  \};/);
   assert.ok(m, 'nao achei a funcao marcar');
   const f = m[0];
 
-  assert.match(f, /now\('day', iso, 'base', C\.nomeCidade\(s, o\.city\)\)/,
-    'marcar parou de escrever a base dos dias');
-  assert.match(f, /now\('day', iso, 'base', ''\)/,
-    'desmarcar parou de limpar os dias — ele pediu "o roteiro fica sem base"');
+  assert.doesNotMatch(f, /'day'/,
+    'marcar voltou a escrever no dia: o bloco tem que sair da propria reserva');
+  assert.match(f, /now\('stay_option', o\.id, 'chosen', true\)/);
   assert.match(f, /C\.opcoesQueBatem\(s, o\)/,
     'a recusa por datas que batem saiu, e ele pediu "o app recusa e avisa"');
   assert.match(f, /setRecusa\(/, 'a recusa tem que aparecer na tela, nao num title');
+
+  // e a regra de "uma marcada por cidade" nao pode voltar: ele dorme em
+  // Madrid duas vezes, e desmarcar a primeira ao marcar a segunda tirava
+  // uma estadia inteira do Roteiro e do total.
+  assert.doesNotMatch(f, /stayChosen\(/,
+    'voltou a desmarcar a anterior da mesma cidade');
 });
 
 test('a cama do dia e SO LEITURA nas duas telas do Roteiro', () => {
@@ -972,32 +981,48 @@ test('a cama do dia e SO LEITURA nas duas telas do Roteiro', () => {
 test('o dia lidera pela cidade que ele PASSA, e o bloco lista todas', () => {
   const src = readFileSync(join(RAIZ, 'src/screens/Roteiro.tsx'), 'utf8');
   assert.match(src, /C\.cidadesDoDia\(s, iso\)/, 'a linha do dia parou de ler as cidades do dia');
-  assert.match(src, /C\.cidadesDoBloco\(s, bk\)/, 'o cabecalho do bloco parou de listar');
+  assert.match(src, /C\.cidadesDoBloco\(s, \{ from: estadia\.from, to: estadia\.to \}\)/,
+    'o cabecalho do bloco parou de listar as cidades de passagem');
   // e a cidade vem ANTES da cama na linha do dia
   assert.ok(src.indexOf('dcid') < src.indexOf('dcama'),
     'a cama voltou a vir antes da cidade onde ele vai');
 });
 
-test('o cartao do dia avisa quando a base vem da hospedagem', () => {
-  // Sem o aviso ele editaria a mao um dia que a hospedagem manda e acharia
-  // que mudou a reserva.
+test('o cartao do dia diz que aquele campo e o PLANO, e nao a cama', () => {
+  // O rotulo era "Onde eu durmo / qual e a base", e era essa palavra que
+  // fazia o app parecer saber onde ele dorme. Agora o campo e o plano dele,
+  // e o cartao diz de onde a cama vem de verdade — ou que ela nao existe.
   const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Editor.tsx'), 'utf8');
   assert.match(src, /C\.hospedagemDoDia\(s, iso\)/);
-  assert.match(src, /vem da hospedagem/);
+  assert.match(src, /Meu plano para este dia/, 'o rotulo voltou a falar de cama');
+  assert.doesNotMatch(src, /Onde eu durmo/, 'o rotulo antigo voltou');
+  assert.match(src, /sem hospedagem definida para este dia/,
+    'o dia sem reserva parou de dizer que nao tem cama');
 });
 
-test('a linha da cama nao escreve "durmo em" nos dias de voo', () => {
-  // Achado na producao, 09/09: saia "durmo em em trânsito". As duas telas
-  // tem que passar por `C.ehTransito`, que e a MESMA regra que `baseList`
-  // usa para nao contar noite nesses dias.
+test('a cama sai da RESERVA, e o plano nunca vira "durmo em"', () => {
+  // A queixa dele de 09/09, na tela: "aqui voce ja esta colocando onde vou
+  // dormir, sendo que nem escolhi o airbnb". A linha "durmo em" tem que ler
+  // `hospedagemDoDia` — o airbnb marcado — e NUNCA `day.base`, que e o
+  // plano dele. Trocar um pelo outro nao da erro nenhum: volta a aparecer
+  // uma cama plausivel em 34 dias.
   for (const rel of ['src/screens/Roteiro.tsx', 'src/screens/roteiro/Vista.tsx']) {
-    const src = readFileSync(join(RAIZ, rel), 'utf8');
-    const i = src.search(/className="dv?cama"/);
-    assert.ok(i > 0, `${rel}: a linha da cama desapareceu`);
-    const bloco = src.slice(i, i + 700);
-    assert.match(bloco, /C\.ehTransito\(base\)/,
-      `${rel}: a linha voltou a escrever "durmo em" em todo dia`);
+    // SEM COMENTARIO, e a primeira versao deste guard morreu por isso: a
+    // janela pegava a frase "plano base" de um comentario meu logo abaixo
+    // e acusava a tela de ler o plano. Comentario nao e codigo.
+    const src = readFileSync(join(RAIZ, rel), 'utf8')
+      .replace(/\{?\/\*[\s\S]*?\*\/\}?/g, '').replace(/\/\/.*$/gm, '');
+    const m = src.match(/<div className="dv?cama">[\s\S]*?<\/div>/);
+    assert.ok(m, `${rel}: a linha da cama desapareceu`);
+    assert.match(m[0], /hosp\.city/, `${rel}: a cama parou de sair da reserva`);
+    assert.doesNotMatch(m[0], /\bbase\b/, `${rel}: a cama voltou a ler o plano`);
+    assert.match(src, /C\.hospedagemDoDia\(s, iso\)/);
   }
+  // O "em trânsito" continua tratado, mas agora so no PLANO: se ele
+  // escrever isso no campo livre, aquilo nao e cama nem noite.
+  const rot = readFileSync(join(RAIZ, 'src/screens/Roteiro.tsx'), 'utf8');
+  assert.match(rot, /C\.ehTransito\(plano\)/, 'o plano perdeu o tratamento de transito');
+
   // e a regra vive em UM lugar so
   const calc = readFileSync(join(RAIZ, 'src/lib/calc.ts'), 'utf8');
   const copias = (calc.match(/tr\[âa\]nsito/g) ?? []).length;

@@ -4,17 +4,56 @@
 // conferida contra o numero que o usuario espera ver.
 // ============================================================
 import {
-  BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf, CIDADES_FIXAS,
+  BASEOUT, CO, CT, DIAS_DE_VOO, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf, CIDADES_FIXAS,
 } from '@/content';
 import { brl, eur, isData, norm, num, saveMonths } from './fmt';
 import { AK_PADRAO } from './types';
 import type { Attraction, Aviso, Contribution, DayItem, Food, Leg, Snapshot, Status, Who } from './types';
 
-// ---------------- 11.2 blocos, noites e dias ----------------
+// ============================================================
+// 11.2 — ESTADIA (fato) vs PLANO (dele), noites e dias  (09/09/2026)
+//
+// Ele olhou a tela e viu o app AFIRMANDO onde ele dorme numa cidade que
+// ele nao escolheu: "aqui voce ja esta colocando onde vou dormir, sendo que
+// nem escolhi o airbnb". Aquele "Cáceres" era SEMENTE MINHA dentro da
+// tabela dele — `day.base` dos 34 dias, escrito pelo seed a partir do meu
+// arquivo de planejamento.
+//
+// A decisao dele partiu a coisa em DUAS, com nomes diferentes:
+//
+//   ESTADIA (fato)  — a opcao de hospedagem MARCADA, com check-in e
+//                     check-out. Manda no bloco do Roteiro, na cama do dia,
+//                     nas noites e na tabela do Painel.
+//   PLANO (dele)    — `day.base`, agora campo livre "so para eu escrever e
+//                     me localizar como um plano base". NAO manda em nada.
+//
+// UMA POR FAIXA DE DATAS, e nao uma por cidade: ele dorme em Madrid DUAS
+// vezes (3 dias no comeco, 1 no fim). A regra antiga desmarcava a primeira
+// ao marcar a segunda, e o dinheiro de uma das duas saia do total sem nada
+// na tela dizendo. Quem recusa sobreposicao e `opcoesQueBatem`.
+// ============================================================
 export interface Block { base: string; from: string; to: string; n: number }
 
-/** Dias consecutivos com a MESMA base (comparacao sem diferenciar maiuscula). */
-export function blocks(s: Snapshot): Block[] {
+/**
+ * A base que NAO e uma cama: os dois dias de voo, cujo `day.base` de
+ * semente e o texto "em trânsito".
+ *
+ * Continua existindo para o PLANO: se ele escrever "em trânsito" num dia,
+ * aquilo nao e cama nem noite. Ver `planoBlocos` e a linha da cama nas
+ * telas do Roteiro.
+ */
+export const ehTransito = (base: string) => /tr[âa]nsito|no ar|voando/i.test(base ?? '');
+
+/**
+ * OS BLOCOS DO PLANO — dias consecutivos com o mesmo texto em `day.base`.
+ *
+ * Isto e o PLANO dele, e o unico lugar que o usa e a dica da aba Hospedagem
+ * ("seu plano tem 4 noites aqui") mais a linha discreta de plano no
+ * Roteiro. NAO alimenta noite, base, custo nem a tabela do Painel — se
+ * voltar a alimentar, o app volta a afirmar cama que ele nao reservou, que
+ * foi exatamente a queixa de 09/09.
+ */
+export function planoBlocos(s: Snapshot): Block[] {
   const out: Block[] = [];
   let cur: Block | null = null;
   for (const iso of ISOS) {
@@ -26,46 +65,137 @@ export function blocks(s: Snapshot): Block[] {
   return out;
 }
 
-export interface Base { base: string; d: number; nt: number }
+export interface Estadia {
+  id: string;
+  city: string;
+  /** O nome do anuncio: "Chamberí". O bloco do Roteiro e "Chamberí · Madrid". */
+  nome: string;
+  from: string;
+  to: string;
+  /** Noites, que aqui e a mesma coisa que dias cobertos. */
+  n: number;
+}
 
 /**
- * Os blocos, TIRANDO os que casam com /transito|no ar|voando/i.
- * A ULTIMA base tem nt = d - 1 (so quando ha mais de uma base): ele
- * dorme no aviao na ultima noite, porque o voo de volta sai 23h35.
- * Regra 5.1 — nunca escreva "31 + 2 = 34".
- */
-/**
- * A base que NAO e uma cama: os dois dias de voo, cujo `day.base` e o texto
- * "em trânsito".
+ * AS ESTADIAS RESERVADAS, em ordem de data.
  *
- * UMA REGRA, DOIS USOS, e e de proposito: `baseList` nao conta noite nesses
- * dias, e a linha da cama no Roteiro nao escreve "durmo em" neles. Com duas
- * copias do regex, um dia poderia aparecer como cama numa tela e como voo
- * na conta das noites.
+ * So a opcao MARCADA e com check-in/check-out de verdade. Opcao sem data
+ * nao vira estadia: era texto livre antes de 09/09, e "dia 12 - 15h" nao e
+ * uma faixa de dias.
  *
- * Nasceu de um achado na PRODUCAO em 09/09: a linha saiu "durmo em em
- * trânsito" — o prefixo duplicava o "em", e pior, ele dorme no aviao nesses
- * dias, entao "durmo em" era falso.
+ * A ORDEM E POR DATA, e nao por cidade: o Roteiro le isto de cima para
+ * baixo, e Madrid aparece duas vezes em lugares diferentes da viagem.
  */
-export const ehTransito = (base: string) => /tr[âa]nsito|no ar|voando/i.test(base ?? '');
+export function estadias(s: Snapshot): Estadia[] {
+  return s.stayOptions
+    .filter((o) => o.chosen)
+    .map((o) => ({ o, dias: diasDaOpcao(o) }))
+    .filter((x) => x.dias.length > 0)
+    .map(({ o, dias }) => ({
+      id: o.id,
+      city: o.city,
+      nome: o.name,
+      from: dias[0],
+      to: dias[dias.length - 1],
+      n: dias.length,
+    }))
+    .sort((a, b) => (a.from < b.from ? -1 : a.from > b.from ? 1 : 0));
+}
 
-export function baseList(s: Snapshot): Base[] {
-  const out: Base[] = [];
-  for (const b of blocks(s)) {
-    if (ehTransito(b.base)) continue;
-    out.push({ base: b.base, d: b.n, nt: b.n });
+/** O dia esta coberto por alguma estadia reservada? */
+export const temCama = (s: Snapshot, iso: string) => !!hospedagemDoDia(s, iso);
+
+/**
+ * OS DIAS SEM HOSPEDAGEM DEFINIDA. Hoje sao os 34, e e o esperado: ele
+ * ainda nao marcou nenhum airbnb. E a lista que o Roteiro mostra em
+ * vermelho, uma vez por CARTAO e nao 34 vezes.
+ */
+export const diasSemHospedagem = (s: Snapshot) => ISOS.filter((iso) => !temCama(s, iso));
+
+export type TrechoRoteiro =
+  | { tipo: 'estadia'; estadia: Estadia; dias: string[] }
+  | { tipo: 'sem'; dias: string[] };
+
+/**
+ * O ROTEIRO DE CIMA PARA BAIXO: estadias reservadas e dias sem hospedagem,
+ * INTERCALADOS em ordem de data.
+ *
+ * Sem isto o Roteiro mostraria os blocos reservados primeiro e um bolo de
+ * dias soltos no fim — e a cronologia quebraria exatamente no estado em que
+ * ele vai passar as proximas semanas: umas reservadas, outras nao.
+ *
+ * Todo dia aparece uma vez e nenhum se perde; ha teste dos dois.
+ */
+export function roteiroEmOrdem(s: Snapshot): TrechoRoteiro[] {
+  const dono = new Map<string, Estadia>();
+  for (const e of estadias(s)) for (const iso of diasEntre(e.from, e.to)) dono.set(iso, e);
+
+  const out: TrechoRoteiro[] = [];
+  for (const iso of ISOS) {
+    const e = dono.get(iso);
+    const ult = out[out.length - 1];
+    if (e) {
+      if (ult && ult.tipo === 'estadia' && ult.estadia.id === e.id) ult.dias.push(iso);
+      else out.push({ tipo: 'estadia', estadia: e, dias: [iso] });
+    } else {
+      if (ult && ult.tipo === 'sem') ult.dias.push(iso);
+      else out.push({ tipo: 'sem', dias: [iso] });
+    }
   }
-  if (out.length > 1) out[out.length - 1].nt = Math.max(0, out[out.length - 1].d - 1);
   return out;
 }
 
-export const nightsAll  = (s: Snapshot) => baseList(s).reduce((a, b) => a + b.nt, 0);  // 31
-export const groundDays = (s: Snapshot) => baseList(s).reduce((a, b) => a + b.d, 0);   // 32
-export const flyDays    = (s: Snapshot) => Math.max(0, ISOS.length - groundDays(s));   // 2
+/** Os ISOS de `de` a `ate`, inclusive nos dois lados. */
+const diasEntre = (de: string, ate: string) => ISOS.filter((i) => i >= de && i <= ate);
 
-/** "O que sai daqui de bate-volta", na tabela do Painel. */
-export function baseOut(base: string, last: boolean, b: Base): string {
-  if (last && b.nt < b.d) return 'último dia — o voo de volta é 23h35';
+export interface Base { base: string; d: number; nt: number }
+
+/**
+ * AS BASES RESERVADAS — o que a tabela do roteiro no Painel mostra.
+ *
+ * Sai das ESTADIAS, e por isso hoje devolve lista vazia. Antes de 09/09
+ * saia dos blocos de `day.base`, ou seja, da minha semente: dizia "31
+ * noites em 8 bases" sem ele ter fechado uma reserva.
+ *
+ * O nome e a CIDADE (o que ele reconhece na tabela), nao o do anuncio.
+ *
+ * A REGRA DO `nt = d - 1` NA ULTIMA BASE MORREU AQUI, e nao foi descuido:
+ * ela existia porque as bases vinham de dias de calendario, e a ultima
+ * noite ele dorme no aviao. Com check-in e check-out de verdade, a propria
+ * reserva ja diz quantas noites sao — inventar um -1 tiraria uma noite que
+ * ele pagou.
+ */
+export function baseList(s: Snapshot): Base[] {
+  return estadias(s).map((e) => ({ base: nomeCidade(s, e.city), d: e.n, nt: e.n }));
+}
+
+/** As noites RESERVADAS. Zero enquanto ele nao marcar nenhum airbnb. */
+export const nightsAll = (s: Snapshot) => baseList(s).reduce((a, b) => a + b.nt, 0);
+
+/**
+ * DIAS EM TERRA E DIAS DE VOO — fato do calendario, e nao de reserva.
+ *
+ * Eram deduzidos das bases (`34 - groundDays`), o que significa que os dois
+ * dias de voo existiam porque a minha semente tinha escrito "em trânsito"
+ * em `day.base`. Com as bases vindo da reserva, zero reservas daria "os 34
+ * dias sao de voo" e o rodape "32 + 2 = 34" pararia de fechar sem ninguem
+ * mexer em conta nenhuma.
+ *
+ * As duas datas moram em `src/content` (`DIAS_DE_VOO`): o voo esta comprado
+ * e pago, com ida e volta. E moldura da viagem, nao plano.
+ */
+export const flyDays = (_s?: Snapshot) => DIAS_DE_VOO.filter((d) => ISOS.includes(d)).length;
+export const groundDays = (s?: Snapshot) => ISOS.length - flyDays(s);
+
+/**
+ * "O que sai daqui de bate-volta", na tabela do Painel.
+ *
+ * PERDEU O CASO DO ULTIMO DIA em 09/09, e nao foi descuido: ele dependia de
+ * `nt < d`, a regra do -1 que morreu quando as noites passaram a sair do
+ * check-in/check-out da reserva. O texto do voo de volta continua na tela,
+ * mas como fato do calendario e nao como efeito de uma base.
+ */
+export function baseOut(base: string): string {
   return BASEOUT[base.toLowerCase()] ?? '—';
 }
 
@@ -387,7 +517,20 @@ export const foodPlaced = (s: Snapshot) => s.foods.filter((f) => f.day_iso).leng
 export const staysOf = (s: Snapshot, city: string) =>
   s.stayOptions.filter((o) => o.city === city).sort(porPosicao);
 
-/** A que ele marcou como "e essa". Nao existe duas na mesma cidade. */
+/**
+ * As MARCADAS de uma cidade. Desde 09/09 pode haver mais de uma: ele dorme
+ * em Madrid duas vezes (3 dias no comeco, 1 no fim), e a regra passou a ser
+ * uma por FAIXA DE DATAS, nao uma por cidade.
+ */
+export const stayChosenAll = (s: Snapshot, city: string) =>
+  staysOf(s, city).filter((o) => o.chosen);
+
+/**
+ * A PRIMEIRA marcada da cidade. Cuidado: numa cidade onde ele dorme duas
+ * vezes isto devolve so uma. Para dinheiro e contagem use
+ * `stayChosenAll` — foi assim que o total de Madrid perdeu uma estadia
+ * inteira ate 09/09.
+ */
 export const stayChosen = (s: Snapshot, city: string) =>
   s.stayOptions.find((o) => o.city === city && o.chosen);
 
@@ -524,10 +667,16 @@ export function stayValor(o: {
   });
 }
 
-/** O que a cidade custa: SO a opcao marcada. */
+/**
+ * O que a cidade custa: TODAS as marcadas dela.
+ *
+ * Era `stayChosen` (uma so), e com Madrid duas vezes o custo da segunda
+ * estadia simplesmente nao entrava no total da viagem — sem erro nenhum na
+ * tela. Achado em 09/09, ao trocar a regra de "uma por cidade" para "uma
+ * por faixa de datas".
+ */
 export function stayTotal(s: Snapshot, city: string): number {
-  const o = stayChosen(s, city);
-  return o ? stayValor(o) : 0;
+  return stayChosenAll(s, city).reduce((a, o) => a + stayValor(o), 0);
 }
 export function stayTotalAll(s: Snapshot, cities: string[]): number {
   return cities.reduce((a, c) => a + stayTotal(s, c), 0);
@@ -540,7 +689,10 @@ export function stayTotalAll(s: Snapshot, cities: string[]): number {
  * tecnicamente derivado, e completamente sem sentido para quem le.
  */
 export function stayCount(s: Snapshot, cities: string[]): number {
-  return cities.filter((c) => (stayChosen(s, c)?.address ?? '').trim()).length;
+  // Conta CIDADES fechadas, e nao estadias: Madrid com dois airbnbs
+  // marcados continua sendo uma cidade fechada, e o denominador sao as 7
+  // cidades de hospedagem.
+  return cities.filter((c) => stayChosenAll(s, c).some((o) => (o.address ?? '').trim())).length;
 }
 /**
  * Quantas OPCOES ele registrou nestas cidades — o numerozinho embaixo da
@@ -579,15 +731,22 @@ export function opcoesCount(s: Snapshot, cities: string[]): number {
  */
 export function noitesEm(s: Snapshot, city: string): number[] {
   if (!city) return [];
-  return baseList(s).filter((b) => cityOfBase(s, b.base) === city).map((b) => b.nt);
+  // O PLANO, e nao a reserva (09/09). Esta dica existe para ele COMPARAR o
+  // anuncio com o que planejou ("seu plano tem 4 noites aqui"); lendo a
+  // reserva ela diria de volta o que ele acabou de reservar, e nao serviria
+  // para nada.
+  return planoBlocos(s)
+    .filter((b) => !ehTransito(b.base) && cityOfBase(s, b.base) === city)
+    .map((b) => b.n);
 }
 
 /** Ja pago em hospedagem: so a marcada, e so se a caixinha estiver marcada. */
 export function stayPagoEur(s: Snapshot, cities: string[]): number {
-  return cities.reduce((a, c) => {
-    const o = stayChosen(s, c);
-    return o && o.paid ? a + stayValor(o) : a;
-  }, 0);
+  // Todas as marcadas e pagas, e nao a primeira: ver `stayTotal`.
+  return cities.reduce(
+    (a, c) => a + stayChosenAll(s, c).filter((o) => o.paid).reduce((b, o) => b + stayValor(o), 0),
+    0,
+  );
 }
 
 // ---------------- 11.6 transporte e burocracia ----------------

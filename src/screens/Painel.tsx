@@ -148,7 +148,8 @@ export default function Painel() {
         <div className="h">
           <h3>O roteiro, em uma tabela</h3>
           <div className="m">
-            {ISOS.length} dias de viagem · {noites} noites · {bases.length} bases · sem contar bate-volta
+            {ISOS.length} dias de viagem · {noites} {noites === 1 ? 'noite' : 'noites'} reservadas ·{' '}
+            {bases.length} {bases.length === 1 ? 'estadia' : 'estadias'}
           </div>
         </div>
         <div className="b">
@@ -170,10 +171,13 @@ function TabelaRoteiro() {
   const { s } = useApp();
   const bases = C.baseList(s);
   if (!bases.length) {
+    // A TABELA PASSOU A SER "AS ESTADIAS QUE EU RESERVEI" (09/09). Antes ela
+    // se montava com a minha semente e dizia "31 noites em 8 bases" sem ele
+    // ter fechado nada — foi essa afirmacao que ele mandou acabar.
     return (
       <div className="empty">
-        O calendário está em branco — escreva a base de cada dia na aba <b>Roteiro</b> e a
-        tabela se monta sozinha.
+        Nenhuma hospedagem fechada ainda. Marque <b>é esta</b> numa opção da aba{' '}
+        <b>Hospedagem</b>, com check-in e check-out, e ela aparece aqui com as noites dela.
       </div>
     );
   }
@@ -193,13 +197,13 @@ function TabelaRoteiro() {
             <tr key={`${b.base}-${i}`}>
               <td className="pl2">{b.base}</td>
               <td className="num">{b.nt}</td>
-              <td className="sb">{C.baseOut(b.base, i === bases.length - 1, b)}</td>
+              <td className="sb">{C.baseOut(b.base)}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr>
-            <td>{bases.length} bases</td>
+            <td>{bases.length} {bases.length === 1 ? 'estadia' : 'estadias'}</td>
             <td className="num">{tot}</td>
             <td className="sb">
               {C.groundDays(s)} dias em terra + {C.flyDays(s)} de voo = {ISOS.length} dias de viagem

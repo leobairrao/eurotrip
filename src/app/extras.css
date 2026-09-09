@@ -859,3 +859,45 @@
   color: var(--ink);
   margin-top: 6px;
 }
+
+/* ------------------------------------------------------------
+   O ROTEIRO VEM DA RESERVA  (09/09/2026, tarde)
+
+   Ele viu o app afirmando onde dorme numa cidade que não escolheu, e a
+   estrutura mudou: o bloco é a ESTADIA (airbnb marcado), os dias sem
+   reserva ficam num cartão vermelho, e `day.base` virou o PLANO dele —
+   discreto, nomeado, e sem mandar em nada.
+   ------------------------------------------------------------ */
+
+/* o cartão dos dias sem cama. O vermelho fica AQUI e não em cada dia:
+   hoje são 34 dias sem reserva, e um aviso por linha viraria ruído. */
+.card.semcama > .h h3 { color: var(--rust); }
+
+/* o nome do airbnb, ao lado da cidade onde ele dorme */
+.dcs {
+  color: var(--muted);
+  margin-left: 8px;
+}
+.dcs::before { content: '· '; }
+
+/* o PLANO dele na linha do dia: mais apagado que a cama, de propósito —
+   é o que ele escreveu para se localizar, não um fato. */
+.dplano {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .03em;
+  color: var(--muted);
+  margin-top: 8px;
+  opacity: .85;
+}
+.dplano b { color: var(--ink-2); font-weight: 600; }
+
+/* "hospedagem não definida" na tela de UM dia. Aqui o aviso vale por dia,
+   porque a tela mostra um dia e não 34. */
+.dvsemcama {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .03em;
+  color: var(--rust);
+  margin-top: 14px;
+}
