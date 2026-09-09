@@ -24,6 +24,7 @@ export default function Painel() {
   const hosp = C.stayTotalAll(s, CIDADES);
   const comEndereco = C.stayCount(s, CIDADES);
   const bookPago = C.bookingBrl(s, 'pago');
+  const trPago = C.legSum(s, 'pago');
 
   return (
     <>
@@ -91,6 +92,47 @@ export default function Painel() {
           <b>{brl(C.totalBrl(s, CIDADES))}</b>
           <span>total real até agora</span>
           <i>câmbio R$ {num(s.settings.eur_rate).toLocaleString('pt-BR')}</i>
+        </div>
+      </div>
+
+      {/* ---- "quantos peguei e quanto gastei" (09/09) ----
+          A Tabela 3 da lista de 08/09: "igual a de cima (em design) mas com
+          os seguintes itens". O numero GRANDE e a contagem nas tres, e sai
+          da frase dele: "Quantos eu peguei (0 de 7) deve ficar grande". O
+          dinheiro fica na linha de baixo.
+
+          "Peguei" quer dizer a MESMA coisa nas tres, e e decisao dele de
+          09/09: esta num dia do roteiro (atracao), esta fechada com endereco
+          (hospedagem), esta marcada como comprada (transporte). Um conceito,
+          nao tres.
+
+          A LINHA DO TRANSPORTE AINDA NAO E O QUE ELE PEDIU. Ele quer "so os
+          que compro antes — voos interpaises e trens intercidades", e o
+          `kind` nao sabe responder isso: dos 12 trechos que eu pesquisei,
+          tres sao TER regional (kind 'trem') que se compra no dia, e o
+          Luxemburgo -> Metz e onibus intercidades. Falta a coluna de
+          INTENCAO, que e o item mais pesado da lista dele. Por enquanto a
+          linha conta TODOS os trechos, e o rotulo nao promete outra coisa. */}
+      <div className="bigsum">
+        <div>
+          <b>{comEndereco} de {STAYS.length}</b>
+          <span>hospedagens que eu peguei</span>
+          <i>{eur(hosp)} nas fechadas</i>
+        </div>
+        <div>
+          <b>{C.legDone(s)} de {s.legs.length}</b>
+          <span>transportes comprados</span>
+          <i>
+            {trPago.eur ? eur(trPago.eur) : ''}
+            {trPago.eur && trPago.brl ? ' + ' : ''}
+            {trPago.brl ? brl(trPago.brl) : ''}
+            {!trPago.eur && !trPago.brl ? eur(0) : ''}{' '}pagos
+          </i>
+        </div>
+        <div>
+          <b>{C.attrCount(s, 'roteiro')} de {C.attrCount(s, 'dele')}</b>
+          <span>atrações que eu peguei</span>
+          <i>{eur(C.attrEurAll(s, 'roteiro'))} no roteiro</i>
         </div>
       </div>
 
