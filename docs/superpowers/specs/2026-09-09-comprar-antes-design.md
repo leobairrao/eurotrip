@@ -33,11 +33,20 @@ não é dedutível do tipo: tem que ser um campo.
 ## 1. As colunas
 
 ```sql
+-- a intenção, e o prazo
 alter table leg         add column if not exists buy_ahead  boolean not null default false;
 alter table attraction  add column if not exists buy_ahead  boolean not null default false,
                         add column if not exists ahead_days int;
+-- o dinheiro que comida nunca teve
 alter table food        add column if not exists price_eur  numeric(10,2) not null default 0;
+-- o gasto real (ver "O gasto real", adiante). null = ainda não aconteceu
+alter table attraction  add column if not exists spent_eur  numeric(10,2);
+alter table food        add column if not exists spent_eur  numeric(10,2);
+alter table leg         add column if not exists spent      numeric(10,2);
+alter table day_item    add column if not exists spent      numeric(10,2);
 ```
+
+Oito colunas, quatro tabelas, **um SQL só** — `supabase/11-comprar-antes.sql`.
 
 **`buy_ahead` NÃO é `bought`, e as duas moram na mesma linha de `leg`.**
 `buy_ahead` é **intenção** ("vou comprar antes de viajar"); `bought` é **estado**
@@ -150,12 +159,12 @@ Ganha o que ele pediu, e é a razão de `ahead_days` existir:
 
 **Fica para depois desta etapa**, mas o campo já nasce servindo a ela.
 
-### O custo total da viagem
+### O custo total da viagem — o que NÃO muda
 
-`totalBrl` ganha o dinheiro de comida (as que estão num dia). Hoje comida não
-soma em lugar nenhum — o custo de comer vive como linha solta na aba Custos. Com
-o campo, a mesma comida poderia ser contada **duas vezes**: uma na linha de
-Custos que ele já escreveu, outra na comida com valor.
+`totalBrl` **não ganha o dinheiro de comida**, e isto é o contrário do que eu ia
+fazer. Hoje comida não soma em lugar nenhum e o custo de comer vive como linha
+solta na aba Custos. Com o campo novo, a mesma comida poderia ser contada **duas
+vezes**: uma na linha de Custos que ele já escreveu, outra na comida com valor.
 
 **DECIDIDO por ele em 09/09: a comida com € NÃO soma no `totalBrl`.** O custo
 total da viagem continua vindo da linha de Custos que ele já escreve, e o
