@@ -16,6 +16,7 @@ import Avisos from '@/components/Avisos';
 import Acrescentar from './Acrescentar';
 import Ordem from './Ordem';
 import { useApp } from '@/lib/store';
+import * as C from '@/lib/calc';
 import { longDt, wdOf } from '@/lib/fmt';
 
 export default function Editor({ iso }: { iso: string }) {
@@ -38,6 +39,7 @@ export default function Editor({ iso }: { iso: string }) {
 function CartaoDia({ iso }: { iso: string }) {
   const { s, patch, now } = useApp();
   const d = s.days[iso];
+  const hosp = C.hospedagemDoDia(s, iso);
 
   return (
     <div className="card" style={{ ['--cc' as string]: 'var(--pine)' }}>
@@ -59,6 +61,20 @@ function CartaoDia({ iso }: { iso: string }) {
               placeholder="ex. Madrid"
               aria-label="onde eu durmo neste dia"
             />
+            {/* DE ONDE VEM A BASE (09/09). Ideia dele: a hospedagem marcada
+                escreve a base dos dias entre o check-in e o check-out. O
+                campo continua aqui porque os dias que nenhuma hospedagem
+                cobre precisam de um — os de trânsito, e todos eles hoje.
+
+                O aviso existe para ele não editar à mão um dia que a
+                hospedagem manda e achar que mudou a reserva: mudar aqui
+                muda só este dia, e remarcar a opção escreve por cima. */}
+            {hosp ? (
+              <span className="fdica">
+                vem da hospedagem <b>{hosp.name}</b>, marcada em{' '}
+                {C.nomeCidade(s, hosp.city)} — mudar aqui muda só este dia
+              </span>
+            ) : null}
           </div>
           <div className="fld">
             <label>O que fazer neste dia — suas palavras</label>

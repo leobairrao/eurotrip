@@ -409,8 +409,18 @@ const opcao = (city, extra = {}) => ({
 });
 
 test('11.5 — total lancado ignora diaria x noites (regra 5.7)', () => {
+  // AS DATAS SUBSTITUIRAM O CAMPO `nights` em 09/09, e e decisao dele
+  // ("as noites saem das datas"). A regra 5.7 nao mudou — total lancado
+  // continua ganhando da diaria x noites; o que mudou e DE ONDE vem o
+  // numero de noites. Este teste dizia `nights: 4` sem data nenhuma, o que
+  // hoje e uma opcao sem noite. As quatro noites agora sao 12, 13, 14 e 15
+  // de dezembro: entra no 12, sai no 16.
   const s = structuredClone(S);
-  s.stayOptions = [opcao('lisboa', { chosen: true, nightly_eur: 68, nights: 4 })];
+  s.stayOptions = [opcao('lisboa', {
+    chosen: true, nightly_eur: 68,
+    check_in: '2026-12-12', check_out: '2026-12-16',
+  })];
+  assert.equal(C.noitesDaOpcao(s.stayOptions[0]), 4, 'as datas dao quatro noites');
   assert.equal(C.stayTotal(s, 'lisboa'), 272);
   s.stayOptions[0].total_eur = 250;
   assert.equal(C.stayTotal(s, 'lisboa'), 250, 'total preenchido manda');
@@ -1400,4 +1410,231 @@ test('o total da viagem passa a ler o valor REAL de atracao e trecho', () => {
   s.legs[0].spent = 90;
   assert.equal(C.totalBrl(s, CIDADES_STAY), planejado + 10 * C.rate(s) - 10 * C.rate(s));
   assert.equal(C.attrEurAll(s, 'roteiro'), 30);
+});
+
+// ============================================================
+// A BASE DO DIA JA VEM DO BANCO — e isto corrige o que eu escrevi em
+// 08/09 no doc da lista dele (09/09/2026).
+//
+// Eu havia dito que "os dias de cada base vem de ARQUIVO (STAYS em
+// src/content)" e que mexer nisso "muda a espinha do app". Errado:
+//
+//   `blocks()` e `baseList()` leem `s.days[iso].base`, que e coluna do
+//   banco e campo de texto LIVRE no cartao "o dia" do Roteiro.
+//
+//   `STAYS` (hospedagem.json) e outra coisa: as 7 cidades de HOSPEDAGEM.
+//   So a aba Hospedagem e o argumento `cities` das contas de dinheiro a
+//   usam. Ela NAO e o calendario.
+//
+//   Do arquivo vem mesmo: os 34 dias (`ISOS`), as 7 de hospedagem
+//   (`STAYS`) e os textos de bate-volta (`BASEOUT`).
+//
+// Consequencia pratica, e e ela que importa: "acrescentar cidade de
+// dormir", "editar o nome" e "quantos dias fica em cada uma" NAO PRECISAM
+// DE SQL. As datas dos 34 dias sao fixas; o que muda e a base de cada dia.
+// ============================================================
+
+test('cidade de dormir NOVA entra num bloco proprio, sem SQL e sem arquivo', () => {
+  const s = structuredClone(S);
+  const antes = C.blocks(s).length;
+
+  // Colonia, que ele citou na conversa de 09/09 e nao existe em lugar
+  // nenhum do repositorio: nem em paises-cidades.json, nem em STAYS.
+  s.days['2026-12-23'] = { iso: '2026-12-23', base: 'Colônia', plan: '' };
+
+  const bl = C.blocks(s);
+  assert.ok(bl.some((b) => b.base === 'Colônia'), 'a base nova nao virou bloco');
+  assert.ok(bl.length > antes, 'ela partiu o bloco de Metz em dois');
+
+  // e nada disso derruba as contas do rodape
+  assert.ok(Number.isFinite(C.nightsAll(s)));
+  assert.ok(Number.isFinite(C.groundDays(s)));
+  assert.equal(C.groundDays(s) + C.flyDays(s), ISOS.length, 'o rodape continua fechando em 34');
+  assert.equal(C.baseOut('Colônia', false, { base: 'Colônia', d: 1, nt: 1 }), '—',
+    'base sem texto de bate-volta devolve o travessao, e nao estoura');
+});
+
+test('mudar a base de um dia MOVE o dia de bloco, e as noites acompanham', () => {
+  // E isto que "arrastar os dias de uma cidade para outra" vai fazer por
+  // baixo: reescrever `day.base` de uma FAIXA de dias. As datas dos 34
+  // dias nao se movem — so a base de cada um.
+  const s = structuredClone(S);
+  const noite = (nome) => C.baseList(s).find((b) => b.base === nome)?.nt ?? 0;
+  const metzAntes = noite('Metz');
+  const reimsAntes = noite('Reims');
+
+  // o ultimo dia de Metz passa a ser de Reims
+  const dia = Object.keys(s.days).filter((i) => s.days[i].base === 'Metz').sort().pop();
+  s.days[dia] = { ...s.days[dia], base: 'Reims' };
+
+  assert.equal(noite('Metz'), metzAntes - 1, 'Metz perdeu uma noite');
+  assert.equal(noite('Reims'), reimsAntes + 1, 'Reims ganhou uma');
+  assert.equal(C.groundDays(s) + C.flyDays(s), ISOS.length, 'e o total continua 34');
+});
+
+// ============================================================
+// A CAMA VEM DA HOSPEDAGEM  (09/09/2026)
+//
+// Ideia dele, e ela inverte de onde vem a base do dia:
+//
+//   "a caixinha de onde durmo deve fazer a seguinte leitura: pegar a
+//    hospedagem que esta paga para aquele dia (na aba hospedagem) e
+//    atribuir automaticamente como a base daquele dia. Mas para isso eu vou
+//    ter que primeiro fazer as pesquisas de possiveis airbnbs para as
+//    cidades e quando eu selecionar um (com uma checkbox de escolhido na
+//    aba hospedagens) ele vai pegar a data e automaticamente vai incluir no
+//    roteiro"
+//
+// PARA ISSO AS DATAS TIVERAM QUE VIRAR DATAS. Ate 09/09 `check_in` e
+// `check_out` eram TEXTO LIVRE, com placeholder "ex. dia 12 - 15h" — nao ha
+// como tirar uma faixa de dias de "dia 12 - 15h". Ele tinha "12" nos dois
+// campos e 3 noites, que e impossivel, e era dado de teste.
+//
+// A CONTA DA VESPERA: os dias da opcao vao do check-in ate a VESPERA do
+// check-out. Na manha do check-out ele ja nao dorme la. Errar isto rouba ou
+// da uma noite em cada uma das 7 bases.
+// ============================================================
+
+function opc(city, extra = {}) {
+  return {
+    id: `o-${Math.random().toString(36).slice(2)}`, city, name: 'um airbnb',
+    note: '', nightly_eur: 100, nights: null, total_eur: null,
+    address: 'Rua X, 1', check_in: '', check_out: '', link: '',
+    chosen: false, paid: false, position: 0, seed_id: null,
+    ...extra,
+  };
+}
+
+test('os dias de uma opcao vao do check-in a VESPERA do check-out', () => {
+  const o = opc('metz', { check_in: '2026-12-19', check_out: '2026-12-26' });
+  const dias = C.diasDaOpcao(o);
+  assert.equal(dias.length, 7, 'sete noites, do 19 ao 25');
+  assert.equal(dias[0], '2026-12-19');
+  assert.equal(dias.at(-1), '2026-12-25', 'o dia 26 e o check-out: ele ja nao dorme la');
+  assert.equal(C.noitesDaOpcao(o), 7);
+});
+
+test('opcao sem data, ou com data fora da viagem, nao pega dia nenhum', () => {
+  assert.deepEqual(C.diasDaOpcao(opc('metz')), [], 'sem datas, nenhum dia');
+  assert.deepEqual(C.diasDaOpcao(opc('metz', { check_in: '12', check_out: '12' })), [],
+    'o texto livre de antes de 09/09 nao vira faixa nenhuma');
+  assert.deepEqual(C.diasDaOpcao(opc('metz', { check_in: '2026-11-01', check_out: '2026-11-05' })), [],
+    'novembro nao esta nos 34 dias da viagem');
+
+  // uma faixa que COMECA antes da viagem entra pela parte que cabe
+  const meia = C.diasDaOpcao(opc('caceres', { check_in: '2026-12-08', check_out: '2026-12-12' }));
+  assert.deepEqual(meia, ['2026-12-10', '2026-12-11'], 'so os dias que existem no calendario');
+});
+
+test('check-out antes do check-in nao inventa dia', () => {
+  assert.deepEqual(C.diasDaOpcao(opc('metz', { check_in: '2026-12-25', check_out: '2026-12-19' })), []);
+  assert.deepEqual(C.diasDaOpcao(opc('metz', { check_in: '2026-12-19', check_out: '2026-12-19' })), [],
+    'entrar e sair no mesmo dia e zero noite');
+});
+
+test('sobreposicao: a opcao marcada em OUTRA cidade bloqueia a nova', () => {
+  // Decisao dele: "O app recusa e avisa". Sem isso, um erro de digitacao na
+  // data mudaria a base de dias de outra cidade sem ele notar.
+  const s = structuredClone(S);
+  s.stayOptions = [
+    opc('lisboa', { chosen: true, check_in: '2026-12-12', check_out: '2026-12-16' }),
+    opc('madrid', { chosen: true, check_in: '2026-12-16', check_out: '2026-12-19' }),
+  ];
+  const nova = opc('metz', { check_in: '2026-12-15', check_out: '2026-12-20' });
+
+  const bate = C.opcoesQueBatem(s, nova);
+  assert.equal(bate.length, 2, 'ela pisa em Lisboa e em Madrid');
+  assert.deepEqual(bate.map((x) => x.city).sort(), ['lisboa', 'madrid']);
+
+  // encostar NAO e sobrepor: check-out de uma no check-in da outra e o
+  // caso normal de trocar de cidade, e nao pode ser recusado.
+  const encosta = opc('metz', { check_in: '2026-12-19', check_out: '2026-12-26' });
+  assert.deepEqual(C.opcoesQueBatem(s, encosta), [],
+    'sair de Madrid no dia 19 e dormir em Metz no dia 19 e o certo');
+
+  // e ela nao briga consigo mesma
+  const ela = s.stayOptions[0];
+  assert.deepEqual(C.opcoesQueBatem(s, ela), [], 'a propria opcao nao conta');
+
+  // opcao NAO marcada nao bloqueia nada
+  s.stayOptions[0].chosen = false;
+  assert.deepEqual(C.opcoesQueBatem(s, nova).map((x) => x.city), ['madrid']);
+});
+
+test('as noites SAEM das datas, e o total nao pode mais discordar', () => {
+  // Decisao dele de 09/09. O campo digitado nao existe mais: a opcao dele
+  // tinha 3 noites com as duas datas iguais, que e impossivel, e ninguem
+  // via. Com `total_eur` preenchido a regra 5.7 continua mandando.
+  const o = opc('metz', { check_in: '2026-12-19', check_out: '2026-12-26', nightly_eur: 100, nights: 99 });
+  assert.equal(C.noitesDaOpcao(o), 7, 'as datas mandam, e nao o 99 digitado');
+  assert.equal(C.stayValor(o), 700, 'diaria x noites das datas');
+
+  const comTotal = { ...o, total_eur: 640 };
+  assert.equal(C.stayValor(comTotal), 640, 'total preenchido continua ganhando (regra 5.7)');
+
+  const semData = opc('metz', { nightly_eur: 100, nights: 7 });
+  assert.equal(C.noitesDaOpcao(semData), 0, 'sem datas nao ha noite');
+  assert.equal(C.stayValor(semData), 0, 'e sem noite a diaria nao vira total sozinha');
+});
+
+test('a hospedagem do dia: qual opcao marcada cobre aquele dia', () => {
+  const s = structuredClone(S);
+  s.stayOptions = [
+    opc('metz', { chosen: true, check_in: '2026-12-19', check_out: '2026-12-26' }),
+    opc('reims', { chosen: false, check_in: '2026-12-26', check_out: '2026-12-29' }),
+  ];
+  assert.equal(C.hospedagemDoDia(s, '2026-12-20')?.city, 'metz');
+  assert.equal(C.hospedagemDoDia(s, '2026-12-25')?.city, 'metz', 'a ultima noite ainda e dela');
+  assert.equal(C.hospedagemDoDia(s, '2026-12-26'), null, 'o dia do check-out nao e mais dela');
+  assert.equal(C.hospedagemDoDia(s, '2026-12-18'), null, 'antes do check-in tambem nao');
+  assert.equal(C.hospedagemDoDia(s, '2026-12-27'), null, 'a de Reims nao esta marcada');
+});
+
+test('as cidades que ele PASSA num dia saem das atracoes, e tiram a base', () => {
+  // A inversao que ele pediu: "nela aparece as cidades que vou passar e as
+  // cidades que vou dormir vao aparecer no fim da lista". A cidade de
+  // passagem sai da ATRACAO, a unica linha com cidade e dia.
+  const s = structuredClone(S);
+  s.days['2026-12-21'] = { iso: '2026-12-21', base: 'Metz', plan: '' };
+  s.attractions = [
+    atr('trier', { day_iso: '2026-12-21' }),
+    atr('trier', { day_iso: '2026-12-21' }),
+    atr('luxemburgo', { day_iso: '2026-12-21' }),
+    atr('metz', { day_iso: '2026-12-21' }),      // a base: nao e "passar"
+    atr('estrasburgo', { day_iso: '2026-12-20' }),
+    // O BACKLOG NAO E PASSAGEM. Sem este caso o teste acima e VAZIO: com
+    // todas as atracoes num dia, aceitar `day_iso === null` daria o mesmo
+    // resultado e trocar um pelo outro passaria verde. Descoberto
+    // sabotando, 09/09.
+    atr('roma', {}),
+  ];
+
+  const c = C.cidadesDoDia(s, '2026-12-21');
+  assert.deepEqual(c, ['Luxemburgo', 'Trier'], 'sem repetir, em ordem, e sem a base');
+  assert.ok(!c.includes('Roma'), 'Roma esta no backlog, e backlog nao e passagem');
+  assert.deepEqual(C.cidadesDoDia(s, '2026-12-20'), ['Estrasburgo']);
+  assert.deepEqual(C.cidadesDoDia(s, '2026-12-22'), [], 'dia sem atracao nao passa por lugar nenhum');
+
+  // A BASE SAI POR NOME NORMALIZADO, e nao por chave: `day.base` e texto
+  // livre ("Metz", "metz", "Amsterdã"), e a atracao guarda a chave
+  // ("amsterda"). Comparar cru deixaria a base aparecer como cidade de
+  // passagem no dia em que ele faz algo na propria base.
+  s.days['2026-12-21'].base = 'metz';
+  assert.deepEqual(C.cidadesDoDia(s, '2026-12-21'), ['Luxemburgo', 'Trier']);
+  s.days['2026-12-21'].base = 'MeTz';
+  assert.deepEqual(C.cidadesDoDia(s, '2026-12-21'), ['Luxemburgo', 'Trier']);
+});
+
+test('as cidades que o BLOCO passa: as dos dias dele, sem a base', () => {
+  const s = structuredClone(S);
+  s.attractions = [
+    atr('trier', { day_iso: '2026-12-21' }),
+    atr('estrasburgo', { day_iso: '2026-12-20' }),
+    atr('luxemburgo', { day_iso: '2026-12-24' }),
+    atr('metz', { day_iso: '2026-12-22' }),
+    atr('roma', { day_iso: '2027-01-02' }),      // outro bloco
+  ];
+  const metz = C.blocks(s).find((b) => b.base === 'Metz');
+  assert.ok(metz, 'o bloco de Metz existe na fixture');
+  assert.deepEqual(C.cidadesDoBloco(s, metz), ['Estrasburgo', 'Luxemburgo', 'Trier']);
 });

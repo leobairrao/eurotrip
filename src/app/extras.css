@@ -784,3 +784,78 @@
   }
   .mrow.fk4 .pv { max-width: none; }
 }
+
+/* ------------------------------------------------------------
+   A HOSPEDAGEM MANDA NA BASE DO DIA  (09/09/2026)
+
+   `.horec` é a recusa: aparece quando marcar "é esta" pisaria nos dias de
+   outra cidade, ou quando faltam as datas. Decisão dele — "o app recusa e
+   avisa" — e por isso ela tem que ser vista, não um `title` escondido.
+
+   `.hopc-nt` é o número de noites que ANTES se digitava e agora sai das
+   datas. Fica com a mesma altura de um campo para a linha não pular.
+   ------------------------------------------------------------ */
+.horec {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  border-left: 3px solid var(--rust);
+  padding: 8px 0 8px 12px;
+  margin-bottom: 12px;
+}
+.hopc-nt {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--ink);
+  padding: 7px 0;
+}
+
+/* ------------------------------------------------------------
+   ONDE EU PASSO vs ONDE EU DURMO  (09/09/2026)
+
+   A inversão que ele pediu: a aba Roteiro deixa de ser organizada pela
+   cama. O bloco continua sendo a base (é ela que dá as noites e as contas
+   de hospedagem), mas cada dia lidera pela cidade onde ele VAI, e a cama
+   desce para a última linha da lista do dia — junto das atrações, dos
+   trechos e das comidas.
+   ------------------------------------------------------------ */
+
+/* a cidade do dia, na linha do bloco */
+.day h4.dcid {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -.015em;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+/* "passa por Trier, Estrasburgo" — no cabeçalho do bloco */
+.dpassa {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+/* a cama, no fim da lista do dia. O tom é o de rodapé de propósito: ela é
+   contexto do dia, não uma coisa a fazer nele. */
+.dcama, .dvcama {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .03em;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.dcama b, .dvcama b { color: var(--ink-2); font-weight: 600; }
+.dvcama { margin-top: 14px; }
+.dvcs { color: var(--muted); margin-left: 8px; }
+.dvcs::before { content: '· '; }
+/* a cidade do dia, na tela do dia */
+.dvcid {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  margin-top: 6px;
+}

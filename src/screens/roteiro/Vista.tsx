@@ -30,6 +30,7 @@
 // ============================================================
 import Avisos from '@/components/Avisos';
 import { useApp } from '@/lib/store';
+import * as C from '@/lib/calc';
 import * as D from '@/lib/dia';
 import { brl, eur, longDt, marcado, wdOf } from '@/lib/fmt';
 import { ISOS } from '@/content';
@@ -43,6 +44,8 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
   const d = s.days[iso];
   const base = (d?.base ?? '').trim();
   const plano = (d?.plan ?? '').trim();
+  const passa = C.cidadesDoDia(s, iso);
+  const hosp = C.hospedagemDoDia(s, iso);
 
   return (
     <div className="card dvista" style={{ ['--cc' as string]: 'var(--pine)' }}>
@@ -50,9 +53,12 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
         <h3>{longDt(iso)}</h3>
         <div className="m">
           {wdOf(iso)} · dia {ISOS.indexOf(iso) + 1} de {ISOS.length}
-          {base ? ` · ${base}` : ''}
           {total ? ` · ${feitas} de ${total} feitas` : ''}
         </div>
+        {/* ONDE ELE VAI vem antes de onde ele dorme (09/09). A base desceu
+            para a linha do fim da lista, junto das atracoes e das comidas —
+            "as cidades que vou dormir vao aparecer no fim da lista". */}
+        {passa.length ? <div className="dvcid">{passa.join(' · ')}</div> : null}
         <button type="button" className="chip" onClick={onEditar}>editar</button>
       </div>
 
@@ -93,6 +99,17 @@ export default function Vista({ iso, onEditar }: { iso: string; onEditar: () => 
             ))}
           </div>
         )}
+
+        {/* A CAMA, no fim da lista. So leitura: quem manda nela e a
+            hospedagem marcada (a opcao com check-in e check-out que cobre
+            este dia), e o campo do cartao do dia e o que sobra para os dias
+            que nenhuma hospedagem cobre. */}
+        {base ? (
+          <div className="dvcama">
+            🛏️ durmo em <b>{base}</b>
+            {hosp ? <span className="dvcs">{hosp.name}</span> : null}
+          </div>
+        ) : null}
 
         <div className="atsum">
           {te || tb ? (

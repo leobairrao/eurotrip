@@ -186,11 +186,27 @@ Metz", "O dia 28 em Reims", "Roma tem 8 noites" — conselhos meus.)*
   planejados*, *31 noites em 8 bases*, …).
 - **Tirar o bloco** *"10 blocos · 34 dias com base de 34"*.
 
-**[a debater] — este é o segundo item mais pesado.** Hoje as 8 bases e os 34
-dias vêm de **arquivo**, não do banco: `STAYS` em `src/content`. Editar quantos
-dias fica em cada cidade muda a espinha do app — o calendário, as noites, as
-contas de hospedagem e o rodapé "32 dias em terra + 2 de voo = 34". Arrastar
-dias de uma cidade para outra também **move as datas de tudo que está depois**.
+**CORREÇÃO DE 09/09, e ela derruba o que eu havia escrito aqui.** Eu disse que
+"as 8 bases e os 34 dias vêm de arquivo (`STAYS`)" e que isto "muda a espinha do
+app". **Errado, e o código é claro:**
+
+- `blocks()` e `baseList()` leem **`s.days[iso].base`**, que é **coluna do banco** e
+  campo de **texto livre** no cartão *o dia* do Roteiro;
+- `STAYS` (de `hospedagem.json`) são as **7 cidades de HOSPEDAGEM** — só a aba
+  Hospedagem e o argumento `cities` das contas de dinheiro a usam. Não é o calendário;
+- do arquivo vêm mesmo: os **34 dias** (`ISOS`), as **7 de hospedagem** e os **textos
+  de bate-volta** (`BASEOUT`).
+
+**Então:** *acrescentar cidade de dormir* e *editar o nome* **já funcionam hoje** —
+é digitar a base no dia. E *arrastar quantos dias fica em cada cidade* **não precisa
+de SQL nem move data nenhuma**: as datas dos 34 dias são fixas, e arrastar reescreve
+a `base` de uma faixa de dias. O que falta é a interface de arrastar.
+
+**O que sobra de verdade neste item:** a aba Hospedagem lê as 7 do arquivo, então uma
+base nova não ganha cartão de hospedagem. Isso sim é decisão a tomar.
+
+Há dois testes que trancam a correção em `calc.test.mjs` ("cidade de dormir NOVA
+entra num bloco próprio" e "mudar a base de um dia MOVE o dia de bloco").
 
 ---
 
@@ -256,7 +272,8 @@ banco), e ele é quem roda:
 1. "comprar antes" vs "pagar lá" — atravessa várias tabelas;
 2. a tag "comprar com antecedência" e o "tempo que precisa", em atração;
 3. o texto do bate-volta virando editável;
-4. os dias de cada base saindo do arquivo para o banco.
+4. ~~os dias de cada base saindo do arquivo para o banco~~ — **não precisa**
+   (corrigido em 09/09).
 
 **Dois são grandes o bastante para virar etapa própria:** o dinheiro do Painel
 (o 1) e a edição do roteiro (o 4).

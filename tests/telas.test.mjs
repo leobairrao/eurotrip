@@ -912,3 +912,76 @@ test('as tres tabelas de dinheiro do Painel nao voltam a ser cinco', () => {
   assert.match(src, /C\.estimadoBrl\(s\)/);
   assert.match(src, /C\.cxTotalBrl\(s\)/);
 });
+
+// ============================================================
+// A CAMA VEM DA HOSPEDAGEM, E O DIA LIDERA POR ONDE ELE PASSA  (09/09/2026)
+// ============================================================
+
+test('as datas da hospedagem sao DATAS, e as noites nao se digitam mais', () => {
+  // Eram texto livre ("ex. dia 12 - 15h"), e nao ha faixa de dias que se
+  // tire disso — sem data de verdade a ideia dele (a hospedagem manda na
+  // base do Roteiro) simplesmente nao existe.
+  const src = readFileSync(join(RAIZ, 'src/screens/Hospedagem.tsx'), 'utf8');
+
+  for (const campo of ['check_in', 'check_out']) {
+    const i = src.indexOf(`stay_option|\${o.id}|${campo}`);
+    assert.ok(i > 0, `o campo ${campo} desapareceu`);
+    // o componente vem ANTES do fk, na abertura da tag
+    const antes = src.slice(Math.max(0, i - 120), i);
+    assert.match(antes, /<DateField\s*$|<DateField\s+/,
+      `${campo} voltou a ser texto livre: sem data nao ha faixa de dias`);
+  }
+
+  assert.doesNotMatch(src, /stay_option\|\$\{o\.id\}\|nights/,
+    'o campo de noites digitado voltou, e ele pode discordar das datas');
+  assert.match(src, /C\.noitesDaOpcao\(o\)/, 'as noites tem que sair das datas');
+});
+
+test('marcar "e esta" escreve a base dos dias, e recusa quando bate', () => {
+  // As tres decisoes dele de 09/09, e nenhuma delas quebra com erro: se
+  // alguem tirar a escrita, marcar volta a ser so uma etiqueta bonita.
+  const src = readFileSync(join(RAIZ, 'src/screens/Hospedagem.tsx'), 'utf8');
+  const m = src.match(/const marcar = \(\) => \{[\s\S]*?\n  \};/);
+  assert.ok(m, 'nao achei a funcao marcar');
+  const f = m[0];
+
+  assert.match(f, /now\('day', iso, 'base', C\.nomeCidade\(s, o\.city\)\)/,
+    'marcar parou de escrever a base dos dias');
+  assert.match(f, /now\('day', iso, 'base', ''\)/,
+    'desmarcar parou de limpar os dias — ele pediu "o roteiro fica sem base"');
+  assert.match(f, /C\.opcoesQueBatem\(s, o\)/,
+    'a recusa por datas que batem saiu, e ele pediu "o app recusa e avisa"');
+  assert.match(f, /setRecusa\(/, 'a recusa tem que aparecer na tela, nao num title');
+});
+
+test('a cama do dia e SO LEITURA nas duas telas do Roteiro', () => {
+  // Ela se edita em UM lugar: o campo do cartao do dia (e, por cima dele, a
+  // hospedagem marcada). Dois lugares mexendo na mesma coisa foi o problema
+  // do DiaTags em 07/09, e aqui seria pior: a base decide bloco, noites e
+  // as contas de hospedagem.
+  for (const rel of ['src/screens/Roteiro.tsx', 'src/screens/roteiro/Vista.tsx']) {
+    const src = readFileSync(join(RAIZ, rel), 'utf8');
+    const i = src.search(/className="dv?cama"/);
+    assert.ok(i > 0, `${rel}: a linha da cama desapareceu`);
+    const bloco = src.slice(i, i + 420);
+    assert.doesNotMatch(bloco, /TextField|<input|onCommit|patch\(/,
+      `${rel}: a linha da cama virou campo`);
+  }
+});
+
+test('o dia lidera pela cidade que ele PASSA, e o bloco lista todas', () => {
+  const src = readFileSync(join(RAIZ, 'src/screens/Roteiro.tsx'), 'utf8');
+  assert.match(src, /C\.cidadesDoDia\(s, iso\)/, 'a linha do dia parou de ler as cidades do dia');
+  assert.match(src, /C\.cidadesDoBloco\(s, bk\)/, 'o cabecalho do bloco parou de listar');
+  // e a cidade vem ANTES da cama na linha do dia
+  assert.ok(src.indexOf('dcid') < src.indexOf('dcama'),
+    'a cama voltou a vir antes da cidade onde ele vai');
+});
+
+test('o cartao do dia avisa quando a base vem da hospedagem', () => {
+  // Sem o aviso ele editaria a mao um dia que a hospedagem manda e acharia
+  // que mudou a reserva.
+  const src = readFileSync(join(RAIZ, 'src/screens/roteiro/Editor.tsx'), 'utf8');
+  assert.match(src, /C\.hospedagemDoDia\(s, iso\)/);
+  assert.match(src, /vem da hospedagem/);
+});

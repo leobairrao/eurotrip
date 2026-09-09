@@ -31,14 +31,14 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import { CIDADES_FIXAS, STAYS, coOf } from '@/content';
-import { AreaField, NumField, IntField, TextField, useLocal } from '@/components/Field';
+import { AreaField, DateField, NumField, TextField, useLocal } from '@/components/Field';
 import Avisos from '@/components/Avisos';
 import Fita from '@/components/Fita';
 import { useApp } from '@/lib/store';
 import { useApagarLinha } from '@/lib/apagar';
 import { useUi } from '@/lib/ui';
 import * as C from '@/lib/calc';
-import { brl, eur, parseInt10, parseNum } from '@/lib/fmt';
+import { brl, eur, parseNum } from '@/lib/fmt';
 import type { StayOption } from '@/lib/types';
 
 
@@ -190,17 +190,63 @@ function Opcao({ o }: { o: StayOption }) {
   const { s, patch, now } = useApp();
   const apagar = useApagarLinha();
   const v = C.stayValor(o);
+  const noites = C.noitesDaOpcao(o);
+  const [recusa, setRecusa] = useState('');
 
-  /** Marcar uma DESMARCA a anterior: nao existe duas fechadas na mesma cidade. */
+  /**
+   * MARCAR ESCREVE A BASE DOS DIAS (09/09/2026). Ideia dele: "quando eu
+   * selecionar um (com uma checkbox de escolhido na aba hospedagens) ele
+   * vai pegar a data e automaticamente vai incluir no roteiro".
+   *
+   * Tres decisoes dele, e as tres estao aqui:
+   *
+   *  - DESMARCAR LIMPA os dias daquela opcao: "se eu desmarcar um airbnb o
+   *    roteiro fica sem base, ate que eu marque outro". Limpa SO a faixa
+   *    dela — dia que nenhuma hospedagem cobriu continua com o que tem,
+   *    senao o Roteiro inteiro esvaziaria hoje, que e o estado com zero
+   *    marcadas.
+   *  - DATAS QUE BATEM: "o app recusa e avisa". Um erro de digitacao na
+   *    data mudaria a base de dias de outra cidade sem ele notar.
+   *  - Marcar uma DESMARCA a anterior da mesma cidade, como antes — e agora
+   *    limpa os dias dela antes de escrever os novos.
+   */
   const marcar = () => {
-    if (o.chosen) { now('stay_option', o.id, 'chosen', false); return; }
+    setRecusa('');
+
+    if (o.chosen) {
+      for (const iso of C.diasDaOpcao(o)) now('day', iso, 'base', '');
+      now('stay_option', o.id, 'chosen', false);
+      return;
+    }
+
+    const dias = C.diasDaOpcao(o);
+    if (!dias.length) {
+      setRecusa('ponha o check-in e o check-out primeiro — é deles que sai a base dos dias no Roteiro');
+      return;
+    }
+
+    // A anterior DESTA cidade nao bloqueia: ela esta sendo substituida. Duas
+    // marcadas na mesma cidade nao existem no app, entao filtrar por cidade
+    // acerta o caso e nao esconde nenhum outro.
+    const batem = C.opcoesQueBatem(s, o).filter((x) => x.city !== o.city);
+    if (batem.length) {
+      const onde = [...new Set(batem.map((x) => C.nomeCidade(s, x.city)))].join(' e ');
+      setRecusa(`estes dias já são de ${onde} — desmarque lá primeiro, ou corrija as datas aqui`);
+      return;
+    }
+
     const antiga = C.stayChosen(s, o.city);
-    if (antiga && antiga.id !== o.id) now('stay_option', antiga.id, 'chosen', false);
+    if (antiga && antiga.id !== o.id) {
+      for (const iso of C.diasDaOpcao(antiga)) now('day', iso, 'base', '');
+      now('stay_option', antiga.id, 'chosen', false);
+    }
     now('stay_option', o.id, 'chosen', true);
+    for (const iso of dias) now('day', iso, 'base', C.nomeCidade(s, o.city));
   };
 
   return (
     <div className={`hopc${o.chosen ? ' on' : ''}`}>
+      {recusa ? <div className="horec">{recusa}</div> : null}
       <div className="hopc-h">
         <TextField
           fk={`stay_option|${o.id}|name`}
@@ -214,7 +260,9 @@ function Opcao({ o }: { o: StayOption }) {
         </span>
         <button
           className={`esta${o.chosen ? ' on' : ''}`}
-          title={o.chosen ? 'desmarcar' : 'é esta que eu fechei'}
+          title={o.chosen
+            ? 'desmarcar — os dias dela ficam sem base no Roteiro'
+            : 'é esta que eu fechei — ela escreve a base dos dias no Roteiro'}
           aria-pressed={o.chosen}
           onClick={marcar}
         >
@@ -271,34 +319,36 @@ function Opcao({ o }: { o: StayOption }) {
           </div>
           <div className="fld">
             <label>Quantas noites</label>
-            <IntField
-              fk={`stay_option|${o.id}|nights`}
-              value={o.nights}
-              onCommit={(x) => patch('stay_option', o.id, 'nights', x)}
-              className="pv"
-              placeholder="noites"
-              aria-label="noites"
-            />
+            {/* NAO SE DIGITA MAIS (09/09) — sai das datas, decisao dele. O
+                campo digitado podia discordar delas sem ninguem ver: a
+                opcao que ele tinha gravado dizia 3 noites com check-in e
+                check-out no mesmo dia. A coluna `nights` continua no banco,
+                ignorada; nao vale um SQL para tirar. */}
+            <div className="hopc-nt">{noites ? `${noites} ${noites === 1 ? 'noite' : 'noites'}` : '—'}</div>
             <DicaNoites city={o.city} />
           </div>
         </div>
         <div className="frow">
+          {/* DATAS DE VERDADE desde 09/09. Eram texto livre ("ex. dia 12 -
+              15h"), e nao ha faixa de dias que se tire disso — sem elas a
+              ideia dele de a hospedagem mandar na base do Roteiro nao
+              existe. `DateField` nao comita data que nao existe. */}
           <div className="fld">
             <label>Check-in</label>
-            <TextField
+            <DateField
               fk={`stay_option|${o.id}|check_in`}
               value={o.check_in}
               onCommit={(x: string) => patch('stay_option', o.id, 'check_in', x)}
-              placeholder="ex. dia 12 - 15h"
+              aria-label="check-in"
             />
           </div>
           <div className="fld">
             <label>Check-out</label>
-            <TextField
+            <DateField
               fk={`stay_option|${o.id}|check_out`}
               value={o.check_out}
               onCommit={(x: string) => patch('stay_option', o.id, 'check_out', x)}
-              placeholder="ex. dia 16 - 11h"
+              aria-label="check-out"
             />
           </div>
         </div>
@@ -415,7 +465,6 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
   const endereco = useLocal();
   const link = useLocal();
   const diaria = useLocal();
-  const noites = useLocal();
   const entrada = useLocal();
   const saida = useLocal();
   const total = useLocal();
@@ -456,7 +505,10 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
       name: n,
       note: nota.get(),
       nightly_eur: parseNum(diaria.get()),
-      nights: parseInt10(noites.get()),
+      // `nights` continua na tabela e nasce NULL: as noites saem das datas
+      // desde 09/09 (decisao dele), e um numero aqui so poderia discordar
+      // delas. A coluna nao vale um SQL para tirar.
+      nights: null,
       total_eur: parseNum(total.get()),
       address: endereco.get(),
       check_in: entrada.get(),
@@ -472,7 +524,7 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
       setErro('Não consegui salvar esta opção. Nada do que você escreveu se perdeu — tente de novo, e se insistir, me chame.');
       return;
     }
-    for (const c of [nome, endereco, link, diaria, noites, entrada, saida, total, nota]) c.limpar();
+    for (const c of [nome, endereco, link, diaria, entrada, saida, total, nota]) c.limpar();
     setAberto(false);
   };
 
@@ -519,16 +571,11 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
               aria-label="diária cheia em euros"
             />
           </div>
+          {/* O campo "quantas noites" SAIU (09/09): as noites vem das
+              datas. A dica do roteiro fica, e agora ela e a unica coisa
+              nesta coluna — e o numero com que ele compara. */}
           <div className="fld">
-            <label>Quantas noites</label>
-            <input
-              ref={(el) => { noites.ref.current = el; }}
-              type="text"
-              inputMode="numeric"
-              className="pv"
-              placeholder="noites"
-              aria-label="noites"
-            />
+            <label>Noites, pelo roteiro</label>
             <DicaNoites city={city} />
           </div>
         </div>
@@ -537,8 +584,7 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
             <label>Check-in</label>
             <input
               ref={(el) => { entrada.ref.current = el; }}
-              type="text"
-              placeholder="ex. dia 12 - 15h"
+              type="date"
               aria-label="check-in"
             />
           </div>
@@ -546,8 +592,7 @@ function Acrescentar({ city, proximaPos }: { city: string; proximaPos: number })
             <label>Check-out</label>
             <input
               ref={(el) => { saida.ref.current = el; }}
-              type="text"
-              placeholder="ex. dia 16 - 11h"
+              type="date"
               aria-label="check-out"
             />
           </div>

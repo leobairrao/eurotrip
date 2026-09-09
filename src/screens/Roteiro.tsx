@@ -131,6 +131,12 @@ export default function Roteiro() {
                   {shortDt(bk.from)} → {shortDt(bk.to)} · {bk.n}{bk.n > 1 ? ' dias' : ' dia'} ·
                   {' '}clique num dia para ver o itinerário
                 </div>
+                {/* POR ONDE ELE PASSA saindo desta base (09/09). Pedido
+                    dele: a aba deixa de falar so das cidades de dormir.
+                    Sai das ATRACOES que ele pos nos dias — nao da minha
+                    sugestao de bate-volta, que e outro texto e vive na
+                    tabela do Painel. */}
+                <Passa cidades={C.cidadesDoBloco(s, bk)} />
               </div>
               <div className="b">
                 {ISOS.slice(ISOS.indexOf(bk.from), ISOS.indexOf(bk.to) + 1).map((iso) => (
@@ -158,6 +164,12 @@ export default function Roteiro() {
       )}
     </>
   );
+}
+
+/** "passa por Trier, Estrasburgo" — no cabecalho do bloco. */
+function Passa({ cidades }: { cidades: string[] }) {
+  if (!cidades.length) return null;
+  return <div className="dpassa">passa por {cidades.join(', ')}</div>;
 }
 
 // ============================================================
@@ -220,6 +232,7 @@ function DiaLinha({ iso }: { iso: string }) {
   const base = (d?.base ?? '').trim();
   const plano = (d?.plan ?? '').trim();
   const av = C.alertaDoDia(s, iso);
+  const passa = C.cidadesDoDia(s, iso);
 
   return (
     <div
@@ -233,11 +246,25 @@ function DiaLinha({ iso }: { iso: string }) {
     >
       <div className="dt"><b>{shortDt(iso)}</b><i>{wdOf(iso)}</i></div>
       <div>
+        {/* O DIA LIDERA PELA CIDADE ONDE ELE VAI, e nao pela cama (09/09).
+            Ele escolheu esta estrutura vendo o desenho: o bloco continua
+            sendo a base, e cada dia diz por onde passa. Sem atracao no dia
+            nao ha o que liderar, e a linha volta a ser a de antes. */}
+        {passa.length ? <h4 className="dcid">{passa.join(' · ')}</h4> : null}
         {base ? null : <h4>— sem base</h4>}
         {plano
           ? <p>{d?.plan}</p>
           : <p style={{ color: 'var(--muted)' }}>clique para ver o dia</p>}
         <DiaTags iso={iso} />
+        {/* A CAMA NO FIM DA LISTA, junto das atracoes, trechos e comidas —
+            a inversao que ele pediu: "as cidades que vou dormir vao
+            aparecer no fim da lista". Ela nao se edita aqui: quem manda e
+            a hospedagem marcada, e o campo do cartao do dia e o que sobra.
+            Dois lugares editando a mesma coisa foi o problema do DiaTags
+            em 07/09. */}
+        {base ? (
+          <div className="dcama">🛏️ durmo em <b>{base}</b></div>
+        ) : null}
         {(() => {
           const { feitas, total } = D.feitasDoDia(s, iso);
           return total ? <div className="dfeitas">{feitas} de {total} feitas</div> : null;

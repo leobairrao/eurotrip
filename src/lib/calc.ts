@@ -6,7 +6,7 @@
 import {
   BASEOUT, CO, CT, ESTIM_EUR, ISOS, STORD, TKORD, FKORD, VOO, coOf, CIDADES_FIXAS,
 } from '@/content';
-import { brl, eur, norm, num, saveMonths } from './fmt';
+import { brl, eur, isData, norm, num, saveMonths } from './fmt';
 import { AK_PADRAO } from './types';
 import type { Attraction, Aviso, Contribution, DayItem, Food, Leg, Snapshot, Status, Who } from './types';
 
@@ -376,11 +376,137 @@ export const staysOf = (s: Snapshot, city: string) =>
 export const stayChosen = (s: Snapshot, city: string) =>
   s.stayOptions.find((o) => o.city === city && o.chosen);
 
+// ============================================================
+// A CAMA VEM DA HOSPEDAGEM  (09/09/2026)
+//
+// Ideia dele, e ela inverte de onde vem a base do dia: "pegar a hospedagem
+// que esta paga para aquele dia (na aba hospedagem) e atribuir
+// automaticamente como a base daquele dia... quando eu selecionar um (com
+// uma checkbox de escolhido na aba hospedagens) ele vai pegar a data e
+// automaticamente vai incluir no roteiro".
+//
+// PARA ISSO AS DATAS TIVERAM QUE VIRAR DATAS. Ate hoje `check_in` e
+// `check_out` eram TEXTO LIVRE ("ex. dia 12 - 15h"), e nao ha faixa de dias
+// que se tire disso.
+// ============================================================
+
+/**
+ * Os dias que uma opcao de hospedagem COBRE: do check-in ate a VESPERA do
+ * check-out, e so os que existem nos 34 dias da viagem.
+ *
+ * A VESPERA E A CONTA QUE SE ERRA. Na manha do check-out ele ja nao dorme
+ * la: entrar no dia 19 e sair no 26 sao SETE noites (19 a 25), nao oito.
+ * Errar isto rouba ou da uma noite em cada uma das 7 bases, e o rodape
+ * "32 dias em terra + 2 de voo = 34" para de fechar.
+ *
+ * Data que nao e data devolve lista vazia — e o caso de todo dado escrito
+ * antes de 09/09, quando o campo era texto livre.
+ */
+export function diasDaOpcao(o: { check_in: string; check_out: string }): string[] {
+  const de = String(o.check_in ?? '');
+  const ate = String(o.check_out ?? '');
+  // `ate <= de` e REDUNDANTE com o filtro abaixo (`iso >= de && iso < ate`
+  // ja devolve vazio quando a saida vem antes da entrada, e quando as duas
+  // sao o mesmo dia). Fica como declaracao de intencao, e a sabotagem de
+  // 09/09 mostrou que nenhum teste a distingue — ninguem depois de mim
+  // deve achar que ela e o que segura o caso.
+  if (!isData(de) || !isData(ate) || ate <= de) return [];
+  // Comparacao de STRING, e nao de Date: 'YYYY-MM-DD' ordena igual em
+  // texto, e `new Date('2026-12-19')` traz fuso para dentro de uma conta
+  // que nao tem hora nenhuma.
+  return ISOS.filter((iso) => iso >= de && iso < ate);
+}
+
+/** Quantas noites a opcao vale. Sai das DATAS, e nao do campo digitado. */
+export const noitesDaOpcao = (o: { check_in: string; check_out: string }) =>
+  diasDaOpcao(o).length;
+
+/**
+ * As opcoes JA MARCADAS que pisam nos mesmos dias de `nova`.
+ *
+ * Decisao dele: "O app recusa e avisa". Sem isto, um erro de digitacao na
+ * data mudaria a base de dias de outra cidade sem ele notar.
+ *
+ * ENCOSTAR NAO E SOBREPOR: sair de Madrid no dia 19 e dormir em Metz no dia
+ * 19 e o caso normal de trocar de cidade, e recusar isso travaria a viagem
+ * inteira. E por isso que `diasDaOpcao` para na vespera — a comparacao aqui
+ * e de conjuntos de dias, nao de datas de entrada e saida.
+ */
+export function opcoesQueBatem(
+  s: Snapshot,
+  nova: { id: string; check_in: string; check_out: string },
+) {
+  const dias = new Set(diasDaOpcao(nova));
+  if (!dias.size) return [];
+  return s.stayOptions.filter(
+    (o) => o.chosen && o.id !== nova.id && diasDaOpcao(o).some((d) => dias.has(d)),
+  );
+}
+
+/**
+ * A hospedagem MARCADA que cobre um dia — ou `null`.
+ *
+ * E o que o cartao do dia usa para avisar de onde vem a base: sem isso, ele
+ * editaria o campo a mao num dia que a hospedagem manda, e os dois
+ * discordariam em silencio ate alguem remarcar a opcao.
+ */
+export function hospedagemDoDia(s: Snapshot, iso: string) {
+  return s.stayOptions.find((o) => o.chosen && diasDaOpcao(o).includes(iso)) ?? null;
+}
+
+/**
+ * AS CIDADES QUE ELE PASSA num dia, sem a base. A inversao que ele pediu em
+ * 09/09: "nela aparece as cidades que vou passar e as cidades que vou
+ * dormir vao aparecer no fim da lista".
+ *
+ * Sai da ATRACAO, a unica linha do banco com cidade e dia — comida guarda
+ * pais, transporte nao guarda lugar. E a mesma fonte de `cidadesVisitadas`,
+ * entao os dois numeros nunca podem discordar.
+ *
+ * A BASE SAI POR NOME NORMALIZADO. `day.base` e texto livre que ELE
+ * escreve ("Metz", "metz", "Amsterdã"); a atracao guarda a CHAVE
+ * ("amsterda"). Comparar cru faria a base aparecer como cidade de passagem
+ * justamente nos dias em que ele faz algo na propria base — e ninguem
+ * olharia o dia 22 de Metz desconfiando disso.
+ */
+export function cidadesDoDia(s: Snapshot, iso: string): string[] {
+  const base = norm((s.days[iso]?.base ?? '').trim());
+  const vistas = new Set<string>();
+  for (const a of s.attractions) {
+    if (a.day_iso !== iso) continue;
+    const nome = nomeCidade(s, a.city);
+    if (norm(nome) === base || norm(a.city) === base) continue;
+    vistas.add(nome);
+  }
+  return [...vistas].sort((x, y) => x.localeCompare(y, 'pt-BR'));
+}
+
+/** As cidades que um BLOCO passa: a uniao dos dias dele. */
+export function cidadesDoBloco(s: Snapshot, b: { from: string; to: string }): string[] {
+  const de = ISOS.indexOf(b.from);
+  const ate = ISOS.indexOf(b.to);
+  const vistas = new Set<string>();
+  for (let i = de; i <= ate && i >= 0; i++)
+    for (const c of cidadesDoDia(s, ISOS[i])) vistas.add(c);
+  return [...vistas].sort((x, y) => x.localeCompare(y, 'pt-BR'));
+}
+
 /** total_eur se preenchido e > 0, SENAO nightly_eur x nights (regra 5.7). */
-export function stayValor(o: { total_eur: number | null; nightly_eur: number | null; nights: number | null }): number {
+
+export function stayValor(o: {
+  total_eur: number | null; nightly_eur: number | null; nights: number | null;
+  check_in?: string; check_out?: string;
+}): number {
   const t = num(o.total_eur);
   if (t) return t;
-  return num(o.nightly_eur) * num(o.nights);
+  // AS NOITES SAEM DAS DATAS desde 09/09, e nao mais do campo `nights`.
+  // Decisao dele. A opcao que ele tinha gravado dizia "3 noites" com as
+  // duas datas iguais — impossivel, e ninguem via. Sem datas validas nao
+  // ha noite, e a diaria sozinha nao vira total: um numero de diaria sem
+  // saber quantas noites nao e um custo, e chutar 1 esconderia o resto.
+  return num(o.nightly_eur) * noitesDaOpcao({
+    check_in: o.check_in ?? '', check_out: o.check_out ?? '',
+  });
 }
 
 /** O que a cidade custa: SO a opcao marcada. */
