@@ -42,10 +42,17 @@ aparece na aba Atrações no mesmo instante porque **é a mesma linha do banco**
 cópia. O seletor de cidade também **cria cidade**, e ela nasce antes da atração, senão a
 atração apontaria para o vazio.
 
-**O 📌 item livre não tem mais como ser criado** (decisão dele, no fim de 08/09: *"não
-precisa ter tantos campos… não vai ter airbnb aí"*). A tabela `day_item`, a linha da aba
-Custos e o tratamento em `dia.ts` e `Ordem.tsx` continuam de pé e corretos — só não há
-formulário. Se um dia ele quiser de volta, é um `.addrow` novo em `Acrescentar.tsx`.
+**O 📌 item livre ACABOU, e é decisão dele — não conserte isso.** Ele pediu a linha em
+06/09 (*check-in no Airbnb*, *lavanderia*), escolheu mantê-la quando perguntei em 08/09, e
+então viu a tela pronta e mudou: *"não precisa ter tantos campos… não vai ter airbnb aí"*.
+Perguntado de novo depois, com o que a linha fazia por escrito: *"não precisa da saída
+livre mesmo"*.
+
+A maquinaria continua de pé de propósito — a tabela `day_item`, a linha de leitura da aba
+Custos, e o tratamento em `dia.ts` e `Ordem.tsx`. Ela é barata, está correta, e desmontá-la
+custaria SQL. **O que não existe é o formulário**, e é assim que ele quer. Se um dia fizer
+falta, o caminho combinado é uma quarta gaveta em `Acrescentar.tsx` — fechada, como as
+outras três — e não uma segunda linha de escrever à vista, que foi o que incomodou.
 
 **A lista de oito coisas que ele pediu em 06/09 está toda no ar.** A lista, com o que ele
 disse em cada item e o que foi decidido, está em
