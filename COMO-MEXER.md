@@ -10,6 +10,60 @@ manda. Ela é a fonte; isto é o mapa.
 ---
 ## 0. Onde eu parei — 09/09/2026
 
+### ⚠️ O SQL 11 ESTÁ ESPERANDO ELE, E NADA DE "COMPRO ANTES" FUNCIONA ANTES DISSO
+
+`supabase/11-comprar-antes.sql` — **oito colunas, quatro tabelas**, e ele é quem roda.
+**Não publique antes dele rodar:** o código já está no `main` e clicar na etiqueta
+*compro antes* dá recusa permanente de escrita (a coluna não existe), que é o modo de
+falha que a seção sobre `escrita.ts` descreve. O `+` de transporte em Sugestões também
+para, porque o insert passa `buy_ahead`.
+
+Confira se já rodou com um script de duas linhas no diretório do projeto (`select`
+numa coluna nova; erro = falta). As oito: `leg.buy_ahead`, `attraction.buy_ahead`,
+`attraction.ahead_days`, `food.price_eur`, `attraction.spent_eur`, `food.spent_eur`,
+`leg.spent`, `day_item.spent`.
+
+**O desenho inteiro, com as palavras dele, está em
+[`docs/superpowers/specs/2026-09-09-comprar-antes-design.md`](docs/superpowers/specs/2026-09-09-comprar-antes-design.md).**
+Leia de lá antes de mexer em qualquer número de dinheiro.
+
+### As três perguntas do dinheiro, e por que somar as três dá errado
+
+| Número | Onde | O que responde |
+|---|---|---|
+| **total pago** | Painel | o que ele comprou **antes** e já pagou |
+| **total estimado** | Painel | **dinheiro na mão**: *"o quanto vou ter que levar para viver lá"* |
+| **gasto de verdade** | Custos | o que **saiu do bolso**, no valor real — a resposta de *"no final da viagem quero saber o total de todas as coisas"* |
+
+**Comida entra no estimado e no gasto, e NÃO no custo total da viagem** (decisão dele
+de 09/09): a linha de comida da aba Custos já cobre isso, e somar as duas contaria o
+mesmo dinheiro duas vezes.
+
+### As duas confusões desta etapa, e as duas são de uma letra
+
+- **`buy_ahead` é INTENÇÃO; `bought`/`paid` é ESTADO.** As duas moram na mesma linha.
+  O par que enche o "o que ainda está aberto" é `buy_ahead` sim + `bought` não. Ler uma
+  no lugar da outra **compila limpo e dá um número plausível** — há teste com os cinco
+  casos e guard na tela.
+- **`spent` é o real; `price_eur`/`amount` é o planejado.** Toda leitura de valor é
+  `spent ?? planejado`, e é **`??` e não `||`**: o passeio que ele achava que custava
+  € 20 e no fim era de graça vale **0**, não 20.
+
+**`null` é "ainda não aconteceu", e não zero.** Com `default 0` as 34 linhas não gastas
+somariam igual e o total do fim da viagem nasceria completo.
+
+### O que ainda não existe do "gasto real"
+
+As colunas nascem no SQL 11, mas **não há tela onde ele digite o valor real**. A onda 2
+é a tela de **conferir o dia** — o exemplo dele é literal: *"das atrações do dia 11
+estava planejado gastar 22E em um passeio e 25E na alimentação, o passeio foi 22E (dou
+um check) mas a alimentação foi 30E (devo colocar o novo valor)"*. O combinado: o check
+é a **caixinha que já existe**, e marcar **preenche o real com o planejado** — um clique
+no caso comum. **Não precisa de SQL novo.**
+
+`calc.ts` já tem `gastoSides`, `gastoSidesDoDia` e `gastoTotalBrl` prontos e testados.
+
+
 **O TRABALHO EM CURSO É A LISTA DELE**, em
 [`docs/2026-09-08-melhorias-do-leo.md`](docs/2026-09-08-melhorias-do-leo.md) — um PDF de
 cinco páginas que ele mandou no fim de 08/09, transcrito. Ele foi explícito sobre como
@@ -100,7 +154,7 @@ decisões tomadas durante a execução, com o que custa se cada uma estiver erra
 precisava acontecer antes da etapa 2 — o `DiaTags` sendo uma segunda implementação do dia —
 **foi resolvida em 07/09**.
 
-`npm test` **186/186** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+`npm test` **202/202** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro
