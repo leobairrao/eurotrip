@@ -901,3 +901,35 @@
   color: var(--rust);
   margin-top: 14px;
 }
+
+/* ------------------------------------------------------------
+   O RASCUNHO DO ROTEIRO, no Painel  (09/09/2026)
+
+   Pedido dele: "um campo personalizável a mão para eu deixar por enquanto
+   para eu me guiar criando o roteiro (ele pode ter até um botão de mostrar
+   e esconder)". A tabela acima é fato (o que ele reservou); isto é o
+   rascunho dele, e fecha com um clique.
+   ------------------------------------------------------------ */
+.rasc { margin-top: 18px; border-top: 1px solid var(--hairline-2); padding-top: 14px; }
+.rascbt {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  min-height: 24px;
+  cursor: pointer;
+}
+.rascbt:hover { color: var(--ink); }
+/* quantas linhas ele já escreveu, quando o bloco está fechado */
+.rascn {
+  font-family: var(--mono);
+  font-size: 10px;
+  margin-left: 8px;
+  padding: 1px 6px;
+  background: var(--pine);
+  color: var(--ground);
+}

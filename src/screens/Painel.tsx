@@ -5,6 +5,8 @@
 // a mao, sai do que ele marcou nas outras abas.
 // ============================================================
 import { ISOS, STAYS } from '@/content';
+import { useState } from 'react';
+import Avisos from '@/components/Avisos';
 import { Inline } from '@/components/Field';
 import { useApp } from '@/lib/store';
 import * as C from '@/lib/calc';
@@ -154,6 +156,7 @@ export default function Painel() {
         </div>
         <div className="b">
           <TabelaRoteiro />
+          <MeuRascunho />
         </div>
       </div>
 
@@ -164,6 +167,49 @@ export default function Painel() {
           A constante DECISOES saiu de src/content junto. */}
       <Pendencias />
     </>
+  );
+}
+
+/**
+ * O MEU RASCUNHO DO ROTEIRO — o campo a mao que ele pediu (09/09, tarde).
+ *
+ * "eu quero que tenha um campo personalizavel a mao para eu deixar por
+ * enquanto para eu me guiar criando o roteiro (ele pode ter ate um botao de
+ * mostrar e esconder)".
+ *
+ * A tabela de cima e FATO (as estadias reservadas) e hoje esta vazia. Isto
+ * e o lugar dele escrever o que quiser enquanto monta a viagem — e some com
+ * um clique quando incomodar.
+ *
+ * SEM SQL: usa o mesmo `Avisos` das outras dez chamadas do app, com um
+ * `spot` proprio (`painel:roteiro`). Ele ja conhece esse mecanismo do "+
+ * aviso" de Atracoes e Hospedagem: escreve, edita, apaga, e aparece no
+ * outro navegador na hora.
+ */
+function MeuRascunho() {
+  const { s } = useApp();
+  const quantos = C.avisosDe(s, 'painel:roteiro').length;
+  // Nasce ABERTO se ele ja escreveu algo, e fechado se nao: assim o Painel
+  // nao ganha um bloco vazio para quem nunca usar, e nunca esconde o que
+  // ele escreveu.
+  const [aberto, setAberto] = useState(quantos > 0);
+
+  return (
+    <div className="rasc">
+      <button type="button" className="rascbt" onClick={() => setAberto(!aberto)}>
+        {aberto ? '−' : '+'} o meu rascunho do roteiro
+        {!aberto && quantos ? <span className="rascn">{quantos}</span> : null}
+      </button>
+      {aberto ? (
+        <>
+          <p className="mono foot">
+            Escreva aqui o roteiro do jeito que você está pensando. Isto é só seu, não entra
+            em conta nenhuma, e a tabela acima continua mostrando o que você <b>reservou</b>.
+          </p>
+          <Avisos spot="painel:roteiro" rotulo="linha do rascunho" />
+        </>
+      ) : null}
+    </div>
   );
 }
 

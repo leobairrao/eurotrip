@@ -1028,3 +1028,24 @@ test('a cama sai da RESERVA, e o plano nunca vira "durmo em"', () => {
   const copias = (calc.match(/tr\[âa\]nsito/g) ?? []).length;
   assert.equal(copias, 1, `o regex de transito tem ${copias} copias em calc.ts, e e uma so`);
 });
+
+test('o rascunho do roteiro no Painel e DELE, e nao inventa tabela nova', () => {
+  // Pedido dele de 09/09: "um campo personalizavel a mao para eu deixar por
+  // enquanto para eu me guiar criando o roteiro (ele pode ter ate um botao
+  // de mostrar e esconder)".
+  //
+  // Usa o `Avisos` que ja serve dez lugares do app, com um spot proprio —
+  // sem tabela nova, sem SQL, e ele ja conhece o mecanismo. Uma tabela nova
+  // aqui custaria SQL e um segundo lugar guardando texto livre dele.
+  const src = readFileSync(join(RAIZ, 'src/screens/Painel.tsx'), 'utf8');
+  assert.match(src, /<Avisos spot="painel:roteiro"/, 'o rascunho saiu do Painel');
+  assert.match(src, /setAberto\(!aberto\)/, 'o botao de mostrar e esconder saiu');
+
+  // E ele NAO pode se misturar com a tabela de cima, que e fato: a tabela
+  // mostra o que ele RESERVOU, e o rascunho e o que ele esta pensando.
+  const tab = src.match(/function TabelaRoteiro\(\)[\s\S]*?\n}/);
+  assert.ok(tab, 'nao achei a TabelaRoteiro');
+  assert.doesNotMatch(tab[0], /Avisos|rascunho/,
+    'o rascunho entrou na tabela dos fatos');
+  assert.match(tab[0], /C\.baseList\(s\)/, 'a tabela parou de ler as estadias reservadas');
+});
