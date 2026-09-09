@@ -8,157 +8,106 @@ Se este arquivo e a [`ESPECIFICACAO.md`](ESPECIFICACAO.md) discordarem, a especi
 manda. Ela é a fonte; isto é o mapa.
 
 ---
-## 0. Onde eu parei — 09/09/2026
+## 0. Onde eu parei — 09/09/2026, fim da tarde
 
-### O SQL 11 ESTÁ RODADO (ele rodou em 09/09), e as oito colunas existem
+**Sessão longa: 12 commits, tudo publicado e conferido no site.** Ele mexeu no app o dia
+inteiro e apontou defeitos na tela — leia daqui e do
+[`docs/2026-09-08-melhorias-do-leo.md`](docs/2026-09-08-melhorias-do-leo.md), que é a lista
+dele e tem a tabela do que já saiu.
 
-`supabase/11-comprar-antes.sql` — **oito colunas, quatro tabelas**: `leg.buy_ahead`,
-`attraction.buy_ahead`, `attraction.ahead_days`, `food.price_eur`,
-`attraction.spent_eur`, `food.spent_eur`, `leg.spent`, `day_item.spent`.
+### ⚠️ O QUE ELE QUER ARRUMAR NA PRÓXIMA SESSÃO
 
-**Conferido pelo lado de fora depois de rodar**, e a ESCRITA também: marquei a etiqueta
-*comprar antes* na Ávila pelo app, escrevi prazo de 30 dias e pus € 25,50 num
-restaurante — os três chegaram no banco (`buy_ahead: true`, `ahead_days: 30`,
-`price_eur: 25.5`, com os centavos). Desfeito tudo depois; o `npm run check` voltou a
-bater.
+**"antes quero arrumar a questão do airbnb que fizemos e ainda não ficou 100%".** Ele não
+disse o que falta — **pergunte antes de mexer.** O que eu enxergo como candidato, para você
+não começar às cegas:
 
-**Se um dia precisar conferir de novo:** um script de duas linhas no diretório do
-projeto (`select` numa coluna nova; erro = falta). O `@supabase/supabase-js` só resolve
-de dentro do projeto — de `/tmp` ele não acha o pacote.
+1. **Nada disso foi exercitado de verdade.** Ele ainda não marcou nenhum airbnb com datas
+   reais, então "a cama vem da reserva" está provado só em teste. A única opção no banco é
+   dado de teste dele ("Casa Sambaqui", endereço em Sambaqui, R$ 12 de total).
+2. **O "0 de 7" da Hospedagem e da Tabela 3 do Painel ainda sai do meu arquivo** (`STAYS`,
+   7 cidades), enquanto o roteiro passou a sair da reserva. São duas fontes para a mesma
+   pergunta, e é o tipo de coisa que ele nota.
+3. **A dica de noites** (`DicaNoites`) passou a ler o PLANO e conta DIAS, mas o rótulo do
+   formulário de acrescentar ainda diz "Noites, pelo roteiro".
+4. **Duas marcadas na mesma cidade agora podem** (Madrid duas vezes), e o cabeçalho da
+   cidade lista as duas ("fechou: X e Y"). Pode ficar estranho com três.
+5. A tabela `stay` continua aposentada e carregada.
 
-**O desenho inteiro, com as palavras dele, está em
-[`docs/superpowers/specs/2026-09-09-comprar-antes-design.md`](docs/superpowers/specs/2026-09-09-comprar-antes-design.md).**
-Leia de lá antes de mexer em qualquer número de dinheiro.
+### O QUE MUDOU DE MODELO HOJE, e é o que não se adivinha
 
-### As três perguntas do dinheiro, e por que somar as três dá errado
+**ESTADIA (fato) vs PLANO (dele)** — a inversão que ele pediu depois de ver o app afirmando
+onde ele dormia numa cidade que não escolheu (*"aqui você já está colocando onde vou dormir,
+sendo que nem escolhi o airbnb"*):
 
-| Número | Onde | O que responde |
+| | de onde vem | manda em |
 |---|---|---|
-| **total pago** | Painel | o que ele comprou **antes** e já pagou |
-| **total estimado** | Painel | **dinheiro na mão**: *"o quanto vou ter que levar para viver lá"* |
-| **gasto de verdade** | Custos | o que **saiu do bolso**, no valor real — a resposta de *"no final da viagem quero saber o total de todas as coisas"* |
+| **ESTADIA** | `stay_option` marcada, com check-in/check-out | o bloco do Roteiro, a cama do dia, as noites, a tabela do Painel |
+| **PLANO** | `day.base` (texto livre) e a tabela `plan_row` | **nada** |
 
-**Comida entra no estimado e no gasto, e NÃO no custo total da viagem** (decisão dele
-de 09/09): a linha de comida da aba Custos já cobre isso, e somar as duas contaria o
-mesmo dinheiro duas vezes.
+- `C.estadias(s)` são as reservas; `C.roteiroEmOrdem(s)` intercala estadia e dias soltos por
+  data; `C.planoBlocos(s)` é o plano do `day.base` e só alimenta a dica da Hospedagem.
+- **`day.base` AINDA TEM A MINHA SEMENTE nos 34 dias**, e ele mandou esperar: *"espera eu
+  ver funcionando"*. Ela aparece como `▸ plano: Cáceres`, discreta. **Quando ele autorizar,
+  apague com cópia antes** — é o mesmo caso das 128 linhas de 06/09.
+- `plan_row` (SQL 12) é a tabela do Painel que ele escreve à mão: 8 linhas, 32 dias. Ele
+  PEDIU que eu a preenchesse; não é semente entrando de fininho.
+- **"32 dias em terra + 2 de voo = 34" agora sai de `DIAS_DE_VOO` em `src/content`.** Era
+  deduzido da palavra "em trânsito" da minha semente — com as bases vindo da reserva, zero
+  reservas daria "os 34 dias são de voo".
+- A regra do `nt = d - 1` na última base **morreu**: ela existia porque as noites saíam de
+  dias de calendário.
 
-### As duas confusões desta etapa, e as duas são de uma letra
+### DOIS SQL RODADOS HOJE por ele: 11 e 12
 
-- **`buy_ahead` é INTENÇÃO; `bought`/`paid` é ESTADO.** As duas moram na mesma linha.
-  O par que enche o "o que ainda está aberto" é `buy_ahead` sim + `bought` não. Ler uma
-  no lugar da outra **compila limpo e dá um número plausível** — há teste com os cinco
-  casos e guard na tela.
-- **`spent` é o real; `price_eur`/`amount` é o planejado.** Toda leitura de valor é
-  `spent ?? planejado`, e é **`??` e não `||`**: o passeio que ele achava que custava
-  € 20 e no fim era de graça vale **0**, não 20.
+- **11-comprar-antes** — oito colunas: `buy_ahead` (leg, attraction), `ahead_days`
+  (attraction), `food.price_eur`, e o gasto real (`spent_eur` em attraction/food, `spent` em
+  leg/day_item). Conferido por fora, e a ESCRITA provada no app.
+- **12-o-meu-plano-do-roteiro** — a tabela `plan_row` com as 8 linhas. Conferida por fora.
 
-**`null` é "ainda não aconteceu", e não zero.** Com `default 0` as 34 linhas não gastas
-somariam igual e o total do fim da viagem nasceria completo.
+**Os três números do dinheiro, e somar os três dá errado de propósito:** `pagoBrl` (comprei
+antes), `estimadoBrl` (**dinheiro na mão** — comida entra), `gastoTotalBrl` (o que saiu do
+bolso, na aba Custos). Comida NÃO entra no `totalBrl` — decisão dele, para não contar duas
+vezes com a linha de Custos.
 
-### O que ainda não existe do "gasto real"
+### AS ARMADILHAS DE UMA LETRA que nasceram hoje
 
-As colunas nascem no SQL 11, mas **não há tela onde ele digite o valor real**. A onda 2
-é a tela de **conferir o dia** — o exemplo dele é literal: *"das atrações do dia 11
-estava planejado gastar 22E em um passeio e 25E na alimentação, o passeio foi 22E (dou
-um check) mas a alimentação foi 30E (devo colocar o novo valor)"*. O combinado: o check
-é a **caixinha que já existe**, e marcar **preenche o real com o planejado** — um clique
-no caso comum. **Não precisa de SQL novo.**
+- **`buy_ahead` é INTENÇÃO; `bought`/`paid` é ESTADO.** Moram na mesma linha. O par que
+  enche o "o que ainda está aberto" é `buy_ahead` sim + `bought` não.
+- **`spent` é o real; `price_eur`/`amount` o planejado.** Toda leitura é `spent ?? planejado`,
+  com **`??` e não `||`** — um gasto real de ZERO é correção dele.
+- **`stayChosen` devolve UMA; use `stayChosenAll` para dinheiro e contagem.** Ele dorme em
+  **Madrid duas vezes**, e até hoje `stayTotal` lia só a primeira: o custo da segunda estadia
+  desaparecia do total sem nada na tela. A regra virou uma por FAIXA DE DATAS.
 
-`calc.ts` já tem `gastoSides`, `gastoSidesDoDia` e `gastoTotalBrl` prontos e testados.
+### O BUG QUE ME CUSTOU TRÊS TENTATIVAS, e a lição
 
+`button:active { transform: scale(.97) }` é **global** (identidade.css) e a linha da gaveta
+é um `<button>` de **largura inteira**: 3% de 1229px são 37px, e apertar jogava o rótulo e a
+chave para o centro. **A frase dele tinha a resposta** — *"ela SÓ desloca na hora do
+clique"*, que é literalmente o que `:active` significa.
 
-**O TRABALHO EM CURSO É A LISTA DELE**, em
-[`docs/2026-09-08-melhorias-do-leo.md`](docs/2026-09-08-melhorias-do-leo.md) — um PDF de
-cinco páginas que ele mandou no fim de 08/09, transcrito. Ele foi explícito sobre como
-usar: *"escrevi de uma forma que eu entendi, mas vamos debater muito para construir tudo
-que está aí"* — é intenção, não especificação, e é para ir aos poucos. Quatro itens de lá
-provavelmente pedem **SQL**, e ele é quem roda.
+**Eu publiquei DOIS palpites antes de ler as fotos dele com atenção** (`scrollbar-gutter` e
+trocar o flex por grade). Os dois consertam defeitos reais e ficaram — mas o certo era
+comparar as duas fotos antes de subir qualquer coisa. **Se um dia nascer outro botão de
+largura inteira, ele precisa de `:active { transform: none }`** ou o scale global faz o mesmo
+estrago.
 
-**O BLOCO DE LIMPEZA DE TELA SAIU EM 09/09.** O que mudou está na tabela no alto da
-transcrição; em uma linha: as frases miúdas do Painel, o cartão *Decisões de roteiro*, o
-rodapé da tabela do roteiro, os cinco contadores da legenda, o bloco *"10 blocos · 34
-dias"*, o destaque do "apagar esta cidade" — e as **frases grandes de abertura das 11
-abas**, que ele mandou tirar na conversa. Nenhuma delas mexeu em dado, e há **seis guards**
-em `telas.test.mjs` para nenhuma voltar sozinha (todos sabotados).
+### Provas e não-provas
 
-**O número novo é "Cidades visitadas", e a regra dele não é óbvia:** visitada = metade ou
-mais das atrações daquela cidade **que estão num dia** marcadas como feitas; o total são as
-cidades que têm atração num dia. Está em `cidadesVisitadas`, em `calc.ts`, e o `check.mjs`
-refaz a conta à mão de propósito — se as duas discordarem, uma está errada.
-**A conta NÃO sai da base do dia**, e é isso que se erra: ele *"dorme em 7 cidades mas
-passa por umas 15"*, e a base do dia só conhece as 7. A atração é a única linha do banco
-com cidade e dia ao mesmo tempo.
+**Provado no app de verdade**, com dado criado e apagado depois: a etiqueta *comprar antes*
+com prazo, o € da comida (centavos inteiros), a atração de Trier no dia 21 virando "passa
+por Trier". **E o celular:** *"a visualização está perfeita no celular"* — a prova que
+faltava desde 06/09.
 
-**A coisa que ele nomeou e que ainda não existe:** *o app confunde "onde durmo" com "onde
-passo"*. Trier é *"um dos dias que estaremos hospedados em Metz"*, e hoje o dia só tem
-`base`. É a próxima conversa, e ela atravessa os itens do Roteiro da lista dele.
+**Sem prova:** a hospedagem escrevendo o Roteiro (ele nunca marcou uma com datas), e o tempo
+real de `city`.
 
-**Meio-passo consciente em Atrações:** o "apagar esta cidade" perdeu o vermelho, mas o
-pedido inteiro dele é **lixeira em TODA cidade com `CONFIRMAR` digitado**, e isso ainda não
-existe. Falta porque apagar uma cidade **fixa** é decisão de dado: ela vem do arquivo de
-conteúdo e voltaria no F5.
+**O navegador caiu no meio da sessão** (a extensão do Chrome desconectou) e não voltou. A
+partir dali eu passei a depender dos prints dele — e foi aí que eu chutei duas vezes.
 
-
-**A ETAPA 2 DO ROTEIRO ESTÁ NO AR.** Clicar num dia e apertar `editar` abre três cartões,
-não mais quatro: *o dia*, **a ordem do dia** (uma lista só com atração, trecho, comida e
-item livre juntos, com setas ↑↓ e numeração) e *acrescentar* (o formulário do item livre
-mais três gavetas com os seletores). O que ela entregou, por que cada peça é assim, e as
-armadilhas que ela pagou estão em
-[`docs/superpowers/plans/2026-09-08-roteiro-etapa-2.md`](docs/superpowers/plans/2026-09-08-roteiro-etapa-2.md);
-as decisões dele estão na **seção 12** da
-[spec](docs/superpowers/specs/2026-09-06-roteiro-vista-e-edicao-design.md).
-
-**Três coisas dela que se quebram em silêncio, e valem antes de mexer no Roteiro:**
-
-- **A lista que vai para as setas tem que ser a que está na tela.** `ordem.ts` ordena só
-  por `position`; `dia.ts` desempata por posição, tipo e id. Como tudo nasce empatado em
-  zero, quem decide é a ordem de **entrada** — o `sort` do JS é estável, e é só isso que
-  segura. Lista crua move a linha errada, sem erro nenhum. Passe sempre `D.itensDoDia`.
-- **Todo `+` de um dia escreve `day_pos`.** Sem isso o item novo nasce em zero e vai para
-  o **topo** de um dia já arrumado — a lista parece se desarrumar sozinha e nada explica.
-- **Toda grade `.mrow` com `<select>` precisa da área `cu`.** `estilo-atual.css:311` manda
-  *todo* `.mrow select` para lá; sem a área, o seletor cai numa faixa implícita e a linha
-  desmonta calada.
-- **`inserirLocal` tem que recusar linha repetida** (consertado em 08/09). O `insert` põe a
-  linha quando a promessa volta; o **eco do tempo real** da mesma escrita chega por outro
-  caminho, e se ele chegar primeiro a linha entrava **duas vezes**. Pior do que parece: as
-  duas têm o mesmo id, então apagar "uma" apaga a de verdade e deixa um fantasma até o F5 —
-  ele acharia que perdeu o trabalho. Valia para **todos os formulários do app**.
-
-**E o dia agora registra atração** (08/09, pedido dele): o cartão *acrescentar* tem **uma**
-linha de escrever, no molde da aba Atrações — nome, nota, cidade, tema, € — e a atração
-aparece na aba Atrações no mesmo instante porque **é a mesma linha do banco**, não uma
-cópia. O seletor de cidade também **cria cidade**, e ela nasce antes da atração, senão a
-atração apontaria para o vazio.
-
-**O 📌 item livre ACABOU, e é decisão dele — não conserte isso.** Ele pediu a linha em
-06/09 (*check-in no Airbnb*, *lavanderia*), escolheu mantê-la quando perguntei em 08/09, e
-então viu a tela pronta e mudou: *"não precisa ter tantos campos… não vai ter airbnb aí"*.
-Perguntado de novo depois, com o que a linha fazia por escrito: *"não precisa da saída
-livre mesmo"*.
-
-A maquinaria continua de pé de propósito — a tabela `day_item`, a linha de leitura da aba
-Custos, e o tratamento em `dia.ts` e `Ordem.tsx`. Ela é barata, está correta, e desmontá-la
-custaria SQL. **O que não existe é o formulário**, e é assim que ele quer. Se um dia fizer
-falta, o caminho combinado é uma quarta gaveta em `Acrescentar.tsx` — fechada, como as
-outras três — e não uma segunda linha de escrever à vista, que foi o que incomodou.
-
-**A lista de oito coisas que ele pediu em 06/09 está toda no ar.** A lista, com o que ele
-disse em cada item e o que foi decidido, está em
-[`docs/2026-09-06-lista-do-leo.md`](docs/2026-09-06-lista-do-leo.md) — leia de lá antes de
-mexer em qualquer uma delas.
-
-**Da etapa 1 do Roteiro (07/09) saíram dois arquivos que valem ler antes de mexer nela:**
-[`docs/2026-09-07-o-que-ficou-para-depois.md`](docs/2026-09-07-o-que-ficou-para-depois.md)
-— as treze pendências, com o que vira tarefa, o que é para nunca mexer, e as três que são
-decisão sua (**duas já resolvidas**: a aba Custos em 07/09 e a cor da etiqueta em 08/09); e
-[`docs/2026-09-07-decisoes-da-etapa-1.md`](docs/2026-09-07-decisoes-da-etapa-1.md) — as 33
-decisões tomadas durante a execução, com o que custa se cada uma estiver errada. A que
-precisava acontecer antes da etapa 2 — o `DiaTags` sendo uma segunda implementação do dia —
-**foi resolvida em 07/09**.
-
-`npm test` **217/217** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
+`npm test` **232/232** · typecheck limpo · build limpo com `ƒ Middleware` · `npm run check`
 **verde**.
+
 
 ### A REGRA QUE MANDA AGORA, e que reorganizou o app inteiro
 

@@ -19,44 +19,55 @@ Três coisas saem daí, e valem para quem ler:
 2. **A lista não está fechada** — "ainda tem muitas outras".
 3. **Aos poucos.** Não é para atacar tudo de uma vez.
 
-**O QUE JÁ SAIU, em 09/09/2026** — o bloco de limpeza de tela, que era a ordem
-que eu sugeri e ele aprovou (*"comece por onde achar melhor"*):
+## O BALANÇO DE 09/09/2026 — o que saiu e o que falta
 
-| Item | Onde ele pediu |
+Doze commits, tudo publicado e conferido no site. **Dois SQL rodados por ele:** o 11
+(compro antes + gasto real) e o 12 (a tabela `plan_row` do plano de roteiro).
+
+### ✅ FEITO
+
+| Item da lista dele | O que ficou |
 |---|---|
-| as frases miúdas embaixo dos quatro números do Painel | Tabela 1 |
-| a Tabela 1 com **três** números, e o terceiro é **Cidades visitadas** | Tabela 1 |
-| o texto *"A tabela sai do calendário…"* | Tabela "roteiro" |
-| o cartão **Decisões de roteiro**, e a constante `DECISOES` | Tabela 5 |
-| os cinco contadores escritos da legenda do Roteiro | Aba Roteiro |
-| o bloco *"10 blocos · 34 dias com base de 34"* | Aba Roteiro |
-| o **destaque** do "apagar esta cidade" | Aba Atrações |
-| **e uma que ele acrescentou na conversa:** as frases GRANDES de abertura das 11 abas | — |
-| os **três** números do topo de Atrações: custo real do país (€ grande, R$ embaixo), a **%**, e o que ficou de fora | Atrações, Tabela 1 |
+| **Painel** · tirar as frases miúdas da Tabela 1 | saíram as quatro |
+| **Painel** · Tabela 1 com três números | dias até embarcar · dias de viagem · **cidades visitadas** |
+| **Painel** · "Cidades visitadas" | metade ou mais das atrações **daquela cidade que estão num dia** marcadas como feitas. Sai da ATRAÇÃO, nunca da base do dia (ele dorme em 7 cidades e passa por ~15) |
+| **Painel** · Tabela 2 = pago / estimado / acumulado | os três, e somar os três dá errado de propósito |
+| **Painel** · Tabela 3 "quantos peguei e quanto gastei" | hospedagem · transporte que compra antes · atrações, com a contagem como número grande |
+| **Painel** · a tabela do roteiro, editável | virou duas coisas: as **estadias reservadas** (fato) e a tabela `plan_row` que ele escreve à mão, com mostrar/esconder |
+| **Painel** · retirar o texto "A tabela sai do calendário…" | saiu |
+| **Painel** · as "Decisões de roteiro" deixam de existir | o cartão e a constante `DECISOES` |
+| **Roteiro** · legenda só com ícones | ficaram os dois símbolos e a fita de emojis; saíram os cinco contadores |
+| **Roteiro** · tirar o bloco "10 blocos · 34 dias" | saiu |
+| **Roteiro** · acrescentar cidade de dormir / editar o nome | **já funcionava** — a base do dia é campo livre no banco (a correção da minha nota errada de 08/09) |
+| **Atrações** · os números do topo | custo real do país (€ grande, R$ embaixo) · a **%** sobre o total de atrações · o que ficou de fora. **Os três seguem a bandeira** |
+| **Compro antes vs pago lá** | etiqueta clicável em transporte e atração, mais o **prazo em dias** na atração. Comida ganhou €; reserva ficou de fora (tudo lá é comprado antes por natureza) |
+| **O gasto real** (ele inventou no meio) | as quatro colunas `spent`/`spent_eur` existem, e **gasto de verdade** aparece na aba Custos |
+| **Onde durmo vs onde passo** | o dia lidera pela cidade de visita (sai das atrações), o bloco é a **estadia reservada**, e a cama desceu para a última linha |
+| **11 abas** · as frases grandes de abertura | saíram todas (ele acrescentou este na conversa) |
 
-**Cidades visitadas, a regra que ele deu na conversa de 09/09** — e ela é a coisa
-mais importante desta seção, porque ele reformulou o pedido:
+**Três defeitos que apareceram no caminho e foram consertados:** `parseNum` já estava certo,
+mas o **custo da segunda estadia de Madrid desaparecia do total** (o app só aceitava uma
+hospedagem marcada por cidade); a página **pulava ~15px** quando qualquer bloco abria; e o
+`button:active { scale(.97) }` global **encolhia a linha da gaveta inteira** no clique.
 
-> *"quando o roteiro tiver pronto e eu visitar a cidade, eu assinalar que visitei
-> 50% dos itens da lista da cidade, mas tem um problema, em roteiro só tem as
-> cidades que vou dormir, por exemplo, metz vou dormir mas de lá vou pra
-> estrasburgo, luxemburgo e colônia, assim não vai funcionar, vamos ter que
-> repensar na lógica"* · *"vou dormir em 7 mas passar por umas 15"*
+### ⏳ FALTA
 
-A conta **não sai da base do dia**: sai da **atração**, a única linha do banco com
-cidade e dia ao mesmo tempo (comida guarda país; transporte não guarda lugar).
-Visitada = **metade ou mais** das atrações daquela cidade **que estão num dia**
-marcadas como feitas. O total são as cidades **que têm atração num dia** — decisão
-dele: *"só as que estão num dia de roteiro, afinal são as que vou me propor a
-visitar"*. Está em `cidadesVisitadas`, em `src/lib/calc.ts`, com cinco testes e o
-número espelhado no `npm run check`.
+| Item | Precisa de SQL? |
+|---|---|
+| **O airbnb, que "ainda não ficou 100%"** — é o que ele quer primeiro. Ver a seção 0 do COMO-MEXER: ele não disse o que falta, **pergunte** | a decidir |
+| **Tabela 4** · "o que ainda está aberto" puxando das quatro abas, com o prazo das atrações | **não** — `buy_ahead` e `ahead_days` já existem |
+| **A tela de conferir o dia** · onde ele digita o gasto real, no molde do exemplo do dia 11 | **não** — as colunas já existem |
+| **Roteiro** · arrastar quantos dias fica em cada cidade | **não** — as datas dos 34 dias são fixas; arrastar reescreve a base de uma faixa |
+| **Atrações** · duas cidades de países diferentes com o mesmo nome | **provavelmente sim** — a chave de cidade precisa carregar o país |
+| **Atrações** · lixeira com `CONFIRMAR` em TODA cidade, fixa ou criada | **provavelmente sim** — cidade fixa vem do arquivo e voltaria no F5 |
+| **A coluna "o que sai daqui de bate-volta" editável** | não, se usar um `spot` de aviso por cidade |
+| **O bate-volta virando "roteiro superficial"** | precisa da palavra dele — é a expressão que eu menos entendo da lista |
+| **Apagar a minha semente do `day.base` dos 34 dias** | não — mas com cópia antes, e ele autoriza |
+| **Design** | por último, decisão dele |
 
-**O que ele nomeou e ainda não existe: o app confunde "onde durmo" com "onde
-passo".** Trier entra como *"um dos dias que estaremos hospedados em Metz"*. Hoje o
-dia só tem `base`. É a próxima conversa, e ela atravessa os itens do Roteiro desta
-mesma lista.
+**A lista não está fechada** — *"ainda tem muitas outras"*. As perguntas em aberto que eu
+enxergo estão marcadas **[a debater]** abaixo; são minhas, não dele.
 
-**O resto não começou.** As perguntas em aberto que eu já enxergo estão marcadas
 como **[a debater]** — são minhas, não dele.
 
 ---
